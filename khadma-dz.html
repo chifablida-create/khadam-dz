@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Khadma DZ - الحرف - نهائي</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>*{font-family:'Tajawal',system-ui} .scrollbar-hide::-webkit-scrollbar{display:none}</style>
+</head>
+<body class="bg-[#f8fafc]">
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useRef} = React;
+const WILAYAS=["أدرار","الشلف","الأغواط","أم البواقي","باتنة","بجاية","بسكرة","بشار","البليدة","البويرة","تمنراست","تبسة","تلمسان","تيارت","تيزي وزو","الجزائر","الجلفة","جيجل","سطيف","سعيدة","سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة","وهران","البيض","إيليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة","سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تموشنت","غرداية","غليزان"];
+
+const initialCrafts=[
+{id:1,name:"محمد بوعلام",skill:"كهرباء منزلية",wilaya:"الجزائر",baladiya:"بئر مراد رايس",rating:4.9,jobs:127,points:45,blocked:false,phone:"0798112233",phoneVisible:false},
+{id:2,name:"كريم حداد",skill:"سباكة",wilaya:"وهران",baladiya:"السانية",rating:4.8,jobs:98,points:12,blocked:false,phone:"0798445566",phoneVisible:false},
+];
+const initialReq=[
+{id:1,title:"إصلاح تسرب ماء في المطبخ",skill:"سباكة",wilaya:"الجزائر",baladiya:"بئر مراد رايس",phone:"0551234567",phoneRevealed:false,date:"اليوم"},
+];
+
+function App(){
+const [crafts,setCrafts]=useState(initialCrafts);
+const [reqs,setReqs]=useState(initialReq);
+const [purchases,setPurchases]=useState([]);
+const [showAdmin,setShowAdmin]=useState(false);
+const [adminTab,setAdminTab]=useState("craftsmen");
+const [isAdmin,setIsAdmin]=useState(false);
+const [pass,setPass]=useState("");
+const [toast,setToast]=useState(null);
+const rib="00799999000122089353";
+
+// طلب زبون
+const [title,setTitle]=useState(""); const [phone,setPhone]=useState(""); const [wilaya,setWilaya]=useState(""); const [baladiya,setBaladiya]=useState(""); const [skill,setSkill]=useState("سباكة");
+
+// تسجيل حرفي
+const [showCraftReg,setShowCraftReg]=useState(false);
+const [cName,setCName]=useState(""); const [cPhone,setCPhone]=useState(""); const [cSkill,setCSkill]=useState("سباكة"); const [cWilaya,setCWilaya]=useState(""); const [cCity,setCCity]=useState("");
+
+// رفع مخالصة
+const [showReceiptModal,setShowReceiptModal]=useState(false);
+const [selectedPack,setSelectedPack]=useState(null);
+const [receiptPreview,setReceiptPreview]=useState(null);
+const fileRef=useRef(null);
+const [logs,setLogs]=useState([{time:"10:32",action:"الروبوت جاهز - قائمة الحرفيين مخفية عن العامة"}]);
+
+const showToast=(m)=>{setToast(m); setTimeout(()=>setToast(null),2500);};
+const maskPhone=(p)=>{if(!p) return "••••••••••"; const t=p.replace(/\s/g,""); return t.slice(0,2)+" •• •• •• "+t.slice(-2);};
+const formatPhone=(p)=>p.replace(/\s/g,"").replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/,"$1 $2 $3 $4 $5");
+const validatePhone=(p)=>/^(0)(5|6|7)[0-9]{8}$/.test(p.replace(/\s/g,""));
+
+const revealCustomerPhone=(id)=>{
+ setReqs(prev=>prev.map(r=> r.id===id && !r.phoneRevealed ? (showToast("تم خصم 25 نقطة"), {...r,phoneRevealed:true}) : r));
+};
+
+const handleBuyPack=(name,price)=>{setSelectedPack({name,price}); setReceiptPreview(null); setShowReceiptModal(true);};
+const handleFileChange=(e)=>{
+ const f=e.target.files[0]; if(!f) return;
+ const reader=new FileReader(); reader.onload=(ev)=>setReceiptPreview(ev.target.result); reader.readAsDataURL(f);
+};
+const submitReceipt=()=>{
+ if(!receiptPreview){showToast("حمل صورة المخالصة"); return;}
+ setPurchases(prev=>[{id:Date.now(),craftsman:"حرفي جديد",pack:selectedPack.name,price:selectedPack.price,status:"pending",receipt:receiptPreview},...prev]);
+ setShowReceiptModal(false); showToast("تم إرسال الطلب مع الصورة ✓");
+};
+const registerCraftsman=()=>{
+ if(!cName.trim()||!cPhone.trim()||!cWilaya||!cCity.trim()){showToast("املأ الحقول *"); return;}
+ if(!validatePhone(cPhone)){showToast("رقم الهاتف غير صحيح"); return;}
+ const newCraft={id:Date.now(),name:cName.trim(),skill:cSkill,wilaya:cWilaya,baladiya:cCity.trim(),city:cWilaya,rating:4.5,jobs:0,points:20,blocked:false,phone:cPhone.replace(/\s/g,""),phoneVisible:false};
+ setCrafts(p=>[newCraft,...p]);
+ setLogs(prev=>[{time:new Date().toLocaleTimeString(),action:`تسجيل حرفي جديد: ${newCraft.name} - ${newCraft.skill}`},...prev]);
+ setCName(""); setCPhone(""); setCWilaya(""); setCCity(""); setShowCraftReg(false);
+ showToast("تم تسجيلك - ستظهر فقط في الإدارة - 20 نقطة هدية ✓");
+};
+const addRequest=()=>{
+ if(!title.trim()||!phone.trim()||!wilaya||!baladiya.trim()){showToast("املأ الحقول *"); return;}
+ if(!validatePhone(phone)){showToast("رقم هاتف غير صحيح"); return;}
+ setReqs(p=>[{id:Date.now(),title:title.trim(),skill,wilaya,baladiya:baladiya.trim(),city:`${wilaya} - ${baladiya}`,phone:phone.replace(/\s/g,""),phoneRevealed:false,date:"الآن"},...p]);
+ setTitle(""); setPhone(""); setWilaya(""); setBaladiya(""); showToast("تم نشر طلبك ✓");
+};
+const runRobotScan=()=>{
+ let c=0; setCrafts(prev=>prev.map(x=>{if(x.rating<4.7 && x.jobs<20 && !x.blocked){c++; return {...x,blocked:true};} return x;}));
+ setLogs(p=>[{time:new Date().toLocaleTimeString(),action:`الروبوت فحص ${crafts.length} حرفيين - حظر ${c}`},...p]);
+ showToast(`فحص ${c} محظور`);
+};
+
+return (
+<div dir="rtl" className="min-h-screen text-[#0f172a]">
+<header className="sticky top-0 z-20 bg-[#0f172a] text-white h-[64px] flex items-center px-4">
+<div className="flex items-center gap-2"><div className="w-9 h-9 rounded-[10px] bg-[#f97316] flex items-center justify-center font-extrabold">K</div><div><div className="font-extrabold">Khadma DZ</div><div className="text-[10px] text-white/60">الواجهة بدون حرفيين - الحرفيين في الإدارة فقط</div></div></div>
+<div className="mr-auto flex gap-2"><button onClick={()=>setShowCraftReg(true)} className="h-9 px-4 rounded-full bg-white text-[#0f172a] text-[12px] font-bold">سجل كحرفي 🔧</button><button onClick={()=>setShowAdmin(true)} className="w-9 h-9 rounded-full bg-[#f97316] flex items-center justify-center">🤖</button></div>
+</header>
+
+<div className="bg-[#0f172a] text-white p-6">
+<h1 className="text-[26px] font-extrabold">أحتاج حرفي موثوق؟</h1>
+<p className="text-white/60 text-[13px] mt-2">قائمة الحرفيين مخفية - تظهر فقط في لوحة الروبوت للخصوصية • الزبون ينشر طلبه فقط</p>
+<button onClick={()=>setShowCraftReg(true)} className="mt-4 h-11 px-6 rounded-[12px] bg-[#f97316] font-bold text-[14px]">🔧 سجل كحرفي الآن - 20 نقطة مجانا</button>
+</div>
+
+<div className="p-4 max-w-[900px] mx-auto pb-28">
+{/* فقط طلبات الزبائن في الواجهة */}
+<div className="bg-white border border-[#e2e8f0] rounded-[16px] p-4">
+<h3 className="font-bold text-[15px]">📋 أضف طلبك - مجاني (بدون ظهور الحرفيين)</h3>
+<div className="grid md:grid-cols-2 gap-2 mt-3">
+<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="ماذا تحتاج؟ مثلا إصلاح كهرباء *" className="h-11 border rounded-[10px] px-3 text-[13px]"/>
+<select value={skill} onChange={e=>setSkill(e.target.value)} className="h-11 border rounded-[10px] px-3 text-[13px]"><option>سباكة</option><option>كهرباء منزلية</option><option>نجارة</option><option>دهان</option><option>تكييف</option></select>
+<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="هاتفك 07XXXXXXXX *" className="h-11 border rounded-[10px] px-3 text-[13px] font-mono" inputMode="numeric"/>
+<select value={wilaya} onChange={e=>setWilaya(e.target.value)} className="h-11 border rounded-[10px] px-3 text-[13px]"><option value="">الولاية *</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select>
+<input value={baladiya} onChange={e=>setBaladiya(e.target.value)} placeholder="البلدية *" className="h-11 border rounded-[10px] px-3 text-[13px] md:col-span-2"/>
+</div>
+<button onClick={addRequest} className="mt-3 w-full h-11 bg-[#0f172a] text-white rounded-[12px] font-bold">انشر طلبك مجانا</button>
+
+<div className="mt-6">
+<h4 className="font-bold text-[13px] mb-2">طلبات الزبائن الحالية (أرقام محجوبة - كشف 25 نقطة):</h4>
+<div className="space-y-2">
+{reqs.map(r=>(
+<div key={r.id} className="p-3 bg-[#f8fafc] border rounded-[12px]">
+<div className="flex justify-between"><span className="font-bold text-[13px]">{r.title}</span><span className="text-[10px] text-[#94a3b8]">{r.date}</span></div>
+<div className="text-[11px] text-[#64748b]">{r.skill} • {r.wilaya} - {r.baladiya}</div>
+<div className="mt-2 flex items-center gap-2 flex-wrap">
+<span className="px-3 py-1 bg-white border rounded-full text-[12px] font-mono select-none pointer-events-none">هاتف: {r.phoneRevealed?formatPhone(r.phone):maskPhone(r.phone)}</span>
+{!r.phoneRevealed ? <button onClick={()=>revealCustomerPhone(r.id)} className="h-7 px-3 rounded-full bg-[#f97316] text-white text-[11px] font-bold">كشف - 25 نقطة</button> : <span className="text-[11px] bg-emerald-50 text-emerald-700 border px-2 py-1 rounded-full">تم الكشف - خصم 25</span>}
+</div>
+</div>
+))}
+</div>
+</div>
+</div>
+
+{/* باقات */}
+<div className="mt-4 bg-[#0f172a] rounded-[16px] p-4 text-white">
+<h3 className="font-bold">باقات النقاط - رفع المخالصة</h3>
+<div className="mt-3 space-y-2">
+{[{name:"200 نقطة",price:"2000 دج"},{name:"300 نقطة",price:"3000 دج",best:true},{name:"350 نقطة",price:"4000 دج"}].map(p=>(
+<div key={p.name} className={`p-3 rounded-[12px] border flex justify-between items-center ${p.best?"bg-white text-[#0f172a] border-[#f97316]":"bg-white/10 border-white/10"}`}><div><div className="font-bold text-[13px]">{p.name} {p.best&&<span className="text-[9px] bg-[#f97316] text-white px-1.5 rounded-full mr-1">مميز</span>}</div><div className="text-[12px] opacity-70">{p.price}</div></div><button onClick={()=>handleBuyPack(p.name,p.price)} className="h-8 px-4 rounded-full bg-[#f97316] text-white text-[12px] font-bold">شراء + رفع الوصل</button></div>
+))}
+</div>
+<div className="mt-3 p-3 bg-white rounded-[12px] text-[#0f172a] border-2 border-[#f97316]"><div className="font-bold text-[12px]">💳 RIB:</div><div className="font-mono text-[13px] select-all">{rib}</div></div>
+</div>
+
+<div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-[12px] text-[11px] text-emerald-800">✓ تم إخفاء قائمة الحرفيين من هنا نهائيا - تظهر فقط في الإدارة (كلمة سر**********) ✓</div>
+</div>
+
+{/* تسجيل حرفي */}
+{showCraftReg&&(
+<div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
+<div className="bg-white rounded-[16px] w-full max-w-[420px] p-5">
+<h3 className="font-extrabold text-[18px]">🔧 تسجيل حرفي جديد</h3>
+<p className="text-[11px] text-[#64748b]">ستظهر بياناتك فقط في لوحة الإدارة - مخفية عن العامة</p>
+<div className="mt-4 space-y-3">
+<input value={cName} onChange={e=>setCName(e.target.value)} placeholder="الاسم الكامل *" className="w-full h-11 border rounded-[10px] px-3 text-[13px]"/>
+<input value={cPhone} onChange={e=>setCPhone(e.target.value)} placeholder="07XXXXXXXX *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] font-mono" inputMode="numeric"/>
+<div className="grid grid-cols-2 gap-2">
+<select value={cSkill} onChange={e=>setCSkill(e.target.value)} className="h-11 border rounded-[10px] px-2 text-[13px]"><option>سباكة</option><option>كهرباء منزلية</option><option>نجارة</option><option>دهان وديكور</option></select>
+<select value={cWilaya} onChange={e=>setCWilaya(e.target.value)} className="h-11 border rounded-[10px] px-2 text-[13px]"><option value="">الولاية *</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select>
+</div>
+<input value={cCity} onChange={e=>setCCity(e.target.value)} placeholder="البلدية *" className="w-full h-11 border rounded-[10px] px-3 text-[13px]"/>
+<div className="p-2 bg-[#fff7ed] border rounded-[10px] text-[11px]">20 نقطة هدية - مخفي عن الواجهة - يظهر فقط للروبوت</div>
+</div>
+<div className="flex gap-2 mt-4"><button onClick={()=>setShowCraftReg(false)} className="flex-1 h-11 rounded-[10px] bg-[#f1f5f9] font-bold">إلغاء</button><button onClick={registerCraftsman} className="flex-1 h-11 rounded-[10px] bg-[#0f172a] text-white font-bold">سجل الآن</button></div>
+</div>
+</div>
+)}
+
+{/* رفع مخالصة */}
+{showReceiptModal&&(
+<div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+<div className="bg-white rounded-[16px] w-full max-w-[400px] p-5">
+<h3 className="font-bold">رفع مخالصة {selectedPack?.name}</h3><p className="text-[11px] text-[#64748b]">{selectedPack?.price} - RIB: {rib}</p>
+<div onClick={()=>fileRef.current?.click()} className="mt-4 h-[200px] border-2 border-dashed border-[#f97316] rounded-[12px] flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+{receiptPreview?<img src={receiptPreview} className="w-full h-full object-cover"/>:<><div className="text-[36px]">📤</div><div className="text-[12px] font-bold mt-1">اضغط لرفع صورة المخالصة</div></>}
+</div>
+<input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden"/>
+<div className="flex gap-2 mt-4"><button onClick={()=>setShowReceiptModal(false)} className="flex-1 h-10 rounded-[10px] bg-[#f1f5f9] font-bold">إلغاء</button><button onClick={submitReceipt} disabled={!receiptPreview} className={`flex-1 h-10 rounded-[10px] font-bold text-white ${receiptPreview?"bg-[#0f172a]":"bg-gray-300"}`}>تأكيد</button></div>
+</div>
+</div>
+)}
+
+{/* إدارة */}
+{showAdmin&&(
+<div className="fixed inset-0 z-[90] flex">
+<div className="flex-1 bg-black/60" onClick={()=>setShowAdmin(false)}></div>
+<div className="w-full max-w-[520px] bg-[#f8fafc] h-full flex flex-col">
+<div className="bg-[#0f172a] text-white p-4">
+<div className="flex justify-between items-center"><div className="font-bold">🤖 إدارة - الحرفيين مخفيين هنا فقط</div><button onClick={()=>setShowAdmin(false)} className="w-8 h-8 bg-white/10 rounded-full">✕</button></div>
+{!isAdmin?<div className="mt-3 flex gap-2"><input value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder="ameurali" className="flex-1 h-9 rounded-[10px] bg-[#020617] border border-white/10 px-3 text-[13px]"/><button onClick={()=>{if(pass===".........."){setIsAdmin(true); setAdminTab("craftsmen");}else showToast("خطأ");}} className="h-9 px-4 rounded-[10px] bg-[#f97316] font-bold text-[12px]">دخول</button></div>:
+<div className="mt-3 flex gap-2 overflow-auto scrollbar-hide">
+<button onClick={()=>setAdminTab("craftsmen")} className={`px-3 h-8 rounded-full text-[12px] font-bold whitespace-nowrap ${adminTab==="craftsmen"?"bg-[#f97316] text-white":"bg-white/10"}`}>الحرفيين ({crafts.length}) ✅</button>
+<button onClick={()=>setAdminTab("requests")} className={`px-3 h-8 rounded-full text-[12px] font-bold whitespace-nowrap ${adminTab==="requests"?"bg-[#f97316] text-white":"bg-white/10"}`}>الطلبات</button>
+<button onClick={()=>setAdminTab("purchases")} className={`px-3 h-8 rounded-full text-[12px] font-bold whitespace-nowrap ${adminTab==="purchases"?"bg-[#f97316] text-white":"bg-white/10"}`}>المشتريات</button>
+<button onClick={runRobotScan} className="px-3 h-8 rounded-full bg-emerald-600 text-white text-[11px] font-bold">فحص 🤖</button>
+</div>}
+</div>
+<div className="flex-1 overflow-auto p-3">
+{!isAdmin?<div className="text-center py-20">🔒 أدخل كلمة السر</div>:
+adminTab==="craftsmen"?<div className="space-y-2">
+<div className="p-2 bg-[#0f172a] text-white rounded-[10px] text-[11px]">قائمة الحرفيين - مخفية عن الواجهة العامة - تظهر هنا فقط</div>
+{crafts.map(c=>(
+<div key={c.id} className={`bg-white border rounded-[12px] p-3 ${c.blocked?"border-red-300 bg-red-50":""}`}>
+<div className="flex justify-between">
+<div><div className="font-bold text-[13px]">{c.name} {c.blocked&&<span className="bg-red-600 text-white text-[9px] px-2 rounded-full">محظور</span>}</div><div className="text-[11px] text-[#64748b]">{c.skill} • {c.wilaya} - {c.baladiya}</div><div className="text-[11px] mt-1">نقاط: {c.points} • ★ {c.rating} • {c.jobs} عمل</div><div className="text-[11px] font-mono mt-1">📱 {c.phoneVisible?formatPhone(c.phone):maskPhone(c.phone)}</div></div>
+<div className="flex flex-col gap-1">
+<button onClick={()=>setCrafts(prev=>prev.map(x=>x.id===c.id?{...x,blocked:!x.blocked}:x))} className={`h-6 px-2 rounded-full text-[10px] font-bold ${c.blocked?"bg-emerald-600 text-white":"bg-red-600 text-white"}`}>{c.blocked?"إلغاء":"حظر"}</button>
+<button onClick={()=>setCrafts(prev=>prev.map(x=>x.id===c.id?{...x,points:x.points+25}:x))} className="h-6 px-2 rounded-full bg-[#f1f5f9] border text-[10px]">+25</button>
+<button onClick={()=>setCrafts(prev=>prev.map(x=>x.id===c.id?{...x,phoneVisible:!x.phoneVisible}:x))} className="h-6 px-2 rounded-full bg-[#0f172a] text-white text-[10px]">{c.phoneVisible?"إخفاء":"إظهار"}</button>
+</div>
+</div>
+</div>
+))}
+</div>:
+adminTab==="requests"?<div className="space-y-2">{reqs.map(r=><div key={r.id} className="bg-white border rounded-[12px] p-3"><div className="font-bold text-[13px]">{r.title}</div><div className="text-[11px] text-[#64748b]">{r.skill} • {r.wilaya} - {r.baladiya} • {formatPhone(r.phone)}</div></div>)}</div>:
+<div className="space-y-2">{purchases.length===0?<div className="text-center py-10 text-[12px] text-[#94a3b8]">لا توجد مشتريات</div>:purchases.map(p=><div key={p.id} className="bg-white border rounded-[12px] p-3"><div className="font-bold text-[12px]">{p.pack} - {p.price} - {p.status}</div>{p.receipt&&<img src={p.receipt} className="mt-2 w-full h-32 object-cover rounded-[8px]"/>}</div>)}</div>
+}
+</div>
+</div>
+</div>
+)}
+
+{toast&&<div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#0f172a] text-white px-4 py-2 rounded-full text-[13px] z-[200]">{toast}</div>}
+<div className="fixed bottom-4 left-4 w-[56px] h-[56px] bg-[#f97316] rounded-full flex items-center justify-center text-white text-[24px] shadow-lg z-10">🤖</div>
+</div>
+);
+}
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
+ANTHROPIC_API_KEY=ameurali
