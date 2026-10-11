@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تم الدفع - khadma Dz</title>
+<style>
+body{font-family:Tajawal,Arial;background:#f6f7fb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:15px}
+.card{background:white;padding:30px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center;max-width:450px;width:100%}
+.icon{font-size:60px;margin-bottom:10px}
+h1{color:#16a34a;margin:10px 0;font-size:24px}
+p{color:#555;line-height:1.7;font-size:15px}
+a{display:inline-block;margin-top:12px;background:#6c2eff;color:white;padding:12px 25px;border-radius:10px;text-decoration:none;font-weight:bold}
+.code-box{background:#f0fdf4;border:2px dashed #16a34a;padding:15px;border-radius:12px;margin:15px 0;direction:ltr}
+.small{font-size:12px;color:#888;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="icon">✅</div>
+<h1>تم الدفع بنجاح!</h1>
+<p id="mainMsg">دفعت <strong>1000 دج</strong> - تستاهل <strong>25 نقطة</strong> 🎉</p>
+
+<div id="autoBox" class="code-box" style="display:none">
+  <div style="font-size:14px;color:#16a34a;font-weight:bold" id="msg">جاري إضافة النقاط...</div>
+  <div style="font-size:22px;margin-top:8px" id="points">+25 نقطة</div>
+</div>
+
+<div id="manualBox">
+  <p style="background:#fff7ed;padding:12px;border-radius:10px;border:1px solid #fed7aa">
+    ⚠️ <strong>روبوت الإدارة:</strong> تم حفظ الدفع - النقاط ستضاف لحسابك
+  </p>
+  <div class="code-box">
+    <div style="font-size:13px;color:#666">كود العملية:</div>
+    <div style="font-weight:bold;font-size:16px" id="txid">TX-...loading</div>
+    <div style="font-size:11px;color:#888;margin-top:5px">RIB: 00799999000122089353<br>المبلغ: 1000 دج - 25 نقطة</div>
+  </div>
+</div>
+
+<a href="https://chifablida-create.github.io/khadam-dz/">العودة لـ khadma Dz</a>
+<div class="small" id="debug"></div>
+</div>
+
+<script>
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const points=parseInt(params.get('points')||'25');
+  document.getElementById('mainMsg').innerHTML='دفعت <strong>1000 دج</strong> - تستاهل <strong>'+points+' نقطة</strong> 🎉';
+  document.getElementById('points').textContent='+'+points+' نقطة';
+  
+  const tx = 'TX-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2,4).toUpperCase();
+  document.getElementById('txid').textContent = tx;
+  
+  try {
+    // إصلاح: نقرا من كل المفاتيح الممكنة
+    let users = [];
+    try{ users = JSON.parse(localStorage.getItem('users')||'[]'); }catch(e){}
+    let khUsers = [];
+    try{ khUsers = JSON.parse(localStorage.getItem('khadma_users')||'[]'); }catch(e){}
+    // دمج
+    if(khUsers.length > users.length) users = khUsers;
+    
+    const curPhone = localStorage.getItem('khadma_current_phone');
+    const curName = localStorage.getItem('khadma_current_user');
+    
+    document.getElementById('debug').textContent = curPhone ? 'حساب: '+curName+' - '+curPhone : 'لم يتم العثور على حساب مسجل - سجل دخول أولا';
+    
+    if(curPhone && users.length>0){
+      let found=false;
+      for(let u of users){
+        if(u.phone===curPhone || u.email===curPhone || u.name===curName){
+          u.points = (u.points||0) + points;
+          found=true;
+          break;
+        }
+      }
+      if(found){
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('khadma_users', JSON.stringify(users));
+        localStorage.setItem('khadma_users_v2', JSON.stringify(users));
+        document.getElementById('autoBox').style.display='block';
+        document.getElementById('manualBox').style.display='none';
+        document.getElementById('msg').textContent='✅ تمت إضافة '+points+' نقطة لحسابك تلقائيا!';
+        document.getElementById('debug').textContent='✅ تم الحفظ - ادخل للإدارة وشوف نقاطك';
+        // حفظ العملية
+        const txs = JSON.parse(localStorage.getItem('khadma_transactions') || '[]');
+        txs.push({id:tx, amount:1000, points:points, phone:curPhone, name:curName, date:new Date().toISOString(), method:'Chargily', status:'paid'});
+        localStorage.setItem('khadma_transactions', JSON.stringify(txs));
+      } else {
+        // حساب غير موجود - انشاء تلقائي
+        const newUser={id:Date.now(),type:'حرفي',name:curName||'حرفي',phone:curPhone,points:points,date:Date.now(),email:curPhone};
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('khadma_users', JSON.stringify(users));
+        document.getElementById('autoBox').style.display='block';
+        document.getElementById('manualBox').style.display='none';
+        document.getElementById('msg').textContent='✅ تم إنشاء حسابك وإضافة '+points+' نقطة!';
+      }
+    } else if(!curPhone){
+      document.getElementById('manualBox').innerHTML='<p style="background:#fef3c7;padding:12px;border-radius:10px">⚠️ لم تسجل دخول - ارجع وسجل حساب حرفي بنفس رقم الهاتف، ثم ادفع مرة أخرى أو ادخل للإدارة</p>'+document.getElementById('manualBox').innerHTML;
+    }
+  } catch(e){
+    console.log('Auto credit failed', e);
+    document.getElementById('debug').textContent='خطأ: '+e.message;
+  }
+})();
+</script>
+</body>
+</html>
