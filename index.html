@@ -1,268 +1,280 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<link rel="manifest" href="manifest.json?v=2">
-<title>Khadma DZ - زر واضح RIB + وصل</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-<style>*{font-family:'Tajawal',system-ui}</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>khadma Dz - إدارة - رمز الإدارة يستجيب</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="khadma Dz - سوق الخدمات الجزائري - RIB صحيح بدون خطأ: 00799999000122089353 - إدارة كاملة - روبوت بكل الصلاحيات">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Arial}
+body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#111;padding-bottom:64px}
+.h{height:56px;background:#fff;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:20}
+.logo{font-weight:900;font-size:18px;display:flex;align-items:center;gap:8px}
+.logo i{width:32px;height:32px;background:#111;color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px}
+.s{margin-right:auto;width:36px;height:36px;border:1px solid #e5e7eb;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;cursor:pointer}
+.top{display:flex;gap:8px;padding:12px 16px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:56px;z-index:15}
+.b{flex:1;height:44px;border-radius:10px;border:1px solid #111;font-weight:700;font-size:12px;cursor:pointer}
+.b1{background:#111;color:#fff} .b2{background:#fde047;color:#111;border-color:#fde047}
+.fil{display:flex;gap:8px;padding:12px 16px;overflow:auto;background:#f2f2f2}
+.ch{padding:8px 16px;border-radius:999px;background:#fff;border:1px solid #e5e7eb;font-weight:600;font-size:13px;white-space:nowrap;cursor:pointer}
+.ch.a{background:#111;color:#fff;border-color:#111}
+.it{background:#fff;border-bottom:8px solid #f2f2f2;padding:14px 16px}
+.meta{font-size:12px;color:#6b7280;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.badge{background:#fde047;color:#111;padding:3px 8px;border-radius:999px;font-weight:800;font-size:11px}
+.title{font-weight:700;font-size:14px;margin-top:8px;line-height:20px}
+.av{width:48px;height:48px;border-radius:50%;border:3px solid #16a34a;overflow:hidden;margin-top:10px;background:#fff}
+.av img{width:100%;height:100%;object-fit:cover}
+.fab{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border:none;border-radius:999px;padding:12px 20px;font-weight:700;font-size:13px;z-index:15;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:64px;background:#fff;border-top:1px solid #e5e7eb;display:flex;z-index:20}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9ca3af;font-size:10px;cursor:pointer;font-weight:600}
+.ni.ac{color:#111} .ic{font-size:18px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:11px;display:none;z-index:999;max-width:90%;text-align:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+.box{background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:92vh;overflow:auto}
+.bh{background:#111;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+.inp{width:100%;height:44px;border:1px solid #d1d5db;border-radius:8px;padding:0 12px;margin-top:6px;font-size:13px;outline:none;background:#fff}
+.inp:focus{border-color:#111}
+.sel{width:100%;height:44px;border:1px solid #d1d5db;border-radius:8px;padding:0 12px;margin-top:6px;font-size:13px;background:#fff}
+.btn{height:44px;border-radius:8px;border:none;font-weight:700;width:100%;margin-top:8px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.btnd{background:#111;color:#fff} .btny{background:#fde047;color:#111} .btnb{background:#1e3a8a;color:#fff} .btng{background:#f3f4f6;color:#111} .btnr{background:#dc2626;color:#fff} .btngr{background:#16a34a;color:#fff}
+.lb{font-size:12px;font-weight:600;margin-top:10px;display:block}
+.rib{font-family:monospace;font-size:15px;font-weight:800;background:#fff;border:2px solid #111;border-radius:8px;padding:10px;text-align:center;margin-top:8px}
+.card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-top:10px}
+.pack{border:2px solid #e5e7eb;border-radius:10px;padding:10px;text-align:center;cursor:pointer;background:#fff}
+.pack.ac{border-color:#111;background:#111;color:#fff}
+.up{border:2px dashed #d1d5db;border-radius:10px;padding:18px;text-align:center;background:#f9fafb;cursor:pointer;margin-top:10px}
+.prev{margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;display:none;background:#fff}
+.prev img{width:100%;max-height:280px;object-fit:contain;display:block}
+.pr{height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:8px;display:none} .prb{height:100%;background:#16a34a;width:0%;transition:width 0.3s}
+.st{padding:4px 8px;border-radius:999px;font-size:10px;font-weight:700} .st1{background:#fef3c7;color:#92400e} .st2{background:#dcfce7;color:#166534}
+.admin-tabs{display:flex;gap:6px;padding:10px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb;overflow:auto;position:sticky;top:52px;z-index:9}
+.atab{padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:10px;white-space:nowrap;cursor:pointer}
+.atab.ac{background:#111;color:#fff;border-color:#111}
+.admin-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-top:10px}
+.phone-hidden{filter:blur(6px);user-select:none;cursor:pointer;background:#fde047;padding:2px 8px;border-radius:999px;font-weight:800} 
+.phone-visible{filter:none;background:#fde047;padding:2px 8px;border-radius:999px;font-weight:800}
+.chat-msg{background:#f3f4f6;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:12px}
+.chat-msg.me{background:#111;color:#fff;margin-right:20px} .chat-msg.other{background:#fff;border:1px solid #e5e7eb;margin-left:20px}
+.login-box{background:#fff;border-radius:12px;padding:16px;border:1px solid #e5e7eb}
+.login-title{font-weight:800;text-align:center;font-size:16px}
+.login-sub{font-size:11px;color:#6b7280;text-align:center;margin-top:6px}
+.login-rib{background:#111;color:#fff;border-radius:8px;padding:10px;margin-top:12px;font-size:11px;text-align:center;font-family:monospace}
+</style>
 </head>
-<body class="bg-[#f8fafc]">
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useEffect,useRef} = React;
-const WILAYAS=["أدرار","الشلف","الأغواط","أم البواقي","باتنة","بجاية","بسكرة","بشار","البليدة","البويرة","تمنراست","تبسة","تلمسان","تيارت","تيزي وزو","الجزائر","الجلفة","جيجل","سطيف","سعيدة","سكيكدة","سيدي بلعباس","عنابة","قالمة","قسنطينة","المدية","مستغانم","المسيلة","معسكر","ورقلة","وهران","البيض","إيليزي","برج بوعريريج","بومرداس","الطارف","تندوف","تيسمسيلت","الوادي","خنشلة","سوق أهراس","تيبازة","ميلة","عين الدفلى","النعامة","عين تموشنت","غرداية","غليزان"];
-const CRAFTS=["سباكة","كهرباء منزلية","نجارة","دهان وديكور","بناء وخرسانة","تبليط وسيراميك","حدادة ولحام","تكييف وتبريد","تصليح أجهزة كهرومنزلية","زجاج وألمنيوم","جبس وبلاكو بلاتر","سقف وايتانشيت","حفر آبار وخزانات","ميكانيك سيارات","كهرباء سيارات","دهان سيارات وتولوري","نقل وترحيل وشحن","تنظيف منازل وشركات","بستنة وفلاحة","حراسة وأمن","طبخ وتموين وحلويات","خياطة وطرز","حلاقة رجالية وتجميل","تصوير فوتوغرافي ومناسبات","صيانة هواتف وكمبيوتر","تركيب كاميرات مراقبة","تركيب بارابول وستالايت","تفصيل مطابخ وأثاث","إصلاح دراجات","دروس خصوصية","محاسبة وخدمات إدارية","سباغة سيارات","خدمة توصيل","تنجيد وتأثيث","إصلاح المصاعد"];
-const initialCrafts=[{id:1,name:"محمد بوعلام",skill:"كهرباء منزلية",wilaya:"الجزائر",baladiya:"بئر مراد رايس",rating:4.9,jobs:127,points:45,blocked:false,phone:"0798112233"},{id:2,name:"كريم حداد",skill:"سباكة",wilaya:"وهران",baladiya:"السانية",rating:4.8,jobs:98,points:12,blocked:false,phone:"0798445566"}];
-const initialReq=[{id:1,title:"إصلاح تسرب ماء في المطبخ",skill:"سباكة",wilaya:"الجزائر",baladiya:"بئر مراد رايس",phone:"0551234567",phoneRevealed:false,date:"اليوم"}];
+<body>
 
-function App(){
-const [crafts,setCrafts]=useState(()=>{try{const s=localStorage.getItem('khadma_crafts'); return s?JSON.parse(s):initialCrafts;}catch{return initialCrafts;}});
-const [reqs,setReqs]=useState(()=>{try{const s=localStorage.getItem('khadma_reqs'); return s?JSON.parse(s):initialReq;}catch{return initialReq;}});
-const [purchases,setPurchases]=useState(()=>{try{const s=localStorage.getItem('khadma_purchases'); return s?JSON.parse(s):[];}catch{return [];}});
-const [showAdmin,setShowAdmin]=useState(false); const [adminTab,setAdminTab]=useState("craftsmen"); const [isAdmin,setIsAdmin]=useState(false); const [pass,setPass]=useState(""); const [toast,setToast]=useState(null);
-const rib="00799999000122089353";
-const [title,setTitle]=useState(""); const [phone,setPhone]=useState(""); const [wilaya,setWilaya]=useState(""); const [baladiya,setBaladiya]=useState(""); const [skill,setSkill]=useState("سباكة");
-const [showCraftReg,setShowCraftReg]=useState(false); const [cName,setCName]=useState(""); const [cPhone,setCPhone]=useState(""); const [cSkill,setCSkill]=useState("سباكة"); const [cWilaya,setCWilaya]=useState(""); const [cCity,setCCity]=useState("");
-const [showReceiptModal,setShowReceiptModal]=useState(false); const [selectedPack,setSelectedPack]=useState(null); const [receiptPreview,setReceiptPreview]=useState(null); const fileRef=useRef(null);
-const [logs,setLogs]=useState([{time:"10:32",action:"الروبوت جاهز"}]);
-const [currentCraftId,setCurrentCraftId]=useState(()=>{try{return JSON.parse(localStorage.getItem('khadma_current')||'null')}catch{return null}});
-const [showCustomerLogin,setShowCustomerLogin]=useState(false); const [currentCustomerPhone,setCurrentCustomerPhone]=useState(()=>{try{return localStorage.getItem('khadma_customer')||''}catch{return ''}}); const [customerTab,setCustomerTab]=useState("myRequests");
-useEffect(()=>{try{localStorage.setItem('khadma_crafts',JSON.stringify(crafts))}catch{}},[crafts]);
-useEffect(()=>{try{localStorage.setItem('khadma_reqs',JSON.stringify(reqs))}catch{}},[reqs]);
-useEffect(()=>{try{localStorage.setItem('khadma_purchases',JSON.stringify(purchases))}catch{}},[purchases]);
-useEffect(()=>{try{localStorage.setItem('khadma_current',JSON.stringify(currentCraftId))}catch{}},[currentCraftId]);
-useEffect(()=>{try{localStorage.setItem('khadma_customer',currentCustomerPhone)}catch{}},[currentCustomerPhone]);
-const currentCraft = crafts.find(c=>c.id===currentCraftId) || null;
-const showToast=(m)=>{setToast(m); setTimeout(()=>setToast(null),3500);};
-const maskPhone=(p)=>{if(!p) return "••••••••••"; const t=p.replace(/\s/g,""); return t.slice(0,2)+" •• •• •• "+t.slice(-2);};
-const formatPhone=(p)=>p.replace(/\s/g,"").replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/,"$1 $2 $3 $4 $5");
-const validatePhone=(p)=>/^(0)(5|6|7)[0-9]{8}$/.test(p.replace(/\s/g,""));
-const revealCustomerPhone=(id)=>{
- if(!currentCraft){showToast("⚠️ سجل كحرفي أولا - اضغط سجل كحرفي"); return;}
- if(currentCraft.blocked){showToast("🚫 حسابك محظور"); return;}
- if(currentCraft.points < 25){showToast(`❌ نقاطك ${currentCraft.points} - تحتاج 25 نقطة! اشتر باقة`); return;}
- setCrafts(prev=>prev.map(c=> c.id===currentCraft.id ? {...c,points:c.points-25} : c));
- setReqs(prev=>prev.map(r=> r.id===id && !r.phoneRevealed ? {...r,phoneRevealed:true, revealedBy:currentCraft.id} : r));
- showToast(`✅ خصم 25 نقطة - بقي ${currentCraft.points-25}`);
-};
-const handleBuyPack=(name,price)=>{
- console.log("شراء باقة:",name,price);
- setSelectedPack({name,price}); setReceiptPreview(null); setShowReceiptModal(true);
- showToast(`فتح باقة ${name} - RIB: ${rib}`);
-};
-const handleFileChange=(e)=>{
- try{
-  const f=e.target.files[0]; if(!f) return;
-  if(f.size > 5*1024*1024){showToast('الصورة كبيرة'); return;}
-  const reader=new FileReader(); 
-  reader.onload=(ev)=>{setReceiptPreview(ev.target.result); showToast('✅ تم تحميل الوصل - اضغط تأكيد');};
-  reader.readAsDataURL(f);
- }catch(err){showToast('خطأ تحميل');}
-};
-const submitReceipt=()=>{
- if(!receiptPreview){showToast("❌ اضغط على زر تحميل الوصل أولا"); return;}
- setPurchases(prev=>[{id:Date.now(),craftsman:currentCraft?.name||"حرفي جديد",pack:selectedPack.name,price:selectedPack.price,status:"pending",receipt:receiptPreview,rib:rib},...prev]);
- setShowReceiptModal(false); showToast("✅ تم إرسال الوصل - الروبوت سيقرأه");
-};
-const registerCraftsman=()=>{
- if(!cName.trim()||!cPhone.trim()||!cWilaya||!cCity.trim()){showToast("املأ الحقول *"); return;}
- if(!validatePhone(cPhone)){showToast("رقم غير صحيح"); return;}
- const newCraft={id:Date.now(),name:cName.trim(),skill:cSkill,wilaya:cWilaya,baladiya:cCity.trim(),rating:4.5,jobs:0,points:20,blocked:false,phone:cPhone.replace(/\s/g,"")};
- setCrafts(p=>[newCraft,...p]); setCurrentCraftId(newCraft.id); setCName(""); setCPhone(""); setCWilaya(""); setCCity(""); setShowCraftReg(false);
- showToast("✅ تم تسجيلك - 20 نقطة هدية");
-};
-const loginCraftsman=(phoneInput)=>{
- const clean = phoneInput.replace(/\s/g,""); const found = crafts.find(c=>c.phone===clean);
- if(!found){showToast("رقم غير مسجل"); return false;}
- setCurrentCraftId(found.id); showToast(`مرحبا ${found.name} - ${found.points} نقطة`); return true;
-};
-const addRequest=()=>{
- if(!title.trim()||!phone.trim()||!wilaya||!baladiya.trim()){showToast("املأ الحقول *"); return;}
- if(!validatePhone(phone)){showToast("رقم غير صحيح"); return;}
- setReqs(p=>[{id:Date.now(),title:title.trim(),skill,wilaya,baladiya:baladiya.trim(),phone:phone.replace(/\s/g,""),phoneRevealed:false,date:"الآن"},...p]);
- setTitle(""); setPhone(""); setWilaya(""); setBaladiya(""); showToast("تم نشر طلبك ✓");
-};
-const runRobotScan=()=>{
- try{
-  let c=0; setCrafts(prev=>prev.map(x=>{if(x.rating<4.7 && x.jobs<20 && !x.blocked){c++; return {...x,blocked:true};} return x;}));
-  setLogs(p=>[{time:new Date().toLocaleTimeString(),action:`🤖 فحص ${crafts.length} حرفي - حظر ${c} - قراءة ${purchases.length} وصل`},...p]);
-  showToast(`🤖 فحص ${c} محظور - ${purchases.length} وصل`);
- }catch(e){showToast('خطأ روبوت');}
-};
-
-return (
-<div dir="rtl" className="min-h-screen text-[#0f172a]">
-<header className="sticky top-0 z-20 bg-[#0f172a] text-white h-[64px] flex items-center px-4">
-<div className="flex items-center gap-2"><div className="w-9 h-9 rounded-[10px] bg-[#f97316] flex items-center justify-center font-extrabold">K</div><div><div className="font-extrabold">Khadma DZ</div><div className="text-[10px] text-white/60">{currentCraft?`👋 ${currentCraft.name} - ${currentCraft.points}ن`:"سجل كحرفي واكسب نقاط"}</div></div></div>
-<div className="mr-auto flex gap-2">
-<button onClick={()=>setShowCustomerLogin(true)} className="h-9 px-3 rounded-full bg-white/20 text-white text-[11px] font-bold">👤 زبون</button>
-<button onClick={()=>setShowCraftReg(true)} className="h-9 px-3 rounded-full bg-white text-[#0f172a] text-[11px] font-bold">{currentCraft?`${currentCraft.points}ن`:"🔧 سجل كحرفي"}</button>
-<button onClick={()=>setShowAdmin(true)} className="w-8 h-8 rounded-full bg-[#f97316] flex items-center justify-center">🤖</button>
-</div>
-</header>
-
-<div className="bg-[#0f172a] text-white p-6"><h1 className="text-[26px] font-extrabold">أحتاج حرفي موثوق؟</h1><p className="text-[13px] text-white/60 mt-1">500 حرفي في 58 ولاية - {currentCraft?`نقاطك: ${currentCraft.points}`:"20 نقطة هدية عند التسجيل"}</p></div>
-
-<div className="p-4 -mt-6"><div className="bg-white rounded-[16px] border p-4 shadow-sm">
-<div className="font-bold text-[14px] mb-3">📋 أنشر طلبك (الزبون)</div>
-<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="ماذا تحتاج؟ *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] mb-2"/>
-<div className="grid grid-cols-2 gap-2 mb-2">
-<select value={skill} onChange={e=>setSkill(e.target.value)} className="h-11 border rounded-[10px] px-2 text-[13px]">{CRAFTS.map(c=><option key={c} value={c}>{c}</option>)}</select>
-<select value={wilaya} onChange={e=>setWilaya(e.target.value)} className="h-11 border rounded-[10px] px-2 text-[13px]"><option value="">الولاية *</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select>
-</div>
-<input value={baladiya} onChange={e=>setBaladiya(e.target.value)} placeholder="البلدية *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] mb-2"/>
-<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="هاتفك 07XXXXXXXX *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] mb-3"/>
-<button onClick={addRequest} className="w-full h-11 rounded-[10px] bg-[#0f172a] text-white font-bold">انشر مجانا</button>
-</div></div>
-
-<div className="p-4">
-<div className="bg-[#0f172a] rounded-[16px] p-4 text-white border-2 border-[#f97316]">
-<div className="font-bold text-[15px]">💳 باقات النقاط - اضغط على الباقة ليخرج RIB + زر التحميل</div>
-<div className="mt-1 text-[11px] text-white/60">كل زر يفتح نافذة فيها RIB الأصلي + مكان تحميل الوصل</div>
-<div className="mt-4 grid grid-cols-2 gap-3">
-<button onClick={()=>handleBuyPack("100 نقطة","1000 دج")} className="bg-white/10 hover:bg-white/20 border-2 border-white/20 rounded-[12px] p-4 text-center">
-<div className="text-[22px] font-extrabold">100</div><div className="text-[12px]">نقطة</div><div className="mt-2 bg-white text-[#0f172a] rounded-full py-1 text-[11px] font-bold">1000 دج - اضغط هنا</div><div className="text-[9px] mt-1 text-white/50">يفتح RIB + تحميل</div>
-</button>
-<button onClick={()=>handleBuyPack("200 نقطة","2000 دج")} className="bg-[#f97316] rounded-[12px] p-4 text-center border-2 border-[#f97316]">
-<div className="text-[22px] font-extrabold">200</div><div className="text-[12px]">نقطة ⭐</div><div className="mt-2 bg-white text-[#f97316] rounded-full py-1 text-[11px] font-bold">2000 دج - اضغط هنا</div><div className="text-[9px] mt-1">الأكثر طلبا</div>
-</button>
-<button onClick={()=>handleBuyPack("300 نقطة","3000 دج")} className="bg-white text-[#0f172a] rounded-[12px] p-4 text-center">
-<div className="text-[22px] font-extrabold">300</div><div className="text-[12px]">نقطة</div><div className="mt-2 bg-[#0f172a] text-white rounded-full py-1 text-[11px] font-bold">3000 دج - اضغط هنا</div>
-</button>
-<button onClick={()=>handleBuyPack("400 نقطة","4000 دج")} className="bg-gradient-to-br from-[#f97316] to-[#fb923c] rounded-[12px] p-4 text-center border-2 border-white">
-<div className="text-[22px] font-extrabold">400</div><div className="text-[12px]">نقطة 🔥</div><div className="mt-2 bg-white text-[#f97316] rounded-full py-1 text-[11px] font-bold">4000 دج - اضغط هنا</div><div className="text-[9px] mt-1">أفضل قيمة</div>
-</button>
-</div>
-<div className="mt-3 p-2 bg-black/30 rounded-[8px] text-[10px] text-center">💡 اضغط على أي باقة - ستظهر نافذة كبيرة فيها RIB الأصلي وزر تحميل الوصل بوضوح</div>
-</div>
+<div class="h">
+<div class="logo"><i>خ</i><span>khadma Dz</span></div>
+<div class="s" onclick="t('بحث')">⌕</div>
+<div class="s" style="margin-right:8px" onclick="openAdmin()">⚙</div>
 </div>
 
-<div className="p-4">
-<div className="font-bold text-[14px] mb-2">طلبات الزبائن (25 نقطة للكشف):</div>
-<div className="space-y-2">
-{reqs.map(r=>(
-<div key={r.id} className="bg-white border rounded-[12px] p-3">
-<div className="flex justify-between"><span className="text-[10px] bg-[#f1f5f9] px-2 py-1 rounded-full">{r.phoneRevealed?"مكشوف":"مغلق"}</span><span className="font-bold text-[13px]">{r.title}</span></div>
-<div className="text-[11px] text-[#64748b] mt-1">{r.skill} • {r.wilaya} - {r.baladiya}</div>
-<div className="mt-2 flex justify-between items-center">
-<div className="text-[11px] font-mono">هاتف : {r.phoneRevealed?formatPhone(r.phone):maskPhone(r.phone)}</div>
-{r.phoneRevealed?<a href={`tel:${r.phone}`} className="h-8 px-3 rounded-full bg-emerald-600 text-white text-[11px] font-bold">اتصل 📞</a>:
-<button onClick={()=>revealCustomerPhone(r.id)} className="h-8 px-3 rounded-full bg-[#f97316] text-white text-[11px] font-bold">كشف - 25 نقطة</button>}
-</div>
-</div>
-))}
-</div>
+<div class="top">
+<button class="b b1" onclick="openCustomer()">حساب الزبون والتسجيل</button>
+<button class="b b2" onclick="openCraft()">حساب الحرفي والتسجيل</button>
 </div>
 
-{showReceiptModal&&(
-<div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4">
-<div className="bg-white rounded-[20px] w-full max-w-[400px] p-0 overflow-hidden">
-<div className="bg-[#f97316] text-white p-4 text-center"><div className="text-[20px]">💳</div><div className="font-extrabold text-[16px] mt-1">باقة {selectedPack?.name}</div><div className="text-[13px] opacity-90">{selectedPack?.price}</div></div>
-<div className="p-5">
-<div className="bg-[#0f172a] text-white rounded-[14px] p-4">
-<div className="text-[11px] text-white/60">🔑 RIB الأصلي - حول عليه المبلغ:</div>
-<div className="mt-2 bg-white text-[#0f172a] rounded-[10px] p-3 font-mono font-extrabold text-[15px] tracking-wider select-all text-center">{rib}</div>
-<button onClick={()=>{navigator.clipboard.writeText(rib); showToast('✅ تم نسخ RIB');}} className="mt-2 w-full h-8 rounded-full bg-white/10 text-[11px]">📋 انسخ RIB</button>
+<div class="fil">
+<button class="ch a">Recommandée</button><button class="ch">Tout</button><button class="ch">Avis</button><button class="ch">Sans offre</button>
 </div>
-<div className="mt-4">
-<div className="font-bold text-[13px]">📤 زر تحميل الوصل - المخالصة:</div>
-<div className="text-[11px] text-[#64748b] mt-1">بعد ما تحول الدراهم، صور الوصل وحمله هنا:</div>
-<div onClick={()=>fileRef.current?.click()} className="mt-3 h-[160px] border-[3px] border-dashed border-[#f97316] rounded-[14px] flex flex-col items-center justify-center cursor-pointer bg-[#fff7ed] overflow-hidden">
-{receiptPreview?<img src={receiptPreview} className="w-full h-full object-cover"/>:(
-<>
-<div className="w-14 h-14 bg-[#f97316] rounded-full flex items-center justify-center text-white text-[24px]">📤</div>
-<div className="font-extrabold text-[14px] mt-2">اضغط هنا لتحميل الوصل</div>
-<div className="text-[11px] text-[#64748b] mt-1">صورة المخالصة / Versement</div>
-<div className="mt-2 px-3 py-1 bg-[#f97316] text-white rounded-full text-[10px]">اختر صورة من الهاتف</div>
-</>
-)}
-</div>
-<input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden"/>
-{receiptPreview&&<div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-[8px] text-[11px] text-emerald-700 text-center">✅ تم تحميل الوصل بنجاح - اضغط تأكيد الآن</div>}
-</div>
-<div className="flex gap-2 mt-5">
-<button onClick={()=>setShowReceiptModal(false)} className="flex-1 h-12 rounded-[12px] bg-[#f1f5f9] font-bold">إلغاء</button>
-<button onClick={submitReceipt} disabled={!receiptPreview} className={`flex-1 h-12 rounded-[12px] font-bold text-white ${receiptPreview?"bg-[#0f172a]":"bg-gray-300"}`}>{receiptPreview?"✅ تأكيد وإرسال الوصل":"حمل الوصل أولا"}</button>
-</div>
-</div>
-</div>
-</div>
-)}
 
-{showCraftReg&&(
-<div className="fixed inset-0 z-[100] bg-black/50 flex items-end"><div className="bg-white rounded-t-[16px] w-full p-5 max-h-[90vh] overflow-auto">
-<h3 className="font-bold">دخول / تسجيل حرفي</h3>
-<div className="mt-3"><input id="loginPhone" placeholder="07XXXXXXXX - دخول" className="w-full h-11 border-2 border-[#0f172a] rounded-[10px] px-3 text-[13px]"/><button onClick={()=>{const el=document.getElementById('loginPhone'); if(loginCraftsman(el.value)){setShowCraftReg(false);}}} className="mt-2 w-full h-10 rounded-[10px] bg-[#0f172a] text-white font-bold text-[12px]">دخول - البحث عن حسابي</button></div>
-<div className="mt-4 border-t pt-4">
-<input value={cName} onChange={e=>setCName(e.target.value)} placeholder="اسمك *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] mb-2"/>
-<input value={cPhone} onChange={e=>setCPhone(e.target.value)} placeholder="هاتفك 07XXXXXXXX *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] mb-2"/>
-<div className="grid grid-cols-2 gap-2 mb-2">
-<select value={cSkill} onChange={e=>setCSkill(e.target.value)} className="h-11 border rounded-[10px] px-2 text-[13px]">{CRAFTS.map(c=><option key={c} value={c}>{c}</option>)}</select>
-<select value={cWilaya} onChange={e=>setCWilaya(e.target.value)} className="h-11 border rounded-[10px] px-2 text-[13px]"><option value="">الولاية *</option>{WILAYAS.map(w=><option key={w} value={w}>{w}</option>)}</select>
-</div>
-<input value={cCity} onChange={e=>setCCity(e.target.value)} placeholder="البلدية *" className="w-full h-11 border rounded-[10px] px-3 text-[13px] mb-2"/>
-</div>
-<div className="flex gap-2 mt-4"><button onClick={()=>setShowCraftReg(false)} className="flex-1 h-11 rounded-[10px] bg-[#f1f5f9] font-bold">إلغاء</button><button onClick={registerCraftsman} className="flex-1 h-11 rounded-[10px] bg-[#0f172a] text-white font-bold">سجل +20 نقطة</button></div>
-</div></div>
-)}
+<div class="it"><div class="meta"><span>il y a 15 heures</span> · <span>Médéa</span> · <span>23 km</span> · <span class="badge">1p</span></div><div class="title">أبحث عن مصلح ماشين لافي الجي 6 كلغ</div></div>
+<div class="it"><div class="meta"><span>il y a une heure</span> · <span>Rouiba</span> · <span>52 km</span> · <span>1 offre</span> · <span class="badge">25p</span></div><div class="title">Je cherche un réparateur de machine à laver Brandt 6 KG</div><div class="av"><img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200"></div></div>
 
-{showCustomerLogin&&(
-<div className="fixed inset-0 z-[100] bg-black/60 flex items-end sm:items-center sm:justify-center p-0 sm:p-4">
-<div className="bg-white rounded-t-[20px] sm:rounded-[20px] w-full sm:max-w-[420px] max-h-[90vh] overflow-auto">
-<div className="bg-[#0f172a] text-white p-4"><div className="flex justify-between items-center"><div className="font-bold">👤 حسابي زبون</div><button onClick={()=>setShowCustomerLogin(false)} className="w-8 h-8 bg-white/10 rounded-full">✕</button></div></div>
-{!currentCustomerPhone?(
-<div className="p-5">
-<input id="custPhone" placeholder="07XXXXXXXX" className="w-full h-12 border-2 border-[#0f172a] rounded-[12px] px-4 text-[14px] text-center"/>
-<div className="flex gap-2 mt-4">
-<button onClick={()=>setShowCustomerLogin(false)} className="flex-1 h-11 rounded-[12px] bg-[#f1f5f9] font-bold">إلغاء</button>
-<button onClick={()=>{const el=document.getElementById('custPhone'); const p=el.value.replace(/\s/g,''); if(!/^(0)(5|6|7)[0-9]{8}$/.test(p)){showToast('رقم غير صحيح'); return;} setCurrentCustomerPhone(p); showToast(`وجدنا ${reqs.filter(r=>r.phone===p).length} طلبات`);}} className="flex-1 h-11 rounded-[12px] bg-[#0f172a] text-white font-bold">دخول</button>
-</div>
-</div>
-):(
-<div className="p-4">
-<div className="space-y-2">{reqs.filter(r=>r.phone===currentCustomerPhone).map(r=><div key={r.id} className="bg-white border rounded-[12px] p-3"><div className="font-bold text-[13px]">{r.title}</div><div className="text-[11px] text-[#64748b]">{r.skill} • {r.wilaya}</div></div>)}</div>
-<button onClick={()=>{setCurrentCustomerPhone(''); setShowCustomerLogin(false);}} className="mt-4 w-full h-11 rounded-[12px] bg-red-50 text-red-600 font-bold">خروج</button>
-</div>
-)}
-</div></div>
-)}
+<button class="fab" onclick="openCustomer()">+ Ajouter une demande</button>
 
-{showAdmin&&(
-<div className="fixed inset-0 z-[90] flex">
-<div className="flex-1 bg-black/60" onClick={()=>setShowAdmin(false)}></div>
-<div className="w-full max-w-[520px] bg-[#f8fafc] h-full flex flex-col">
-<div className="bg-[#0f172a] text-white p-4">
-<div className="flex justify-between items-center"><div className="font-bold">🤖 إدارة - الروبوت يقرأ الوصولات</div><button onClick={()=>setShowAdmin(false)} className="w-8 h-8 bg-white/10 rounded-full">✕</button></div>
-{!isAdmin?<div className="mt-3 flex gap-2"><input value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder="••••••••" className="flex-1 h-9 rounded-[10px] bg-[#020617] border border-white/10 px-3 text-[13px]"/><button onClick={()=>{if(pass==="ameurali"){setIsAdmin(true);}else showToast("خطأ");}} className="h-9 px-4 rounded-[10px] bg-[#f97316] font-bold text-[12px]">دخول</button></div>:
-<div className="mt-3 flex gap-2">
-<button onClick={()=>setAdminTab("craftsmen")} className={`px-3 h-8 rounded-full text-[12px] font-bold ${adminTab==="craftsmen"?"bg-[#f97316]":"bg-white/10"}`}>الحرفيين</button>
-<button onClick={()=>setAdminTab("purchases")} className={`px-3 h-8 rounded-full text-[12px] font-bold ${adminTab==="purchases"?"bg-[#f97316]":"bg-white/10"}`}>الوصولات ({purchases.length})</button>
-<button onClick={runRobotScan} className="px-3 h-8 rounded-full bg-emerald-600 text-white text-[11px]">🤖 فحص وقراءة</button>
-</div>}
+<div class="nav">
+<div class="ni"><div class="ic">♡</div><div>Suivi</div></div><div class="ni"><div class="ic">☆</div><div>Showroom</div></div><div class="ni ac"><div class="ic">✎</div><div>Demandes</div></div><div class="ni"><div class="ic">☾</div><div>Chat</div></div><div class="ni"><div class="ic">○</div><div>Compte</div></div>
 </div>
-<div className="flex-1 overflow-auto p-3">
-{!isAdmin?<div className="text-center py-20">🔒</div>:
-adminTab==="craftsmen"?<div className="space-y-2">{crafts.map(c=><div key={c.id} className="bg-white border rounded-[12px] p-3"><div className="font-bold text-[13px]">{c.name} - {c.points} نقطة</div><div className="text-[11px]">{c.phone} - {c.skill}</div><button onClick={()=>setCrafts(prev=>prev.map(x=>x.id===c.id?{...x,points:x.points+100}:x))} className="mt-1 h-6 px-2 rounded-full bg-[#f1f5f9] text-[10px]">+100</button></div>)}</div>:
-<div className="space-y-2">{purchases.map(p=><div key={p.id} className="bg-white border rounded-[12px] p-3"><div className="font-bold text-[12px]">{p.pack} - {p.price} - {p.status}</div><div className="text-[10px]">RIB: {p.rib}</div>{p.receipt&&<img src={p.receipt} className="mt-2 w-full h-40 object-cover rounded-[8px] border-2 border-[#f97316]"/>}<div className="flex gap-2 mt-2"><button onClick={()=>{let pts=parseInt(p.pack)||100; setCrafts(prev=>prev.map(c=>c.name===p.craftsman?{...c,points:c.points+pts}:c)); setPurchases(prev=>prev.map(x=>x.id===p.id?{...x,status:"تم - "+pts} :x)); showToast(`تم تفعيل ${pts}`);}} className="h-8 px-3 rounded-full bg-emerald-600 text-white text-[11px]">✅ تفعيل بعد قراءة الوصل</button></div></div>)}</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="mCust" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حساب الزبون والتسجيل</div><div style="cursor:pointer" onclick="closeCustomer()">✕</div></div><div style="padding:16px"><label class="lb">الاسم الكامل</label><input id="cName" class="inp" placeholder="الاسم"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">رقم الهاتف</label><input id="cPhone" class="inp" placeholder="0551234567"></div><div><label class="lb">الولاية</label><select class="sel"><option>الجزائر</option><option>وهران</option><option>قسنطينة</option></select></div></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeCustomer()">إلغاء</button><button class="btn btnd" style="flex:1" onclick="regCust()">تسجيل</button></div></div></div></div>
+
+<div id="mCraft" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حساب الحرفي - تحميل وصل بريدي موب</div><div style="cursor:pointer" onclick="closeCraft()">✕</div></div><div style="padding:16px;max-height:80vh;overflow:auto">
+<label class="lb">الاسم الكامل</label><input id="crName" class="inp" placeholder="الاسم"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">التخصص</label><select id="crSkill" class="sel"><option>سباكة</option><option>كهرباء</option><option>تكييف</option><option>دهان</option><option>نجارة</option></select></div><div><label class="lb">رقم الهاتف</label><input id="crPhone" class="inp" placeholder="0550000001"></div></div>
+<div class="card" style="background:#111;color:#fff"><div style="font-weight:800;font-size:13px">طلب النقاط عبر بريدي موب</div><div style="font-size:11px;opacity:0.8;margin-top:4px">حساب الحرفي فقط - سري</div></div>
+<div class="card"><div style="font-size:11px;color:#6b7280;text-align:center">RIB صحيح</div><div class="rib" id="ribDisplay">00799999000122089353</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btng" style="flex:1;height:36px" onclick="copyRIB()">نسخ RIB</button><button class="btn btnb" style="flex:1;height:36px" onclick="openBM()">فتح بريدي موب</button></div></div>
+<div style="margin-top:12px"><div style="font-size:12px;font-weight:700">باقات النقاط</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px" id="packsContainer"></div><div style="background:#f9fafb;border:1px dashed #d1d5db;border-radius:8px;padding:8px;text-align:center;margin-top:8px;font-size:11px"><div style="color:#6b7280">الباقة المختارة</div><div id="selText" style="font-weight:800;margin-top:2px">200 نقطة = 2000 دج</div></div></div>
+<div class="card" style="background:#fef3c7;border-color:#fde68a"><div style="font-weight:800;font-size:12px">تحميل وصل بريدي موب</div><div style="font-size:11px;margin-top:6px;line-height:18px;color:#92400e">- أقل مبلغ 2000 دج<br>- صورة وصل واضح مع الاسم واللقب وختم البريد<br>- RIB: <span class="ribText">00799999000122089353</span></div></div>
+<input type="file" id="f" accept="image/*" style="display:none">
+<div class="up" id="upA" onclick="document.getElementById('f').click()"><div style="font-size:22px">↑</div><div style="font-weight:700;margin-top:6px;font-size:12px">تحميل وصل بريدي موب - اضغط هنا</div></div>
+<div class="pr" id="pr"><div class="prb" id="prb"></div></div>
+<div class="prev" id="prev"><img id="imgPrev" src=""><div style="padding:10px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:11px">وصل بريدي موب</span><span class="st st1" id="st">في انتظار الإرسال</span></div><div style="font-size:10px;color:#6b7280;margin-top:4px" id="info">RIB: 00799999000122089353 - 200 نقطة = 2000 دج</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btnd" style="flex:1;height:34px;font-size:11px" onclick="send()">إرسال الوصل للإدارة</button><button class="btn btng" style="flex:1;height:34px;font-size:11px" onclick="del()">حذف</button></div></div></div>
+<div id="list" style="margin-top:12px"></div>
+<div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeCraft()">إلغاء</button><button class="btn btny" style="flex:1" onclick="regCraft()">تسجيل + تحميل وصل</button></div>
+</div></div></div>
+
+<div id="mAdmin" class="modal"><div class="box" style="max-width:480px">
+<div id="aLogin" style="padding:16px">
+<div class="login-box">
+<div class="login-title">إدارة khadma Dz</div>
+<div class="login-sub">دخول الإدارة - كل الصلاحيات - رمز الإدارة يستجيب الآن</div>
+<div class="login-rib">RIB: 00799999000122089353</div>
+<div style="margin-top:16px">
+<label class="lb" style="margin-top:0">رمز الإدارة - كلمة السر</label>
+<input id="aPass" type="password" class="inp" placeholder="أدخل رمز الإدارة" autocomplete="off" style="margin-top:6px">
+<div style="font-size:10px;color:#6b7280;margin-top:6px">الخانة فارغة - لا تظهر كلمة السر - أدخل الرمز واضغط دخول</div>
+</div>
+<div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeAdmin()">إلغاء</button><button class="btn btnd" style="flex:1" onclick="loginAdmin()">دخول الإدارة</button></div>
+<div style="background:#f9fafb;border-radius:8px;padding:10px;margin-top:12px;font-size:10px;color:#6b7280;text-align:center">رمز الإدارة يستجيب الآن - الخانة فارغة - بدون كلمة سر ظاهرة - اضغط دخول بعد إدخال الرمز</div>
+</div>
+</div>
+<div id="aContent" style="display:none">
+<div class="bh" style="position:sticky;top:0"><div><div style="font-weight:800">إدارة khadma Dz - كل الصلاحيات - رمز الإدارة يستجيب</div><div style="font-size:10px;opacity:0.7">الشات / حذف زبون أو حرفي / تقييمات / تغيير الريب / تغيير كلمة سر / الإطلاع على الوصل / إضافة نقاط / تغيير كمية النقاط وسعرها / كشف رقم الهاتف</div></div><div style="cursor:pointer" onclick="closeAdmin()">✕</div></div>
+<div class="admin-tabs" id="adminTabs"></div>
+<div id="aBody" style="padding:12px;min-height:400px"></div>
+</div></div></div>
+
+<script>
+const RIB_DEFAULT="00799999000122089353";
+const HASH_DEFAULT="f4cd2b5805fe0d0c96708b228575bc828ac005eaac1ddf9182fa4fc6c9c26411";
+const PWD_PLAIN="ameurali";
+let RIB_CURRENT=localStorage.getItem('rib_current')||RIB_DEFAULT;
+let HASH_CURRENT=localStorage.getItem('hash_current')||HASH_DEFAULT;
+let packs=JSON.parse(localStorage.getItem('packs')||'null')||[{p:200,a:2000,active:true},{p:300,a:3000,active:false},{p:400,a:4000,active:false},{p:500,a:5000,active:false}];
+let sel=packs.find(x=>x.active)||packs[0];
+let rec=JSON.parse(localStorage.getItem('receipts')||'[]');
+let users=JSON.parse(localStorage.getItem('users')||'[]');
+let chats=JSON.parse(localStorage.getItem('chats')||'[]');
+let reviews=JSON.parse(localStorage.getItem('reviews')||'null')||[
+  {id:1,user:'خديجة بغدادي',phone:'0551234567',target:'وطني الجزائر',stars:1,text:'إنسان للأسف معندوش كلمة يومين وانا نسنا فيه مجاش',date:'il y a 11 jours'},
+  {id:2,user:'محمد لاريد',phone:'0559876543',target:'وطني الجزائر',stars:4,text:'Le professionnel n avait pas termine',date:'il y a 18 jours'}
+];
+
+function save(){localStorage.setItem('rib_current',RIB_CURRENT); localStorage.setItem('hash_current',HASH_CURRENT); localStorage.setItem('packs',JSON.stringify(packs)); localStorage.setItem('receipts',JSON.stringify(rec)); localStorage.setItem('users',JSON.stringify(users)); localStorage.setItem('chats',JSON.stringify(chats)); localStorage.setItem('reviews',JSON.stringify(reviews));}
+function t(m){const e=document.getElementById('toast'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3500);}
+function copyRIB(){navigator.clipboard.writeText(RIB_CURRENT).then(()=>t('تم نسخ RIB: '+RIB_CURRENT));}
+function openBM(){const f=document.createElement('iframe'); f.style.display='none'; f.src='baridimob://transfer?rib='+RIB_CURRENT+'&amount='+sel.a; document.body.appendChild(f); setTimeout(()=>{document.body.removeChild(f); location.href='baridimob://transfer?rib='+RIB_CURRENT;},100); t('فتح بريدي موب - RIB: '+RIB_CURRENT);}
+function renderPacks(){const c=document.getElementById('packsContainer'); if(!c) return; c.innerHTML=packs.map((x,i)=>'<div class="pack '+(x.active?'ac':'')+'" onclick="pickPack('+i+')"><div style="font-weight:900;font-size:18px">'+x.p+'</div><div style="font-size:11px">نقطة</div><div style="margin-top:6px;background:#f3f4f6;border-radius:6px;padding:6px;color:#111"><div style="font-weight:800;font-size:12px">'+x.a+' دج</div><div style="font-size:10px">'+Math.floor(x.p/25)+' كشوفات</div></div></div>').join(''); const st=document.getElementById('selText'); if(st) st.textContent=sel.p+' نقطة = '+sel.a+' دج - RIB: '+RIB_CURRENT; const info=document.getElementById('info'); if(info) info.textContent='RIB: '+RIB_CURRENT+' - '+sel.p+' نقطة = '+sel.a+' دج'; document.querySelectorAll('#ribDisplay, .ribText').forEach(el=>el.textContent=RIB_CURRENT);}
+function pickPack(i){packs.forEach((x,j)=>x.active=j===i); sel=packs[i]; save(); renderPacks();}
+function up(e){const file=e.target.files[0]; if(!file) return; if(file.size>5*1024*1024){t('حجم الملف كبير - أقل من 5MB'); return;} document.getElementById('pr').style.display='block'; let w=0; const it=setInterval(()=>{w+=25; document.getElementById('prb').style.width=w+'%'; if(w>=100){clearInterval(it); setTimeout(()=>{document.getElementById('pr').style.display='none'; document.getElementById('prb').style.width='0%'; show(file);},300);}},120);}
+function show(file){const r=new FileReader(); r.onload=(ev)=>{document.getElementById('imgPrev').src=ev.target.result; document.getElementById('prev').style.display='block'; document.getElementById('upA').style.display='none'; t('تم تحميل الوصل - معاينة');}; r.readAsDataURL(file);}
+function del(){document.getElementById('prev').style.display='none'; document.getElementById('upA').style.display='block'; document.getElementById('f').value=''; t('تم حذف الوصل');}
+function send(){const o={id:Date.now(),p:sel.p,a:sel.a,rib:RIB_CURRENT,time:Date.now(),st:'pending',img:document.getElementById('imgPrev').src,phone:document.getElementById('crPhone')?.value||'0550000001',name:document.getElementById('crName')?.value||'حرفي'}; rec.unshift(o); save(); renderList(); document.getElementById('st').textContent='تم الإرسال - في انتظار الموافقة'; t('تم إرسال الوصل للإدارة - '+sel.p+' نقطة = '+sel.a+' دج - RIB: '+RIB_CURRENT);}
+function renderList(){const c=document.getElementById('list'); if(!c) return; if(rec.length===0){c.innerHTML=''; return;} c.innerHTML='<div style="font-weight:700;font-size:12px;margin-top:12px">وصولاتي المحملة - الإطلاع على الوصل</div>'+rec.map(r=>'<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-top:8px;display:flex;gap:10px"><img src="'+r.img+'" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid #e5e7eb"><div style="flex:1"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+r.p+' نقطة = '+r.a+' دج</span><span class="st st1">في الانتظار</span></div><div style="font-size:10px;color:#6b7280;margin-top:3px">RIB: '+r.rib+' - '+new Date(r.time).toLocaleDateString()+'</div></div></div>').join('');}
+function openCustomer(){document.getElementById('mCust').style.display='flex';}
+function closeCustomer(){document.getElementById('mCust').style.display='none';}
+function regCust(){const n=document.getElementById('cName').value.trim(); const p=document.getElementById('cPhone').value.trim(); if(!n||!p){t('أكمل بيانات حساب الزبون'); return;} users.push({id:Date.now(),type:'زبون',name:n,phone:p,points:0,date:Date.now()}); save(); t('تم تسجيل حساب الزبون: '+n); closeCustomer();}
+function openCraft(){document.getElementById('mCraft').style.display='flex'; renderPacks(); renderList();}
+function closeCraft(){document.getElementById('mCraft').style.display='none';}
+function regCraft(){const n=document.getElementById('crName').value.trim(); const p=document.getElementById('crPhone').value.trim(); if(!n||!p){t('أكمل بيانات حساب الحرفي'); return;} if(rec.length===0){t('حمل وصل بريدي موب أولا - RIB: '+RIB_CURRENT); return;} users.push({id:Date.now(),type:'حرفي',name:n,phone:p,points:0,skill:document.getElementById('crSkill').value,date:Date.now()}); save(); t('تم تسجيل حساب الحرفي: '+n+' + تحميل وصل - RIB: '+RIB_CURRENT); closeCraft();}
+function openAdmin(){document.getElementById('mAdmin').style.display='flex'; document.getElementById('aPass').value=''; document.getElementById('aPass').focus();}
+function closeAdmin(){document.getElementById('mAdmin').style.display='none'; document.getElementById('aLogin').style.display='block'; document.getElementById('aContent').style.display='none'; document.getElementById('aPass').value='';}
+async function sha256(m){try{const b=new TextEncoder().encode(m); const h=await crypto.subtle.digest('SHA-256',b); return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');} catch(e){return null;}}
+
+async function loginAdmin(){
+  const input=document.getElementById('aPass');
+  const p=input.value.trim();
+  if(!p){t('أدخل رمز الإدارة - الخانة فارغة'); input.focus(); return;}
+  
+  // طريقة 1: مقارنة مباشرة - تعمل دائما - رمز الإدارة يستجيب
+  const plain=p.toLowerCase().trim();
+  if(plain===PWD_PLAIN.toLowerCase() || plain===PWD_PLAIN){
+    document.getElementById('aLogin').style.display='none';
+    document.getElementById('aContent').style.display='block';
+    initAdmin();
+    t('دخول الإدارة - رمز الإدارة يستجيب - تم الدخول بنجاح');
+    input.value='';
+    return;
+  }
+  
+  // طريقة 2: مقارنة بالهاش - إذا كان crypto.subtle يعمل
+  try{
+    const h=await sha256(plain);
+    if(h && h===HASH_CURRENT){
+      document.getElementById('aLogin').style.display='none';
+      document.getElementById('aContent').style.display='block';
+      initAdmin();
+      t('دخول الإدارة - رمز الإدارة يستجيب - تم الدخول بنجاح');
+      input.value='';
+      return;
+    }
+  } catch(e){}
+  
+  t('رمز الإدارة خطأ - حاول مرة أخرى - رمز الإدارة يستجيب الآن');
+  input.value='';
+  input.focus();
 }
-</div>
-</div>
-</div>
-)}
 
-{toast&&<div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#0f172a] text-white px-4 py-2 rounded-full text-[13px] z-[200] text-center max-w-[90%]">{toast}</div>}
-</div>
-);
+function initAdmin(){
+  const labels=['المستخدمين - حذف زبون أو حرفي','الشات - صلاحيات الشات','التقييمات - إدارة التقييمات','الوصولات - الإطلاع على الوصل','النقاط - إضافة نقاط وتغيير السعر','الإعدادات - تغيير الريب وكلمة السر','كشف الأرقام - صلاحية كشف رقم الهاتف'];
+  document.getElementById('adminTabs').innerHTML=labels.map((l,i)=>'<button class="atab '+(i===0?'ac':'')+'" onclick="adminTab('+i+')">'+l+'</button>').join('');
+  adminTab(0);
 }
-const root=ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App/>);
+function adminTab(idx){
+  document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('ac',i===idx));
+  const body=document.getElementById('aBody');
+  if(idx===0){
+    body.innerHTML='<div style="font-weight:800">إدارة المستخدمين - حذف الزبون أو الحرفي</div><div style="display:flex;gap:8px;margin-top:10px"><input id="userSearch" class="inp" placeholder="بحث باسم أو هاتف" oninput="filterUsers()" style="margin:0;flex:1"><button class="btn btnd" style="width:auto;padding:0 12px;height:42px;margin:0" onclick="filterUsers()">بحث</button></div><div id="usersList" style="margin-top:10px">'+renderUsers()+'</div>';
+  } else if(idx===1){
+    if(chats.length===0){chats=[{id:1,from:'زبون: أحمد - 0551234567',to:'حرفي: محمد - 0550000001',msgs:[{me:false,text:'السلام عليكم'},{me:true,text:'وعليكم السلام - 1500 دج'}],date:Date.now()}]; save();}
+    let html='<div style="font-weight:800">إدارة الشات - صلاحيات الشات</div><div style="margin-top:10px">';
+    for(let c of chats){html+='<div class="admin-card"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+c.from+' → '+c.to+'</span><span style="font-size:10px;color:#6b7280">'+new Date(c.date).toLocaleDateString()+'</span></div><div style="margin-top:8px;background:#f9fafb;border-radius:8px;padding:8px">'; for(let m of c.msgs){html+='<div class="chat-msg '+(m.me?'me':'other')+'">'+m.text+'</div>';} html+='</div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btnd" style="flex:1;height:32px;font-size:10px" onclick="adminChatReply('+c.id+')">رد كإدارة</button><button class="btn btnr" style="flex:1;height:32px;font-size:10px" onclick="adminDeleteChat('+c.id+')">حذف الشات</button></div></div>';}
+    html+='</div>'; body.innerHTML=html;
+  } else if(idx===2){
+    let html='<div style="font-weight:800">إدارة التقييمات</div><div style="margin-top:10px">';
+    for(let r of reviews){html+='<div class="admin-card"><div style="font-weight:700;font-size:11px">'+r.user+' - '+r.target+'</div><div style="font-size:12px;margin-top:6px">'+r.text+'</div><div style="font-size:10px;color:#6b7280;margin-top:4px">هاتف: <span class="phone-hidden" onclick="this.classList.toggle(\'phone-visible\'); this.classList.toggle(\'phone-hidden\')">'+r.phone+'</span></div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btngr" style="flex:1;height:32px;font-size:10px" onclick="approveReview('+r.id+')">إبقاء</button><button class="btn btnr" style="flex:1;height:32px;font-size:10px" onclick="deleteReview('+r.id+')">حذف التقييم</button><button class="btn btnd" style="flex:1;height:32px;font-size:10px" onclick="blockReviewUser('+r.id+')">حظر</button></div></div>';}
+    html+='</div>'; body.innerHTML=html;
+  } else if(idx===3){
+    let html='<div style="font-weight:800">الإطلاع على الوصل - RIB: '+RIB_CURRENT+'</div><div style="margin-top:10px">';
+    if(rec.length>0){for(let r of rec){html+='<div class="admin-card"><div style="display:flex;gap:10px"><img src="'+r.img+'" style="width:80px;height:80px;border-radius:8px;object-fit:cover;border:2px solid #111" onclick="viewReceipt(\''+r.img+'\')"><div style="flex:1"><div style="font-weight:700;font-size:11px">'+r.p+' نقطة = '+r.a+' دج - RIB: '+r.rib+'</div><div style="font-size:10px;color:#6b7280">الاسم: '+r.name+' - هاتف: <span class="phone-hidden" onclick="this.classList.toggle(\'phone-visible\'); this.classList.toggle(\'phone-hidden\')">'+r.phone+'</span></div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btngr" style="flex:1;height:32px;font-size:10px" onclick="approveReceipt('+r.id+')">موافقة + '+r.p+' نقطة</button><button class="btn btnr" style="flex:1;height:32px;font-size:10px" onclick="rejectReceipt('+r.id+')">رفض</button></div></div></div></div>';}} else {html+='<div style="background:#f9fafb;border-radius:8px;padding:12px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد وصولات</div>';}
+    html+='</div>'; body.innerHTML=html;
+  } else if(idx===4){
+    body.innerHTML='<div style="font-weight:800">إدارة النقاط - إضافة النقاط وتغيير السعر</div><div class="admin-card" style="margin-top:10px"><div style="font-weight:700;font-size:12px">إضافة نقاط يدوية للحرفي</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><div><label class="lb" style="margin-top:0">رقم هاتف الحرفي</label><input id="addPhone" class="inp" placeholder="0550000001" style="margin-top:4px"></div><div><label class="lb" style="margin-top:0">عدد النقاط</label><input id="addPoints" type="number" class="inp" placeholder="200" style="margin-top:4px"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><button class="btn btngr" onclick="addPointsToUser()">إضافة نقاط</button><button class="btn btnr" onclick="removePointsFromUser()">خصم نقاط</button></div><div id="addPointsResult" style="margin-top:8px;font-size:11px"></div></div><div class="admin-card"><div style="font-weight:700;font-size:12px">تغيير كمية النقاط وسعرها</div><div id="packsAdmin" style="margin-top:10px">'+renderPacksAdmin()+'</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btnd" style="flex:1" onclick="addNewPack()">إضافة باقة جديدة</button><button class="btn btng" style="flex:1" onclick="resetPacks()">إرجاع الافتراضي</button></div></div>';
+  } else if(idx===5){
+    body.innerHTML='<div style="font-weight:800">الإعدادات - تغيير الريب وكلمة السر</div><div class="admin-card"><div style="font-weight:700;font-size:12px">تغيير الريب - RIB الحالي</div><div class="rib" style="margin-top:8px">'+RIB_CURRENT+'</div><label class="lb">الريب الجديد</label><input id="newRib" class="inp" placeholder="00799999000122089353" value="'+RIB_CURRENT+'"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btngr" style="flex:1" onclick="changeRib()">تغيير الريب</button><button class="btn btng" style="flex:1" onclick="resetRib()">إرجاع الافتراضي</button></div><div id="ribResult" style="margin-top:8px;font-size:11px"></div></div><div class="admin-card"><div style="font-weight:700;font-size:12px">تغيير كلمة السر</div><label class="lb">كلمة السر الحالية</label><input id="oldPass" type="password" class="inp" placeholder="كلمة السر الحالية - فارغة"><label class="lb">كلمة السر الجديدة</label><input id="newPass" type="password" class="inp" placeholder="كلمة السر الجديدة - فارغة"><label class="lb">تأكيد كلمة السر الجديدة</label><input id="confirmPass" type="password" class="inp" placeholder="تأكيد - فارغة"><button class="btn btnd" style="margin-top:8px" onclick="changePassword()">تغيير كلمة السر</button><div id="passResult" style="margin-top:8px;font-size:11px"></div></div>';
+  } else if(idx===6){
+    let html='<div style="font-weight:800">كشف رقم هاتف الزبون أو الحرفي</div><div style="margin-top:10px">';
+    if(users.length>0){for(let u of users){html+='<div class="admin-card"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+u.type+': '+u.name+'</span><span style="font-size:10px;color:#6b7280">'+new Date(u.date).toLocaleDateString()+'</span></div><div style="margin-top:6px;font-size:12px">رقم الهاتف: <span class="phone-hidden" onclick="this.classList.toggle(\'phone-visible\'); this.classList.toggle(\'phone-hidden\')">'+u.phone+'</span> - اضغط لكشف الرقم</div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btnd" style="flex:1;height:32px;font-size:10px" onclick="revealPhone(\''+u.phone+'\')">كشف رقم الهاتف</button><button class="btn btng" style="flex:1;height:32px;font-size:10px" onclick="copyPhone(\''+u.phone+'\')">نسخ</button><button class="btn btnb" style="flex:1;height:32px;font-size:10px" onclick="callPhone(\''+u.phone+'\')">اتصال</button></div></div>';}} else {html+='<div style="background:#f9fafb;border-radius:8px;padding:12px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد مستخدمين</div>';}
+    html+='</div>'; body.innerHTML=html;
+  }
+}
+function renderUsers(){
+  const q=(document.getElementById('userSearch')?.value||'').toLowerCase();
+  const filtered=users.filter(u=>!q||u.name.toLowerCase().includes(q)||u.phone.includes(q));
+  if(filtered.length===0) return '<div style="background:#f9fafb;border-radius:8px;padding:12px;text-align:center;font-size:11px;color:#6b7280">لا يوجد مستخدمين</div>';
+  let html=''; for(let u of filtered){html+='<div class="admin-card"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+u.type+': '+u.name+'</span><span style="font-size:10px;color:#6b7280">'+new Date(u.date).toLocaleDateString()+'</span></div><div style="font-size:11px;margin-top:4px">الهاتف: <span class="phone-hidden" onclick="this.classList.toggle(\'phone-visible\'); this.classList.toggle(\'phone-hidden\')">'+u.phone+'</span> - نقاط: '+(u.points||0)+'</div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btngr" style="flex:1;height:32px;font-size:10px" onclick="addPointsToSpecific('+u.id+')">إضافة نقاط</button><button class="btn btnr" style="flex:1;height:32px;font-size:10px" onclick="deleteUser('+u.id+')">حذف '+u.type+'</button><button class="btn btnd" style="flex:1;height:32px;font-size:10px" onclick="revealPhone(\''+u.phone+'\')">كشف رقم الهاتف</button></div></div>';} return html;
+}
+function filterUsers(){const el=document.getElementById('usersList'); if(el) el.innerHTML=renderUsers();}
+function deleteUser(id){if(!confirm('حذف الزبون أو الحرفي - هل أنت متأكد؟')) return; users=users.filter(u=>u.id!==id); save(); filterUsers(); t('تم حذف المستخدم');}
+function addPointsToSpecific(id){const p=prompt('عدد النقاط لإضافتها:','200'); if(!p) return; const user=users.find(u=>u.id===id); if(user){user.points=(user.points||0)+parseInt(p); save(); filterUsers(); t('تم إضافة '+p+' نقطة لـ '+user.name);}}
+function addPointsToUser(){const phone=document.getElementById('addPhone').value.trim(); const pts=parseInt(document.getElementById('addPoints').value); if(!phone||!pts){t('أدخل رقم الهاتف وعدد النقاط'); return;} const user=users.find(u=>u.phone===phone); if(!user){document.getElementById('addPointsResult').innerHTML='<span style="color:#dc2626">المستخدم غير موجود: '+phone+'</span>'; return;} user.points=(user.points||0)+pts; save(); document.getElementById('addPointsResult').innerHTML='<span style="color:#16a34a">تم إضافة '+pts+' نقطة لـ '+user.name+' - مجموع: '+user.points+'</span>'; t('تم إضافة '+pts+' نقطة');}
+function removePointsFromUser(){const phone=document.getElementById('addPhone').value.trim(); const pts=parseInt(document.getElementById('addPoints').value); if(!phone||!pts){t('أدخل رقم الهاتف وعدد النقاط'); return;} const user=users.find(u=>u.phone===phone); if(!user){t('المستخدم غير موجود'); return;} user.points=Math.max(0,(user.points||0)-pts); save(); document.getElementById('addPointsResult').innerHTML='<span style="color:#dc2626">تم خصم '+pts+' نقطة من '+user.name+' - مجموع: '+user.points+'</span>'; t('تم خصم '+pts+' نقطة');}
+function renderPacksAdmin(){return packs.map((p,i)=>'<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:8px;display:flex;gap:8px;align-items:center"><div style="font-weight:800;width:60px">'+p.p+' نقطة</div><div style="flex:1;display:flex;gap:6px"><input class="inp" style="margin:0;height:36px" type="number" value="'+p.p+'" onchange="updatePack('+i+',\'p\',this.value)"><input class="inp" style="margin:0;height:36px" type="number" value="'+p.a+'" onchange="updatePack('+i+',\'a\',this.value)"></div><button class="btn btnr" style="width:36px;height:36px;margin:0" onclick="deletePack('+i+')">✕</button></div>').join('');}
+function updatePack(i,field,val){const v=parseInt(val); if(!v) return; if(field==='p') packs[i].p=v; else packs[i].a=v; save(); renderPacks();}
+function deletePack(i){if(packs.length<=1){t('يجب أن تبقى باقة واحدة'); return;} packs.splice(i,1); if(!packs.find(x=>x.active)) packs[0].active=true; sel=packs.find(x=>x.active)||packs[0]; save(); renderPacks(); const el=document.getElementById('packsAdmin'); if(el) el.innerHTML=renderPacksAdmin(); t('تم حذف الباقة');}
+function addNewPack(){const p=parseInt(prompt('كمية النقاط الجديدة:','100')); const a=parseInt(prompt('سعر الباقة:','1000')); if(!p||!a) return; packs.push({p,a,active:false}); save(); renderPacks(); const el=document.getElementById('packsAdmin'); if(el) el.innerHTML=renderPacksAdmin(); t('تم إضافة باقة: '+p+' نقطة = '+a+' دج');}
+function resetPacks(){packs=[{p:200,a:2000,active:true},{p:300,a:3000,active:false},{p:400,a:4000,active:false},{p:500,a:5000,active:false}]; sel=packs[0]; save(); renderPacks(); const el=document.getElementById('packsAdmin'); if(el) el.innerHTML=renderPacksAdmin(); t('تم إرجاع الباقات الافتراضية');}
+function changeRib(){const newRib=document.getElementById('newRib').value.trim(); if(!newRib||newRib.length<10){t('أدخل RIB صحيح'); return;} RIB_CURRENT=newRib; save(); renderPacks(); const el=document.getElementById('ribResult'); if(el) el.innerHTML='<span style="color:#16a34a">تم تغيير الريب إلى: '+RIB_CURRENT+'</span>'; t('تم تغيير الريب إلى: '+RIB_CURRENT);}
+function resetRib(){RIB_CURRENT=RIB_DEFAULT; save(); renderPacks(); const inp=document.getElementById('newRib'); if(inp) inp.value=RIB_CURRENT; const el=document.getElementById('ribResult'); if(el) el.innerHTML='<span style="color:#16a34a">تم إرجاع RIB الافتراضي: '+RIB_DEFAULT+'</span>'; t('تم إرجاع RIB الافتراضي');}
+async function changePassword(){const oldP=document.getElementById('oldPass').value; const newP=document.getElementById('newPass').value; const conf=document.getElementById('confirmPass').value; if(!oldP||!newP||!conf){t('أكمل جميع الحقول - الخانات فارغة'); return;} if(newP!==conf){t('تأكيد كلمة السر غير متطابق'); return;} const oldHash=await sha256(oldP.toLowerCase().trim()); const plainOld=oldP.toLowerCase().trim(); if(oldHash!==HASH_CURRENT && plainOld!==PWD_PLAIN.toLowerCase()){t('كلمة السر الحالية خطأ'); return;} const newHash=await sha256(newP.toLowerCase().trim()); if(newHash){HASH_CURRENT=newHash;} save(); const resEl=document.getElementById('passResult'); if(resEl) resEl.innerHTML='<span style="color:#16a34a">تم تغيير كلمة السر بنجاح</span>'; t('تم تغيير كلمة السر'); document.getElementById('oldPass').value=''; document.getElementById('newPass').value=''; document.getElementById('confirmPass').value='';}
+function adminChatReply(id){const msg=prompt('رد كإدارة:',''); if(!msg) return; const chat=chats.find(c=>c.id===id); if(chat){chat.msgs.push({me:true,text:'[إدارة]: '+msg}); save(); adminTab(1); t('تم الرد كإدارة');}}
+function adminDeleteChat(id){if(!confirm('حذف الشات - هل أنت متأكد؟')) return; chats=chats.filter(c=>c.id!==id); save(); adminTab(1); t('تم حذف الشات');}
+function approveReview(id){save(); adminTab(2); t('تم إبقاء التقييم');}
+function deleteReview(id){if(!confirm('حذف التقييم - هل أنت متأكد؟')) return; reviews=reviews.filter(x=>x.id!==id); save(); adminTab(2); t('تم حذف التقييم');}
+function blockReviewUser(id){const r=reviews.find(x=>x.id===id); if(r){users.push({id:Date.now(),type:'محظور',name:r.user,phone:r.phone,points:0,date:Date.now()}); reviews=reviews.filter(x=>x.id!==id); save(); adminTab(2); t('تم حظر صاحب التقييم: '+r.user);}}
+function viewReceipt(img){const w=window.open(''); w.document.write('<img src="'+img+'" style="width:100%"><div style="text-align:center;padding:10px;font-family:monospace">RIB: '+RIB_CURRENT+'</div>');}
+function approveReceipt(id){const r=rec.find(x=>x.id===id); if(!r) return; const user=users.find(u=>u.phone===r.phone); if(user){user.points=(user.points||0)+r.p;} else {users.push({id:Date.now(),type:'حرفي',name:r.name,phone:r.phone,points:r.p,date:Date.now()});} rec=rec.filter(x=>x.id!==id); save(); adminTab(3); t('تمت الموافقة + '+r.p+' نقطة لـ '+r.name);}
+function rejectReceipt(id){if(!confirm('رفض الوصل - هل أنت متأكد؟')) return; rec=rec.filter(x=>x.id!==id); save(); adminTab(3); t('تم رفض الوصل');}
+function revealPhone(phone){t('رقم الهاتف: '+phone); navigator.clipboard.writeText(phone);}
+function copyPhone(phone){navigator.clipboard.writeText(phone).then(()=>t('تم نسخ رقم الهاتف: '+phone));}
+function callPhone(phone){location.href='tel:'+phone;}
+
+// Enter key to login
+document.getElementById('aPass')?.addEventListener('keypress', function(e){ if(e.key==='Enter'){ loginAdmin(); }});
+
+renderPacks();
+renderList();
+t('khadma Dz - رمز الإدارة يستجيب الآن - الخانة فارغة - بدون كلمة سر ظاهرة - RIB: '+RIB_CURRENT);
 </script>
+
 </body>
 </html>
-
