@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>khadma Dz - إدارة - رمز الإدارة يستجيب</title>
-
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0f172a">
 <meta name="description" content="khadma Dz - سوق الخدمات الجزائري - RIB صحيح بدون خطأ: 00799999000122089353 - إدارة كاملة - روبوت بكل الصلاحيات">
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,Arial}
 body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#111;padding-bottom:64px}
@@ -33,7 +31,7 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 .av img{width:100%;height:100%;object-fit:cover}
 .fab{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#111;color:#fff;border:none;border-radius:999px;padding:12px 20px;font-weight:700;font-size:13px;z-index:15;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:64px;background:#fff;border-top:1px solid #e5e7eb;display:flex;z-index:20}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9ca3af;font-size:10px;cursor:pointer;font-weight:600}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9ca3af;font-size:10px;cursor:pointer;font-weight:600;user-select:none}
 .ni.ac{color:#111} .ic{font-size:18px}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:999px;font-size:11px;display:none;z-index:999;max-width:90%;text-align:center}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
@@ -72,7 +70,7 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 
 <div class="h">
 <div class="logo"><i>خ</i><span>khadma Dz</span></div>
-<div class="s" onclick="t('بحث')">⌕</div>
+<div class="s" onclick="t('بحث - قريبا')">⌕</div>
 <div class="s" style="margin-right:8px" onclick="openAdmin()">⚙</div>
 </div>
 
@@ -82,19 +80,57 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 </div>
 
 <div class="fil">
-<button class="ch a">Recommandée</button><button class="ch">Tout</button><button class="ch">Avis</button><button class="ch">Sans offre</button>
+<button class="ch a" onclick="filterDemandes('recommandee', this)">Recommandée</button>
+<button class="ch" onclick="filterDemandes('tout', this)">Tout</button>
+<button class="ch" onclick="filterDemandes('avis', this)">Avis</button>
+<button class="ch" onclick="filterDemandes('sans', this)">Sans offre</button>
 </div>
 
-<div class="it"><div class="meta"><span>il y a 15 heures</span> · <span>Médéa</span> · <span>23 km</span> · <span class="badge">1p</span></div><div class="title">أبحث عن مصلح ماشين لافي الجي 6 كلغ</div></div>
-<div class="it"><div class="meta"><span>il y a une heure</span> · <span>Rouiba</span> · <span>52 km</span> · <span>1 offre</span> · <span class="badge">25p</span></div><div class="title">Je cherche un réparateur de machine à laver Brandt 6 KG</div><div class="av"><img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200"></div></div>
+<div id="demandesList">
+<div class="it" data-type="sans"><div class="meta"><span>il y a 15 heures</span> · <span>Médéa</span> · <span>23 km</span> · <span class="badge">1p</span></div><div class="title">أبحث عن مصلح ماشين لافي الجي 6 كلغ</div></div>
+<div class="it" data-type="recommandee"><div class="meta"><span>il y a une heure</span> · <span>Rouiba</span> · <span>52 km</span> · <span>1 offre</span> · <span class="badge">25p</span></div><div class="title">Je cherche un réparateur de machine à laver Brandt 6 KG</div><div class="av"><img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200"></div></div>
+</div>
 
 <button class="fab" onclick="openCustomer()">+ Ajouter une demande</button>
 
-<div class="nav">
-<div class="ni"><div class="ic">♡</div><div>Suivi</div></div><div class="ni"><div class="ic">☆</div><div>Showroom</div></div><div class="ni ac"><div class="ic">✎</div><div>Demandes</div></div><div class="ni"><div class="ic">☾</div><div>Chat</div></div><div class="ni"><div class="ic">○</div><div>Compte</div></div>
+<!-- الأزرار التحت - مصلحة - فيها onclick -->
+<div class="nav" style="z-index:9999">
+<div class="ni" onclick="navSuivi()"><div class="ic">♡</div><div>Suivi</div></div>
+<div class="ni" onclick="navShowroom()"><div class="ic">☆</div><div>Showroom</div></div>
+<div class="ni ac" onclick="navDemandes()"><div class="ic">✎</div><div>Demandes</div></div>
+<div class="ni" onclick="navChat()"><div class="ic">☾</div><div>Chat</div></div>
+<div class="ni" id="btnCompte" onclick="navCompte()" style="background:#fde047;color:#111;border-radius:10px;margin:4px"><div class="ic">○</div><div>Compte</div></div>
 </div>
 
+
+<div id="mAccount" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حسابي - <span id="accTypeLabel">الزبون</span></div><div style="cursor:pointer" onclick="closeAccount()">✕</div></div>
+<div style="padding:12px">
+  <div class="admin-card" style="background:#111;color:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:800;font-size:14px" id="accName">مرحبا</div><div style="font-size:11px;opacity:0.8" id="accPhone">055...</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:900" id="accPoints">0</div><div style="font-size:10px;opacity:0.8">نقطة</div></div>
+    </div>
+    <div style="margin-top:8px;font-size:11px" id="accExtra">تخصص: ...</div>
+  </div>
+
+  <div style="display:flex;gap:6px;margin-top:10px;overflow:auto" id="accTabs">
+    <button class="atab ac" onclick="accTab(0)">📋 طلباتي</button>
+    <button class="atab" onclick="accTab(1)">💰 نقاطي</button>
+    <button class="atab" onclick="accTab(2)">💬 شات</button>
+    <button class="atab" onclick="accTab(3)">⭐ تقييمي</button>
+  </div>
+
+  <div id="accBody" style="margin-top:10px;min-height:200px"></div>
+
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn btng" style="flex:1" onclick="closeAccount()">إغلاق</button>
+    <button class="btn btnr" style="flex:1" onclick="logout(); closeAccount();">خروج</button>
+  </div>
+</div>
+</div></div>
+
 <div id="toast" class="toast"></div>
+
 
 <div id="mCust" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حساب الزبون والتسجيل</div><div style="cursor:pointer" onclick="closeCustomer()">✕</div></div><div style="padding:16px"><label class="lb">الاسم الكامل</label><input id="cName" class="inp" placeholder="الاسم"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">رقم الهاتف</label><input id="cPhone" class="inp" placeholder="0551234567"></div><div><label class="lb">الولاية</label><select class="sel"><option>الجزائر</option><option>وهران</option><option>قسنطينة</option></select></div></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeCustomer()">إلغاء</button><button class="btn btnd" style="flex:1" onclick="regCust()">تسجيل</button></div></div></div></div>
 
@@ -102,6 +138,14 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 <label class="lb">الاسم الكامل</label><input id="crName" class="inp" placeholder="الاسم"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">التخصص</label><select id="crSkill" class="sel"><option>سباكة</option><option>كهرباء</option><option>تكييف</option><option>دهان</option><option>نجارة</option></select></div><div><label class="lb">رقم الهاتف</label><input id="crPhone" class="inp" placeholder="0550000001"></div></div>
 <div class="card" style="background:#111;color:#fff"><div style="font-weight:800;font-size:13px">طلب النقاط عبر بريدي موب</div><div style="font-size:11px;opacity:0.8;margin-top:4px">حساب الحرفي فقط - سري</div></div>
 <div class="card"><div style="font-size:11px;color:#6b7280;text-align:center">RIB صحيح</div><div class="rib" id="ribDisplay">00799999000122089353</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btng" style="flex:1;height:36px" onclick="copyRIB()">نسخ RIB</button><button class="btn btnb" style="flex:1;height:36px" onclick="openBM()">فتح بريدي موب</button></div></div>
+
+<!-- زر الدفع الجديد - هنا الصح - في حساب الحرفي -->
+<div style="background:#fff;border:2px solid #6c2eff;border-radius:15px;padding:16px;margin:12px 0;text-align:center">
+  <h3 style="margin:0 0 8px;font-size:14px">⚡ شحن فوري - 25 نقطة - 1000 دج</h3>
+  <a href="http://pay.chargily.com/test/payment-links/01m4p8et894g7czykak03sz330" target="_blank" style="background:#6c2eff;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:block;font-weight:bold;font-size:15px;text-align:center">💳 دفع بالذهبية - 1000 دج</a>
+  <p style="font-size:11px;color:#888;margin:8px 0 0">آمن عبر Chargily - أو حول لـ RIB: 00799999000122089353</p>
+</div>
+
 <div style="margin-top:12px"><div style="font-size:12px;font-weight:700">باقات النقاط</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px" id="packsContainer"></div><div style="background:#f9fafb;border:1px dashed #d1d5db;border-radius:8px;padding:8px;text-align:center;margin-top:8px;font-size:11px"><div style="color:#6b7280">الباقة المختارة</div><div id="selText" style="font-weight:800;margin-top:2px">200 نقطة = 2000 دج</div></div></div>
 <div class="card" style="background:#fef3c7;border-color:#fde68a"><div style="font-weight:800;font-size:12px">تحميل وصل بريدي موب</div><div style="font-size:11px;margin-top:6px;line-height:18px;color:#92400e">- أقل مبلغ 2000 دج<br>- صورة وصل واضح مع الاسم واللقب وختم البريد<br>- RIB: <span class="ribText">00799999000122089353</span></div></div>
 <input type="file" id="f" accept="image/*" style="display:none">
@@ -117,11 +161,7 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 <div class="login-box">
 <div class="login-title">إدارة khadma Dz</div>
 <div class="login-sub">دخول الإدارة - كل الصلاحيات - رمز الإدارة يستجيب الآن</div>
-<div class="login-rib">RIB: <div style="background:#fff;border:2px solid #6c2eff;border-radius:15px;padding:18px;margin:15px 0;text-align:center">
-  <h3 style="margin:0 0 8px">⚡ شحن فوري - 25 نقطة - 1000 دج</h3>
-  <a href="http://pay.chargily.com/test/payment-links/01m4p8et894g7czykak03sz330" target="_blank" style="background:#6c2eff;color:#fff;padding:14px 25px;border-radius:10px;text-decoration:none;display:block;font-weight:bold;font-size:17px">💳 دفع بالذهبية - 1000 دج</a>
-  <p style="font-size:12px;color:#888;margin:10px 0 0">آمن عبر Chargily - أو حول لـ RIB: 00799999000122089353</p>
-</div></div>
+<div class="login-rib" style="background:#0f172a">RIB: 00799999000122089353 - آمن ومحمي</div>
 <div style="margin-top:16px">
 <label class="lb" style="margin-top:0">رمز الإدارة - كلمة السر</label>
 <input id="aPass" type="password" class="inp" placeholder="أدخل رمز الإدارة" autocomplete="off" style="margin-top:6px">
@@ -146,14 +186,46 @@ let HASH_CURRENT=localStorage.getItem('hash_current')||HASH_DEFAULT;
 let packs=JSON.parse(localStorage.getItem('packs')||'null')||[{p:200,a:2000,active:true},{p:300,a:3000,active:false},{p:400,a:4000,active:false},{p:500,a:5000,active:false}];
 let sel=packs.find(x=>x.active)||packs[0];
 let rec=JSON.parse(localStorage.getItem('receipts')||'[]');
-let users=JSON.parse(localStorage.getItem('users')||'[]');
+
+let users=(()=>{
+  try{
+    const a=JSON.parse(localStorage.getItem('users')||'[]');
+    const b=JSON.parse(localStorage.getItem('khadma_users')||'[]');
+    const c=JSON.parse(localStorage.getItem('khadma_users_v2')||'[]');
+    const merged=[...a,...b,...c];
+    const map=new Map();
+    merged.forEach(u=>{ if(u && u.phone){ if(!map.has(u.phone) || (u.points||0) > (map.get(u.phone).points||0)){ map.set(u.phone,u); } } });
+    return Array.from(map.values());
+  }catch(e){ return JSON.parse(localStorage.getItem('users')||'[]'); }
+})();
+
 let chats=JSON.parse(localStorage.getItem('chats')||'[]');
 let reviews=JSON.parse(localStorage.getItem('reviews')||'null')||[
   {id:1,user:'خديجة بغدادي',phone:'0551234567',target:'وطني الجزائر',stars:1,text:'إنسان للأسف معندوش كلمة يومين وانا نسنا فيه مجاش',date:'il y a 11 jours'},
   {id:2,user:'محمد لاريد',phone:'0559876543',target:'وطني الجزائر',stars:4,text:'Le professionnel n avait pas termine',date:'il y a 18 jours'}
 ];
 
-function save(){localStorage.setItem('rib_current',RIB_CURRENT); localStorage.setItem('hash_current',HASH_CURRENT); localStorage.setItem('packs',JSON.stringify(packs)); localStorage.setItem('receipts',JSON.stringify(rec)); localStorage.setItem('users',JSON.stringify(users)); localStorage.setItem('chats',JSON.stringify(chats)); localStorage.setItem('reviews',JSON.stringify(reviews));}
+function save(){
+  localStorage.setItem('rib_current',RIB_CURRENT); 
+  localStorage.setItem('hash_current',HASH_CURRENT); 
+  localStorage.setItem('packs',JSON.stringify(packs)); 
+  localStorage.setItem('receipts',JSON.stringify(rec)); 
+  localStorage.setItem('users',JSON.stringify(users)); 
+  localStorage.setItem('khadma_users',JSON.stringify(users));
+  localStorage.setItem('khadma_users_v2',JSON.stringify(users));
+  localStorage.setItem('chats',JSON.stringify(chats)); 
+  localStorage.setItem('reviews',JSON.stringify(reviews));
+  // also save current users list for success.html auto credit
+  try{
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    if(curPhone){
+      const curUser=users.find(u=>u.phone===curPhone);
+      if(curUser){
+        localStorage.setItem('khadma_current_user', curUser.name);
+      }
+    }
+  }catch(e){}
+}
 function t(m){const e=document.getElementById('toast'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',3500);}
 function copyRIB(){navigator.clipboard.writeText(RIB_CURRENT).then(()=>t('تم نسخ RIB: '+RIB_CURRENT));}
 function openBM(){const f=document.createElement('iframe'); f.style.display='none'; f.src='baridimob://transfer?rib='+RIB_CURRENT+'&amount='+sel.a; document.body.appendChild(f); setTimeout(()=>{document.body.removeChild(f); location.href='baridimob://transfer?rib='+RIB_CURRENT;},100); t('فتح بريدي موب - RIB: '+RIB_CURRENT);}
@@ -164,22 +236,143 @@ function show(file){const r=new FileReader(); r.onload=(ev)=>{document.getElemen
 function del(){document.getElementById('prev').style.display='none'; document.getElementById('upA').style.display='block'; document.getElementById('f').value=''; t('تم حذف الوصل');}
 function send(){const o={id:Date.now(),p:sel.p,a:sel.a,rib:RIB_CURRENT,time:Date.now(),st:'pending',img:document.getElementById('imgPrev').src,phone:document.getElementById('crPhone')?.value||'0550000001',name:document.getElementById('crName')?.value||'حرفي'}; rec.unshift(o); save(); renderList(); document.getElementById('st').textContent='تم الإرسال - في انتظار الموافقة'; t('تم إرسال الوصل للإدارة - '+sel.p+' نقطة = '+sel.a+' دج - RIB: '+RIB_CURRENT);}
 function renderList(){const c=document.getElementById('list'); if(!c) return; if(rec.length===0){c.innerHTML=''; return;} c.innerHTML='<div style="font-weight:700;font-size:12px;margin-top:12px">وصولاتي المحملة - الإطلاع على الوصل</div>'+rec.map(r=>'<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-top:8px;display:flex;gap:10px"><img src="'+r.img+'" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid #e5e7eb"><div style="flex:1"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+r.p+' نقطة = '+r.a+' دج</span><span class="st st1">في الانتظار</span></div><div style="font-size:10px;color:#6b7280;margin-top:3px">RIB: '+r.rib+' - '+new Date(r.time).toLocaleDateString()+'</div></div></div>').join('');}
-function openCustomer(){document.getElementById('mCust').style.display='flex';}
+function openCustomer(){
+  document.getElementById('mCust').style.display='flex';
+  const cur=localStorage.getItem('khadma_current_phone');
+  if(cur){
+    const u=users.find(x=>x.phone===cur);
+    if(u){ document.getElementById('cName').value=u.name; document.getElementById('cPhone').value=u.phone; }
+  }
+}
 function closeCustomer(){document.getElementById('mCust').style.display='none';}
-function regCust(){const n=document.getElementById('cName').value.trim(); const p=document.getElementById('cPhone').value.trim(); if(!n||!p){t('أكمل بيانات حساب الزبون'); return;} users.push({id:Date.now(),type:'زبون',name:n,phone:p,points:0,date:Date.now()}); save(); t('تم تسجيل حساب الزبون: '+n); closeCustomer();}
-function openCraft(){document.getElementById('mCraft').style.display='flex'; renderPacks(); renderList();}
+function regCust(){
+  const n=document.getElementById('cName').value.trim();
+  const p=document.getElementById('cPhone').value.trim();
+  if(!n||!p){t('أكمل بيانات حساب الزبون - الاسم والهاتف'); return;}
+  if(p.length<9){t('رقم الهاتف غير صحيح'); return;}
+  let existing=users.find(u=>u.phone===p);
+  if(existing){
+    localStorage.setItem('khadma_current_phone', p);
+    localStorage.setItem('khadma_current_user', existing.name);
+    localStorage.setItem('khadma_current_type', existing.type);
+    t('مرحبا بعودتك '+existing.name+' - نقاطك: '+(existing.points||0));
+    closeCustomer();
+    updateTopBar();
+    return;
+  }
+  const newUser={id:Date.now(),type:'زبون',name:n,phone:p,points:0,date:Date.now(),email:p};
+  users.push(newUser);
+  localStorage.setItem('khadma_current_phone', p);
+  localStorage.setItem('khadma_current_user', n);
+  localStorage.setItem('khadma_current_type', 'زبون');
+  save();
+  t('تم تسجيل حساب الزبون: '+n+' - مرحبا بك! حسابك محفوظ');
+  closeCustomer();
+  updateTopBar();
+}
+function openCraft(){
+  document.getElementById('mCraft').style.display='flex'; 
+  renderPacks(); 
+  renderList();
+  const cur=localStorage.getItem('khadma_current_phone');
+  if(cur){
+    const u=users.find(x=>x.phone===cur);
+    if(u){ document.getElementById('crName').value=u.name; document.getElementById('crPhone').value=u.phone; }
+  }
+}
 function closeCraft(){document.getElementById('mCraft').style.display='none';}
-function regCraft(){const n=document.getElementById('crName').value.trim(); const p=document.getElementById('crPhone').value.trim(); if(!n||!p){t('أكمل بيانات حساب الحرفي'); return;} if(rec.length===0){t('حمل وصل بريدي موب أولا - RIB: '+RIB_CURRENT); return;} users.push({id:Date.now(),type:'حرفي',name:n,phone:p,points:0,skill:document.getElementById('crSkill').value,date:Date.now()}); save(); t('تم تسجيل حساب الحرفي: '+n+' + تحميل وصل - RIB: '+RIB_CURRENT); closeCraft();}
+function regCraft(){
+  const n=document.getElementById('crName').value.trim();
+  const p=document.getElementById('crPhone').value.trim();
+  if(!n||!p){t('أكمل بيانات حساب الحرفي'); return;}
+  if(p.length<9){t('رقم الهاتف غير صحيح'); return;}
+  let existing=users.find(u=>u.phone===p);
+  if(existing && existing.type==='حرفي'){
+    localStorage.setItem('khadma_current_phone', p);
+    localStorage.setItem('khadma_current_user', existing.name);
+    localStorage.setItem('khadma_current_type', 'حرفي');
+    t('مرحبا بعودتك '+existing.name+' - نقاطك: '+(existing.points||0)+' - حسابك موجود');
+    closeCraft();
+    updateTopBar();
+    return;
+  }
+  if(existing && existing.type==='زبون'){
+    // ترقية حساب زبون إلى حرفي
+    existing.type='حرفي';
+    existing.skill=document.getElementById('crSkill').value;
+    localStorage.setItem('khadma_current_phone', p);
+    localStorage.setItem('khadma_current_user', existing.name);
+    localStorage.setItem('khadma_current_type', 'حرفي');
+    save();
+    t('تم ترقية حسابك من زبون إلى حرفي - '+existing.name);
+    closeCraft();
+    updateTopBar();
+    return;
+  }
+  // السماح بالتسجيل حتى بدون وصل - النقاط تبدأ من 0 أو من دفع Chargily
+  let initialPoints=0;
+  const hasChargily = (JSON.parse(localStorage.getItem('khadma_transactions')||'[]').length>0);
+  if(hasChargily){
+    const txs=JSON.parse(localStorage.getItem('khadma_transactions')||'[]');
+    initialPoints = txs.reduce((s,x)=>s+(x.points||0), 0);
+  }
+  if(rec.length>0 && !hasChargily){
+    initialPoints = sel.p;
+    t('تنبيه: سجلت بالوصل - في انتظار موافقة الإدارة على النقاط');
+  }
+  const newUser={id:Date.now(),type:'حرفي',name:n,phone:p,points:initialPoints,skill:document.getElementById('crSkill').value,date:Date.now(),email:p};
+  users.push(newUser);
+  localStorage.setItem('khadma_current_phone', p);
+  localStorage.setItem('khadma_current_user', n);
+  localStorage.setItem('khadma_current_type', 'حرفي');
+  save();
+  t('تم تسجيل حساب الحرفي: '+n+' - نقاطك: '+initialPoints+' - حسابك محفوظ وموجود في الإدارة');
+  closeCraft();
+  updateTopBar();
+}
+function regCraft(){
+  const n=document.getElementById('crName').value.trim(); 
+  const p=document.getElementById('crPhone').value.trim(); 
+  if(!n||!p){t('أكمل بيانات حساب الحرفي - الاسم والهاتف'); return;}
+  if(p.length<10){t('رقم الهاتف غير صحيح'); return;}
+  let existing=users.find(u=>u.phone===p);
+  if(existing){
+    localStorage.setItem('khadma_current_phone', p);
+    localStorage.setItem('khadma_current_user', existing.name);
+    localStorage.setItem('khadma_current_type', existing.type);
+    t('مرحبا بعودتك '+existing.name+' - نقاطك: '+(existing.points||0));
+    closeCraft();
+    updateTopBar();
+    return;
+  }
+  // إذا دفع عبر Chargily، السماح بالتسجيل بدون وصل
+  const hasChargily = (JSON.parse(localStorage.getItem('khadma_transactions')||'[]').length>0);
+  const hasReceipt = rec.length>0;
+  if(!hasReceipt && !hasChargily){
+    if(!confirm('لم تحمل وصل بريدي موب ولم تدفع عبر الذهبية - هل تريد التسجيل بنقاط 0؟ يمكنك الشحن لاحقا عبر الدفع')){ return; }
+  }
+  let initialPoints = 0;
+  if(hasReceipt){ initialPoints = sel.p; }
+  if(hasChargily){ 
+    const txs=JSON.parse(localStorage.getItem('khadma_transactions')||'[]');
+    initialPoints = txs.reduce((s,x)=>s+(x.points||0), 0);
+  }
+  users.push({id:Date.now(),type:'حرفي',name:n,phone:p,points:initialPoints,skill:document.getElementById('crSkill').value,date:Date.now()}); 
+  localStorage.setItem('khadma_current_phone', p);
+  localStorage.setItem('khadma_current_user', n);
+  localStorage.setItem('khadma_current_type', 'حرفي');
+  save(); 
+  t('تم تسجيل حساب الحرفي: '+n+' - نقاطك: '+initialPoints+' - مرحبا!'); 
+  closeCraft();
+  updateTopBar();
+}
 function openAdmin(){document.getElementById('mAdmin').style.display='flex'; document.getElementById('aPass').value=''; document.getElementById('aPass').focus();}
 function closeAdmin(){document.getElementById('mAdmin').style.display='none'; document.getElementById('aLogin').style.display='block'; document.getElementById('aContent').style.display='none'; document.getElementById('aPass').value='';}
 async function sha256(m){try{const b=new TextEncoder().encode(m); const h=await crypto.subtle.digest('SHA-256',b); return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');} catch(e){return null;}}
-
 async function loginAdmin(){
   const input=document.getElementById('aPass');
   const p=input.value.trim();
   if(!p){t('أدخل رمز الإدارة - الخانة فارغة'); input.focus(); return;}
-  
-  // طريقة 1: مقارنة مباشرة - تعمل دائما - رمز الإدارة يستجيب
   const plain=p.toLowerCase().trim();
   if(plain===PWD_PLAIN.toLowerCase() || plain===PWD_PLAIN){
     document.getElementById('aLogin').style.display='none';
@@ -189,8 +382,6 @@ async function loginAdmin(){
     input.value='';
     return;
   }
-  
-  // طريقة 2: مقارنة بالهاش - إذا كان crypto.subtle يعمل
   try{
     const h=await sha256(plain);
     if(h && h===HASH_CURRENT){
@@ -202,12 +393,10 @@ async function loginAdmin(){
       return;
     }
   } catch(e){}
-  
   t('رمز الإدارة خطأ - حاول مرة أخرى - رمز الإدارة يستجيب الآن');
   input.value='';
   input.focus();
 }
-
 function initAdmin(){
   const labels=['المستخدمين - حذف زبون أو حرفي','الشات - صلاحيات الشات','التقييمات - إدارة التقييمات','الوصولات - الإطلاع على الوصل','النقاط - إضافة نقاط وتغيير السعر','الإعدادات - تغيير الريب وكلمة السر','كشف الأرقام - صلاحية كشف رقم الهاتف'];
   document.getElementById('adminTabs').innerHTML=labels.map((l,i)=>'<button class="atab '+(i===0?'ac':'')+'" onclick="adminTab('+i+')">'+l+'</button>').join('');
@@ -272,12 +461,133 @@ function revealPhone(phone){t('رقم الهاتف: '+phone); navigator.clipboar
 function copyPhone(phone){navigator.clipboard.writeText(phone).then(()=>t('تم نسخ رقم الهاتف: '+phone));}
 function callPhone(phone){location.href='tel:'+phone;}
 
-// Enter key to login
-document.getElementById('aPass')?.addEventListener('keypress', function(e){ if(e.key==='Enter'){ loginAdmin(); }});
 
+function navSuivi(){ try{ setActiveNav(0); t('Suivi - المتابعة - قريبا'); }catch(e){} }
+function navShowroom(){ try{ setActiveNav(1); t('Showroom - قريبا'); }catch(e){} }
+function navDemandes(){ try{ setActiveNav(2); window.scrollTo({top:0,behavior:'smooth'}); t('Demandes'); }catch(e){} }
+function navChat(){ try{ setActiveNav(3); openAdmin(); }catch(e){} }
+function navCompte(){ 
+  try{
+    setActiveNav(4);
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    if(curPhone){ openAccount(); } else { openCustomer(); }
+  }catch(e){ console.error(e); openCustomer(); }
+}
+function openAccount(){
+  try{
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    const curName=localStorage.getItem('khadma_current_user');
+    const curType=localStorage.getItem('khadma_current_type')||'زبون';
+    if(!curPhone){ openCustomer(); return; }
+    let user=null;
+    try{ user=users.find(u=>u.phone===curPhone); }catch(e){}
+    if(!user){ user={name:curName||'مستخدم', phone:curPhone, points:0, type:curType, skill:'سباكة'}; }
+    document.getElementById('accName').textContent=user.name||'مستخدم';
+    document.getElementById('accPhone').textContent=(user.phone||'')+' - '+(user.type||'زبون');
+    document.getElementById('accPoints').textContent=user.points||0;
+    document.getElementById('accTypeLabel').textContent=user.type||'زبون';
+    document.getElementById('accExtra').textContent=user.type==='حرفي' ? 'تخصص: '+(user.skill||'سباكة')+' - RIB: '+RIB_CURRENT : 'ولاية: الجزائر - زبون';
+    document.getElementById('mAccount').style.display='flex';
+    document.getElementById('mAccount').style.zIndex='1000';
+    accTab(0);
+  }catch(e){ console.error(e); t('خطأ في فتح الحساب'); }
+}
+function closeAccount(){ try{ document.getElementById('mAccount').style.display='none'; }catch(e){} }
+function accUpgradeToCraft(){
+  if(!confirm('هل تريد أن تصبح حرفي؟')) return;
+  const curPhone=localStorage.getItem('khadma_current_phone');
+  let u=users.find(x=>x.phone===curPhone);
+  if(u){ u.type='حرفي'; u.skill='سباكة'; localStorage.setItem('khadma_current_type','حرفي'); save(); updateTopBar(); openAccount(); t('تم ترقيتك إلى حرفي'); }
+}
+
+
+function accTab(idx){
+  try{
+    document.querySelectorAll('#accTabs .atab').forEach((b,i)=>b.classList.toggle('ac', i===idx));
+    const body=document.getElementById('accBody');
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    let user=null;
+    try{ user=users.find(u=>u.phone===curPhone); }catch(e){}
+    if(!user) user={points:0, type:'زبون', name:'مستخدم'};
+    const txs=JSON.parse(localStorage.getItem('khadma_transactions')||'[]').filter(t=>t.phone===curPhone);
+    const userChats=chats.filter(c=>{ try{ return c.from.includes(curPhone) || c.to.includes(curPhone); }catch(e){ return false; } });
+    const userReviews=reviews.filter(r=> r.phone===curPhone );
+
+    if(idx===0){
+      const demandesCount = document.querySelectorAll('#demandesList .it').length;
+      body.innerHTML='<div style="font-weight:800;font-size:12px">📋 طلباتي ('+demandesCount+')</div><div class="admin-card"><div style="font-size:11px">مسجل كـ <b>'+user.type+'</b></div><div style="margin-top:8px"><button class="btn btnd" onclick="closeAccount(); openCustomer();" style="height:36px">+ إضافة طلب</button></div></div>';
+    } else if(idx===1){
+      let html='<div style="font-weight:800;font-size:12px">💰 نقاطي: '+(user.points||0)+'</div>';
+      if(user.type==='حرفي'){
+        html+='<div class="admin-card" style="background:#f0fdf4"><div style="font-weight:700;font-size:12px">شحن فوري</div><div style="margin-top:8px"><a href="http://pay.chargily.com/test/payment-links/01m4p8et894g7czykak03sz330" target="_blank" style="background:#6c2eff;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;display:block;text-align:center;font-weight:700">💳 دفع 1000 دج = 25 نقطة</a></div><div style="font-size:10px;color:#6b7280;margin-top:6px;text-align:center">RIB: '+RIB_CURRENT+'</div></div>';
+        html+='<div style="margin-top:10px"><div style="font-weight:700;font-size:11px">سجل المدفوعات ('+txs.length+')</div>';
+        if(txs.length===0) html+='<div style="background:#f9fafb;padding:10px;border-radius:8px;font-size:11px;color:#6b7280;margin-top:6px">لم تدفع بعد</div>';
+        else { for(let t of txs){ html+='<div class="admin-card"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">+'+t.points+' نقطة</span><span style="font-size:10px">'+new Date(t.date).toLocaleDateString()+'</span></div></div>'; } }
+        html+='</div>';
+      } else {
+        html+='<div class="admin-card"><div style="font-size:11px">أنت زبون - النقاط للحرفيين فقط</div><div style="margin-top:8px"><button class="btn btny" onclick="accUpgradeToCraft()">الترقية إلى حرفي</button></div></div>';
+      }
+      body.innerHTML=html;
+    } else if(idx===2){
+      let html='<div style="font-weight:800;font-size:12px">💬 شات ('+userChats.length+')</div>';
+      if(userChats.length===0) html+='<div style="background:#f9fafb;padding:12px;border-radius:8px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد محادثات</div>';
+      else { for(let c of userChats){ html+='<div class="admin-card"><div style="font-weight:700;font-size:11px">'+c.from+' → '+c.to+'</div></div>'; } }
+      body.innerHTML=html;
+    } else if(idx===3){
+      let html='<div style="font-weight:800;font-size:12px">⭐ تقييماتي</div><div style="background:#f9fafb;padding:12px;border-radius:8px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد تقييمات بعد</div>';
+      body.innerHTML=html;
+    }
+  }catch(e){ console.error(e); }
+}
+function setActiveNav(idx){ try{ document.querySelectorAll('.nav .ni').forEach((el,i)=>{ el.classList.toggle('ac', i===idx); }); }catch(e){} }
+function filterDemandes(type, btn){
+  try{
+    document.querySelectorAll('.fil .ch').forEach(b=>b.classList.remove('a'));
+    if(btn) btn.classList.add('a');
+    const items = document.querySelectorAll('#demandesList .it');
+    items.forEach(it=>{
+      const dt = it.getAttribute('data-type')||'recommandee';
+      if(type==='tout'){ it.style.display='block'; }
+      else if(type==='recommandee'){ it.style.display = dt==='recommandee' ? 'block' : 'none'; }
+      else if(type==='sans'){ it.style.display = dt==='sans' ? 'block' : 'none'; }
+      else { it.style.display='block'; }
+    });
+  }catch(e){}
+}
+document.getElementById('f')?.addEventListener('change', up);
+document.getElementById('aPass')?.addEventListener('keypress', function(e){ if(e.key==='Enter'){ loginAdmin(); }});
+function updateTopBar(){
+  try{
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    const curName=localStorage.getItem('khadma_current_user');
+    const curType=localStorage.getItem('khadma_current_type');
+    const topDiv=document.querySelector('.top');
+    if(curName && topDiv){
+      let existingInfo=document.getElementById('currentUserInfo');
+      if(existingInfo) existingInfo.remove();
+      const info=document.createElement('div');
+      info.id='currentUserInfo';
+      info.style.cssText='background:#f0fdf4;border:1px solid #16a34a;border-radius:8px;padding:8px;margin:8px 16px;text-align:center;font-size:11px';
+      let u=null; try{ u=users.find(x=>x.phone===curPhone); }catch(e){}
+      const pts=u? (u.points||0) : 0;
+      info.innerHTML='مرحبا '+curName+' ('+curType+') - نقاطك: <b>'+pts+'</b> <span style="color:#16a34a;cursor:pointer" onclick="logout()">[خروج]</span> <span style="color:#6c2eff;cursor:pointer" onclick="openAccount()">[حسابي]</span>';
+      topDiv.parentNode.insertBefore(info, topDiv.nextSibling);
+    }
+  }catch(e){}
+}
+function logout(){
+  localStorage.removeItem('khadma_current_phone');
+  localStorage.removeItem('khadma_current_user');
+  localStorage.removeItem('khadma_current_type');
+  const el=document.getElementById('currentUserInfo');
+  if(el) el.remove();
+  t('تم تسجيل الخروج');
+}
 renderPacks();
 renderList();
-t('khadma Dz - رمز الإدارة يستجيب الآن - الخانة فارغة - بدون كلمة سر ظاهرة - RIB: '+RIB_CURRENT);
+updateTopBar();
+t('khadma Dz - تم الإصلاح - Compte يفتح الآن');
+
 </script>
 
 </body>
