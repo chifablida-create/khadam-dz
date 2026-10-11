@@ -91,7 +91,17 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 <div class="it" data-type="recommandee"><div class="meta"><span>il y a une heure</span> · <span>Rouiba</span> · <span>52 km</span> · <span>1 offre</span> · <span class="badge">25p</span></div><div class="title">Je cherche un réparateur de machine à laver Brandt 6 KG</div><div class="av"><img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200"></div></div>
 </div>
 
-<button class="fab" onclick="openCustomer()">+ Ajouter une demande</button>
+<button class="fab" onclick="openDemandeForm()">+ Ajouter une demande</button>
+
+<!-- Modal إضافة طلب جديد -->
+<div id="mDemande" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">➕ إضافة طلب جديد</div><div style="cursor:pointer" onclick="closeDemandeForm()">✕</div></div><div style="padding:16px">
+<label class="lb">عنوان الطلب *</label><input id="dTitle" class="inp" placeholder="مثال: أبحث عن مصلح غسالة Brandt 6KG">
+<label class="lb">التفاصيل</label><textarea id="dDesc" class="inp" style="height:80px;padding-top:10px;resize:none" placeholder="اكتب تفاصيل الطلب..."></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">الولاية</label><select id="dWilaya" class="sel"><option>الجزائر</option><option>البليدة</option><option>المدية</option><option>قسنطينة</option><option>وهران</option><option>سطيف</option><option>بومرداس</option><option>تيزي وزو</option></select></div><div><label class="lb">المسافة km</label><input id="dKm" class="inp" type="number" value="10"></div></div>
+<label class="lb">نوع الطلب</label><select id="dType" class="sel"><option value="recommandee">Recommandée - موصى به (25p)</option><option value="sans">Sans offre - بدون عرض (1p)</option><option value="avis">Avis - استشارة</option></select>
+<div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeDemandeForm()">إلغاء</button><button class="btn btnd" style="flex:1" onclick="submitDemande()">✅ نشر الطلب</button></div>
+<div style="font-size:10px;color:#6b7280;margin-top:8px;text-align:center">سيظهر طلبك في القائمة فورا - نقاطك: <span id="dPointsInfo">0</span></div>
+</div></div></div>
 
 <!-- الأزرار التحت - مصلحة - فيها onclick -->
 <div class="nav" style="z-index:9999">
@@ -134,7 +144,8 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 
 <div id="mCust" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حساب الزبون والتسجيل</div><div style="cursor:pointer" onclick="closeCustomer()">✕</div></div><div style="padding:16px"><label class="lb">الاسم الكامل</label><input id="cName" class="inp" placeholder="الاسم"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">رقم الهاتف</label><input id="cPhone" class="inp" placeholder="0551234567"></div><div><label class="lb">الولاية</label><select class="sel"><option>الجزائر</option><option>وهران</option><option>قسنطينة</option></select></div></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeCustomer()">إلغاء</button><button class="btn btnd" style="flex:1" onclick="regCust()">تسجيل</button></div></div></div></div>
 
-<div id="mCraft" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حساب الحرفي - تحميل وصل بريدي موب</div><div style="cursor:pointer" onclick="closeCraft()">✕</div></div><div style="padding:16px;max-height:80vh;overflow:auto">
+<div id="mCraft" class="modal"><div class="box"><div class="bh"><div style="font-weight:800">حساب الحرفي - 25 نقطة مجانا 🎉</div><div style="cursor:pointer" onclick="closeCraft()">✕</div></div><div style="padding:16px;max-height:80vh;overflow:auto">
+<div class="card" style="background:#fefce8;border:2px solid #fde047;margin-top:0"><div style="font-weight:800;font-size:13px">🎉 هدية الترحيب: 25 نقطة مجانا!</div><div style="font-size:11px;color:#6b7280;margin-top:4px">سجل الآن واحصل على 25 نقطة مجانا لتفتح حسابك وترى تقييماتك وكلام الزبائن عليك</div></div>
 <label class="lb">الاسم الكامل</label><input id="crName" class="inp" placeholder="الاسم"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">التخصص</label><select id="crSkill" class="sel"><option>سباكة</option><option>كهرباء</option><option>تكييف</option><option>دهان</option><option>نجارة</option></select></div><div><label class="lb">رقم الهاتف</label><input id="crPhone" class="inp" placeholder="0550000001"></div></div>
 <div class="card" style="background:#111;color:#fff"><div style="font-weight:800;font-size:13px">طلب النقاط عبر بريدي موب</div><div style="font-size:11px;opacity:0.8;margin-top:4px">حساب الحرفي فقط - سري</div></div>
 <div class="card"><div style="font-size:11px;color:#6b7280;text-align:center">RIB صحيح</div><div class="rib" id="ribDisplay">00799999000122089353</div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btng" style="flex:1;height:36px" onclick="copyRIB()">نسخ RIB</button><button class="btn btnb" style="flex:1;height:36px" onclick="openBM()">فتح بريدي موب</button></div></div>
@@ -153,7 +164,10 @@ body{background:#f2f2f2;max-width:480px;margin:0 auto;min-height:100vh;color:#11
 <div class="pr" id="pr"><div class="prb" id="prb"></div></div>
 <div class="prev" id="prev"><img id="imgPrev" src=""><div style="padding:10px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:11px">وصل بريدي موب</span><span class="st st1" id="st">في انتظار الإرسال</span></div><div style="font-size:10px;color:#6b7280;margin-top:4px" id="info">RIB: 00799999000122089353 - 200 نقطة = 2000 دج</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btnd" style="flex:1;height:34px;font-size:11px" onclick="send()">إرسال الوصل للإدارة</button><button class="btn btng" style="flex:1;height:34px;font-size:11px" onclick="del()">حذف</button></div></div></div>
 <div id="list" style="margin-top:12px"></div>
-<div style="display:flex;gap:8px;margin-top:14px"><button class="btn btng" style="flex:1" onclick="closeCraft()">إلغاء</button><button class="btn btny" style="flex:1" onclick="regCraft()">تسجيل + تحميل وصل</button></div>
+<div style="position:sticky;bottom:0;background:#fff;padding:12px 0 4px;margin-top:14px;border-top:2px solid #111;z-index:10;display:flex;gap:8px">
+<button class="btn btng" style="flex:1;height:48px" onclick="closeCraft()">إلغاء</button>
+<button class="btn btngr" style="flex:2;height:48px;font-size:14px;background:#16a34a;border:2px solid #16a34a" onclick="regCraft()">✅ تسجيل الحرفي - 25 نقطة مجانا 🎉</button>
+</div>
 </div></div></div>
 
 <div id="mAdmin" class="modal"><div class="box" style="max-width:480px">
@@ -282,89 +296,49 @@ function openCraft(){
 }
 function closeCraft(){document.getElementById('mCraft').style.display='none';}
 function regCraft(){
-  const n=document.getElementById('crName').value.trim();
-  const p=document.getElementById('crPhone').value.trim();
-  if(!n||!p){t('أكمل بيانات حساب الحرفي'); return;}
+  const n=document.getElementById('crName').value.trim(); 
+  const p=document.getElementById('crPhone').value.trim(); 
+  const skillVal = document.getElementById('crSkill') ? document.getElementById('crSkill').value : 'سباكة';
+  if(!n||!p){t('أكمل بيانات حساب الحرفي - الاسم والهاتف'); return;}
   if(p.length<9){t('رقم الهاتف غير صحيح'); return;}
   let existing=users.find(u=>u.phone===p);
-  if(existing && existing.type==='حرفي'){
+  if(existing){
+    // إذا حساب قديم بدون نقاط - أعطيه 25 هدية
+    if((existing.points||0)===0){
+      existing.points = 25;
+      existing.type = 'حرفي';
+      existing.skill = skillVal;
+      save();
+    }
     localStorage.setItem('khadma_current_phone', p);
     localStorage.setItem('khadma_current_user', existing.name);
     localStorage.setItem('khadma_current_type', 'حرفي');
-    t('مرحبا بعودتك '+existing.name+' - نقاطك: '+(existing.points||0)+' - حسابك موجود');
+    t('مرحبا بعودتك '+existing.name+' - نقاطك: '+(existing.points||0)+' - هدية 25 نقطة مجانا!');
     closeCraft();
     updateTopBar();
+    openAccount();
     return;
   }
-  if(existing && existing.type==='زبون'){
-    // ترقية حساب زبون إلى حرفي
-    existing.type='حرفي';
-    existing.skill=document.getElementById('crSkill').value;
-    localStorage.setItem('khadma_current_phone', p);
-    localStorage.setItem('khadma_current_user', existing.name);
-    localStorage.setItem('khadma_current_type', 'حرفي');
-    save();
-    t('تم ترقية حسابك من زبون إلى حرفي - '+existing.name);
-    closeCraft();
-    updateTopBar();
-    return;
-  }
-  // السماح بالتسجيل حتى بدون وصل - النقاط تبدأ من 0 أو من دفع Chargily
-  let initialPoints=0;
+  // هدية تسجيل حرفي جديد = 25 نقطة مجانا + أي دفع سابق
+  let initialPoints = 25; // هدية مجانية لفتح الحساب ورؤية التقييمات
   const hasChargily = (JSON.parse(localStorage.getItem('khadma_transactions')||'[]').length>0);
-  if(hasChargily){
+  if(hasChargily){ 
     const txs=JSON.parse(localStorage.getItem('khadma_transactions')||'[]');
-    initialPoints = txs.reduce((s,x)=>s+(x.points||0), 0);
+    const sum = txs.reduce((s,x)=>s+(x.points||0), 0);
+    initialPoints += sum;
   }
-  if(rec.length>0 && !hasChargily){
-    initialPoints = sel.p;
-    t('تنبيه: سجلت بالوصل - في انتظار موافقة الإدارة على النقاط');
-  }
-  const newUser={id:Date.now(),type:'حرفي',name:n,phone:p,points:initialPoints,skill:document.getElementById('crSkill').value,date:Date.now(),email:p};
+  if(rec.length>0){ initialPoints += sel.p; }
+  const newUser={id:Date.now(),type:'حرفي',name:n,phone:p,points:initialPoints,skill:skillVal,date:Date.now(),email:p};
   users.push(newUser);
   localStorage.setItem('khadma_current_phone', p);
   localStorage.setItem('khadma_current_user', n);
   localStorage.setItem('khadma_current_type', 'حرفي');
-  save();
-  t('تم تسجيل حساب الحرفي: '+n+' - نقاطك: '+initialPoints+' - حسابك محفوظ وموجود في الإدارة');
-  closeCraft();
-  updateTopBar();
-}
-function regCraft(){
-  const n=document.getElementById('crName').value.trim(); 
-  const p=document.getElementById('crPhone').value.trim(); 
-  if(!n||!p){t('أكمل بيانات حساب الحرفي - الاسم والهاتف'); return;}
-  if(p.length<10){t('رقم الهاتف غير صحيح'); return;}
-  let existing=users.find(u=>u.phone===p);
-  if(existing){
-    localStorage.setItem('khadma_current_phone', p);
-    localStorage.setItem('khadma_current_user', existing.name);
-    localStorage.setItem('khadma_current_type', existing.type);
-    t('مرحبا بعودتك '+existing.name+' - نقاطك: '+(existing.points||0));
-    closeCraft();
-    updateTopBar();
-    return;
-  }
-  // إذا دفع عبر Chargily، السماح بالتسجيل بدون وصل
-  const hasChargily = (JSON.parse(localStorage.getItem('khadma_transactions')||'[]').length>0);
-  const hasReceipt = rec.length>0;
-  if(!hasReceipt && !hasChargily){
-    if(!confirm('لم تحمل وصل بريدي موب ولم تدفع عبر الذهبية - هل تريد التسجيل بنقاط 0؟ يمكنك الشحن لاحقا عبر الدفع')){ return; }
-  }
-  let initialPoints = 0;
-  if(hasReceipt){ initialPoints = sel.p; }
-  if(hasChargily){ 
-    const txs=JSON.parse(localStorage.getItem('khadma_transactions')||'[]');
-    initialPoints = txs.reduce((s,x)=>s+(x.points||0), 0);
-  }
-  users.push({id:Date.now(),type:'حرفي',name:n,phone:p,points:initialPoints,skill:document.getElementById('crSkill').value,date:Date.now()}); 
-  localStorage.setItem('khadma_current_phone', p);
-  localStorage.setItem('khadma_current_user', n);
-  localStorage.setItem('khadma_current_type', 'حرفي');
   save(); 
-  t('تم تسجيل حساب الحرفي: '+n+' - نقاطك: '+initialPoints+' - مرحبا!'); 
+  t('🎉 تم تسجيل حساب الحرفي: '+n+' - هدية 25 نقطة مجانا! نقاطك: '+initialPoints+' - يمكنك الآن رؤية التقييمات'); 
   closeCraft();
   updateTopBar();
+  // افتح حسابه مباشرة ليرى التقييمات
+  setTimeout(()=>{ openAccount(); accTab(3); }, 600);
 }
 function openAdmin(){document.getElementById('mAdmin').style.display='flex'; document.getElementById('aPass').value=''; document.getElementById('aPass').focus();}
 function closeAdmin(){document.getElementById('mAdmin').style.display='none'; document.getElementById('aLogin').style.display='block'; document.getElementById('aContent').style.display='none'; document.getElementById('aPass').value='';}
@@ -534,7 +508,20 @@ function accTab(idx){
       else { for(let c of userChats){ html+='<div class="admin-card"><div style="font-weight:700;font-size:11px">'+c.from+' → '+c.to+'</div></div>'; } }
       body.innerHTML=html;
     } else if(idx===3){
-      let html='<div style="font-weight:800;font-size:12px">⭐ تقييماتي</div><div style="background:#f9fafb;padding:12px;border-radius:8px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد تقييمات بعد</div>';
+      // عرض التقييمات - للحرفي يشوف كلام الزبائن عليه
+      let html='<div style="font-weight:800;font-size:12px">⭐ تقييماتي - كلام الزبائن عليك ('+reviews.length+')</div>';
+      html+='<div class="admin-card" style="background:#fefce8;border-color:#fde047"><div style="font-size:11px;font-weight:700">🎉 هدية الترحيب: 25 نقطة مجانا!</div><div style="font-size:10px;color:#6b7280;margin-top:4px">نقاطك الحالية: '+(user.points||0)+' - يمكنك رؤية كل التقييمات الآن</div></div>';
+      if(reviews.length===0){
+        html+='<div style="background:#f9fafb;padding:12px;border-radius:8px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد تقييمات بعد - سيظهر هنا كلام الزبائن عليك</div>';
+      } else {
+        // إذا حرفي - فلتر حسب اسمه أو أظهر الكل كعينة
+        let myReviews = reviews.filter(r=> r.target && (r.target.includes(user.name) || user.name.includes(r.target) || r.phone===curPhone));
+        if(myReviews.length===0) myReviews = reviews; // عرض كل التقييمات كعينة إذا لا يوجد خاص به
+        for(let r of myReviews){
+          const stars = '⭐'.repeat(r.stars||5);
+          html+='<div class="admin-card"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+r.user+'</span><span style="font-size:10px">'+stars+' - '+r.date+'</span></div><div style="font-size:12px;margin-top:6px;line-height:18px">'+r.text+'</div><div style="font-size:10px;color:#6b7280;margin-top:6px">عن: '+r.target+' - هاتف الزبون: <span style="background:#fde047;padding:2px 6px;border-radius:6px">'+r.phone+'</span></div></div>';
+        }
+      }
       body.innerHTML=html;
     }
   }catch(e){ console.error(e); }
@@ -575,6 +562,59 @@ function updateTopBar(){
     }
   }catch(e){}
 }
+// === إصلاح زر Ajouter une demande - كان يفتح تسجيل بدل طلب ===
+let demandes = JSON.parse(localStorage.getItem('khadma_demandes')||'null') || [
+  {id:1,title:'أبحث عن مصلح ماشين لافي الجي 6 كلغ',wilaya:'Médéa',km:23,type:'sans',badge:'1p',time:'il y a 15 heures'},
+  {id:2,title:'Je cherche un réparateur de machine à laver Brandt 6 KG',wilaya:'Rouiba',km:52,type:'recommandee',badge:'25p',time:'il y a une heure',offre:'1 offre',img:'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200'}
+];
+
+function openDemandeForm(){
+  try{
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    const curName=localStorage.getItem('khadma_current_user');
+    if(!curPhone){
+      t('سجل حساب زبون أولا - ثم أضف طلبك');
+      openCustomer();
+      return;
+    }
+    // تحديث نقاط في المودال
+    let u=null; try{ u=users.find(x=>x.phone===curPhone); }catch(e){}
+    const pts=u? (u.points||0) : 0;
+    const el=document.getElementById('dPointsInfo');
+    if(el) el.textContent=pts;
+    document.getElementById('mDemande').style.display='flex';
+    document.getElementById('dTitle').focus();
+  }catch(e){ console.error(e); }
+}
+function closeDemandeForm(){ try{ document.getElementById('mDemande').style.display='none'; }catch(e){} }
+function submitDemande(){
+  const title=document.getElementById('dTitle').value.trim();
+  const desc=document.getElementById('dDesc').value.trim();
+  const wilaya=document.getElementById('dWilaya').value;
+  const km=document.getElementById('dKm').value||10;
+  const type=document.getElementById('dType').value;
+  if(!title){ t('أدخل عنوان الطلب'); return; }
+  const curPhone=localStorage.getItem('khadma_current_phone');
+  const curName=localStorage.getItem('khadma_current_user')||'زبون';
+  const badge = type==='recommandee' ? '25p' : type==='sans' ? '1p' : 'Avis';
+  const newDem={id:Date.now(),title:title + (desc? ' - '+desc : ''),wilaya:wilaya,km:km,type:type,badge:badge,time:'الآن - '+curName,phone:curPhone};
+  demandes.unshift(newDem);
+  localStorage.setItem('khadma_demandes', JSON.stringify(demandes));
+  renderDemandes();
+  closeDemandeForm();
+  document.getElementById('dTitle').value='';
+  document.getElementById('dDesc').value='';
+  t('✅ تم نشر طلبك: '+title);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderDemandes(){
+  const c=document.getElementById('demandesList');
+  if(!c) return;
+  c.innerHTML=demandes.map(d=>`
+    <div class="it" data-type="${d.type}"><div class="meta"><span>${d.time}</span> · <span>${d.wilaya}</span> · <span>${d.km} km</span> ${d.offre? '· <span>'+d.offre+'</span>':''} · <span class="badge">${d.badge}</span></div><div class="title">${d.title}</div>${d.img? '<div class="av"><img src="'+d.img+'"></div>':''}</div>
+  `).join('');
+}
+
 function logout(){
   localStorage.removeItem('khadma_current_phone');
   localStorage.removeItem('khadma_current_user');
@@ -585,8 +625,9 @@ function logout(){
 }
 renderPacks();
 renderList();
+renderDemandes();
 updateTopBar();
-t('khadma Dz - تم الإصلاح - Compte يفتح الآن');
+t('khadma Dz - زر Ajouter une demande تم إصلاحه ✅');
 
 </script>
 
