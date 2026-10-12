@@ -466,12 +466,70 @@ function openAccount(){
     accTab(0);
   }catch(e){ console.error(e); t('خطأ في فتح الحساب'); }
 }
+// === قائمة الحرف الكاملة 46 حرف - حطها فوق function closeAccount ===
+const KHADMA_PROFESSIONS = ["سباكة","كهرباء","تكييف","دهان","نجارة","بناء ومرمّة","زليج وسيراميك","لحام وحدادة","ألمنيوم و PVC","جبس وبلاكو بلاتر","عزل وإيتانش","زجاج ومرايا","ميكانيك سيارات","كهرباء سيارات","طولي ودهن سيارات","بنشر وعجلات","غسيل سيارات","أجهزة منزلية","إلكترونيك وهواتف","بارابول وكاميرات","خياطة رجال ونساء","حلاق رجال","حلاقة نساء وتجميل","مصبغة ملابس","بستنة وحدائق","تنظيف منازل وشركات","نقل وترحيل","مفاتيح وأقفال","إعلام آلي وبرمجة","مصور فوتوغرافي","طباخ وممون حفلات","حلويات ومرطبات","أحذية وجلد","حداد تقليدي","فخار وخزف","زرابي ونسيج","صياغة ومجوهرات","شوديار وسخان","مصاعد","مسابح","حفر آبار","تنظيف مداخن","مكافحة حشرات","أمن وحراسة","طباعة ولافتات","تبريد صناعي"];
+
+// دالة تفتح مودال اختيار الحرفة بنفس تصميم الصورة
+function showProfSelectorModal(callback){
+  let html = `<div id="profModalFix" style="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center">
+  <div style="width:100%;max-width:480px;background:#1e1e1e;border-radius:22px 22px 0 0;max-height:85vh;display:flex;flex-direction:column">
+    <div style="padding:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a2a2a">
+      <div style="font-weight:800">اختر حرفتك - 46 حرفة</div>
+      <button onclick="document.getElementById('profModalFix').remove()" style="background:transparent;border:none;color:#fff;font-size:22px">✕</button>
+    </div>
+    <div style="padding:10px"><input id="profSearchFix" placeholder="ابحث..." oninput="filterProfFix()" style="width:100%;padding:10px;border-radius:10px;background:#2a2a2a;border:1px solid #333;color:#fff"></div>
+    <div id="profListFix" style="flex:1;overflow-y:auto;padding:0 8px 10px">`;
+  
+  KHADMA_PROFESSIONS.forEach(p=>{
+    html+=`<div class="prof-row-fix" data-name="${p}" onclick="selectProfFix('${p}')" style="display:flex;justify-content:space-between;align-items:center;padding:14px 12px;background:#242424;border-radius:12px;margin-bottom:6px;cursor:pointer;border:1.5px solid transparent">
+      <div style="font-weight:600">${p}</div>
+      <div class="radio-fix" style="width:24px;height:24px;border-radius:50%;border:2px solid #777;display:grid;place-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#7cc8ff;display:none" class="dot-fix"></div></div>
+    </div>`;
+  });
+  
+  html+=`</div><div style="padding:10px"><button id="confirmProfBtn" style="width:100%;padding:14px;background:#16a34a;color:#fff;border:none;border-radius:12px;font-weight:800;display:none">تأكيد</button></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  
+  window.filterProfFix = ()=>{
+    const q = document.getElementById('profSearchFix').value;
+    document.querySelectorAll('.prof-row-fix').forEach(r=>{
+      const name=r.getAttribute('data-name');
+      r.style.display = name.includes(q) ? 'flex' : 'none';
+    });
+  };
+  window.selectProfFix = (name)=>{
+    document.querySelectorAll('.prof-row-fix').forEach(r=>{
+      r.style.borderColor='transparent';
+      r.querySelector('.dot-fix').style.display='none';
+    });
+    const sel = [...document.querySelectorAll('.prof-row-fix')].find(r=>r.getAttribute('data-name')===name);
+    if(sel){ sel.style.borderColor='#7cc8ff'; sel.querySelector('.dot-fix').style.display='block'; }
+    const btn=document.getElementById('confirmProfBtn');
+    btn.style.display='block';
+    btn.textContent='تأكيد: '+name;
+    btn.onclick=()=>{
+      document.getElementById('profModalFix').remove();
+      callback(name);
+    };
+  };
+}
 function closeAccount(){ try{ document.getElementById('mAccount').style.display='none'; }catch(e){} }
+
 function accUpgradeToCraft(){
   if(!confirm('هل تريد أن تصبح حرفي؟')) return;
-  const curPhone=localStorage.getItem('khadma_current_phone');
-  let u=users.find(x=>x.phone===curPhone);
-  if(u){ u.type='حرفي'; u.skill='سباكة'; localStorage.setItem('khadma_current_type','حرفي'); save(); updateTopBar(); openAccount(); t('تم ترقيتك إلى حرفي'); }
+  showProfSelectorModal((chosenSkill)=>{
+    const curPhone=localStorage.getItem('khadma_current_phone');
+    let u=users.find(x=>x.phone===curPhone);
+    if(u){ 
+      u.type='حرفي'; 
+      u.skill=chosenSkill;
+      localStorage.setItem('khadma_current_type','حرفي'); 
+      save(); 
+      updateTopBar(); 
+      openAccount(); 
+      t('تم ترقيتك إلى حرفي - '+chosenSkill+' ✅'); 
+    }
+  });
 }
 
 
@@ -508,15 +566,13 @@ function accTab(idx){
       else { for(let c of userChats){ html+='<div class="admin-card"><div style="font-weight:700;font-size:11px">'+c.from+' → '+c.to+'</div></div>'; } }
       body.innerHTML=html;
     } else if(idx===3){
-      // عرض التقييمات - للحرفي يشوف كلام الزبائن عليه
       let html='<div style="font-weight:800;font-size:12px">⭐ تقييماتي - كلام الزبائن عليك ('+reviews.length+')</div>';
       html+='<div class="admin-card" style="background:#fefce8;border-color:#fde047"><div style="font-size:11px;font-weight:700">🎉 هدية الترحيب: 25 نقطة مجانا!</div><div style="font-size:10px;color:#6b7280;margin-top:4px">نقاطك الحالية: '+(user.points||0)+' - يمكنك رؤية كل التقييمات الآن</div></div>';
       if(reviews.length===0){
         html+='<div style="background:#f9fafb;padding:12px;border-radius:8px;text-align:center;font-size:11px;color:#6b7280;margin-top:8px">لا يوجد تقييمات بعد - سيظهر هنا كلام الزبائن عليك</div>';
       } else {
-        // إذا حرفي - فلتر حسب اسمه أو أظهر الكل كعينة
         let myReviews = reviews.filter(r=> r.target && (r.target.includes(user.name) || user.name.includes(r.target) || r.phone===curPhone));
-        if(myReviews.length===0) myReviews = reviews; // عرض كل التقييمات كعينة إذا لا يوجد خاص به
+        if(myReviews.length===0) myReviews = reviews;
         for(let r of myReviews){
           const stars = '⭐'.repeat(r.stars||5);
           html+='<div class="admin-card"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:11px">'+r.user+'</span><span style="font-size:10px">'+stars+' - '+r.date+'</span></div><div style="font-size:12px;margin-top:6px;line-height:18px">'+r.text+'</div><div style="font-size:10px;color:#6b7280;margin-top:6px">عن: '+r.target+' - هاتف الزبون: <span style="background:#fde047;padding:2px 6px;border-radius:6px">'+r.phone+'</span></div></div>';
@@ -562,7 +618,6 @@ function updateTopBar(){
     }
   }catch(e){}
 }
-// === إصلاح زر Ajouter une demande - كان يفتح تسجيل بدل طلب ===
 let demandes = JSON.parse(localStorage.getItem('khadma_demandes')||'null') || [
   {id:1,title:'أبحث عن مصلح ماشين لافي الجي 6 كلغ',wilaya:'Médéa',km:23,type:'sans',badge:'1p',time:'il y a 15 heures'},
   {id:2,title:'Je cherche un réparateur de machine à laver Brandt 6 KG',wilaya:'Rouiba',km:52,type:'recommandee',badge:'25p',time:'il y a une heure',offre:'1 offre',img:'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200'}
@@ -577,7 +632,6 @@ function openDemandeForm(){
       openCustomer();
       return;
     }
-    // تحديث نقاط في المودال
     let u=null; try{ u=users.find(x=>x.phone===curPhone); }catch(e){}
     const pts=u? (u.points||0) : 0;
     const el=document.getElementById('dPointsInfo');
