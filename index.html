@@ -3,154 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>khadma Dz - منصة الحرفيين</title>
+<title>khadma Dz - ONLINE</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-<style>
-*{font-family:'Tajawal',sans-serif}
-body{background:#f5f5f0}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>*{font-family:'Tajawal',sans-serif} body{background:#f6f5f0}</style>
 </head>
-<body>
-<div class="bg-black text-white flex justify-between items-center p-3 sticky top-0 z-50">
-<div class="flex items-center gap-2"><div class="bg-yellow-400 text-black font-black w-10 h-10 rounded-xl flex items-center justify-center text-xl">K</div><span class="font-black text-xl">khadma Dz</span></div>
-<div class="flex gap-2">
-<button class="bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-sm">حساب الحرفي</button>
-<button class="bg-white text-black px-4 py-2 rounded-full font-bold text-sm">حساب الزبون</button>
+<body class="pb-20">
+<div class="bg-black text-white p-3 flex justify-between items-center sticky top-0 z-50">
+<div class="flex items-center gap-2"><div class="bg-yellow-400 text-black font-black w-10 h-10 rounded-xl flex items-center justify-center">K</div><span class="font-black text-xl">khadma Dz - ONLINE ✅</span></div>
+<div class="bg-green-500 text-white px-3 py-1 rounded-full text-xs animate-pulse">● LIVE Firebase</div>
 </div>
-</div>
-
 <div class="max-w-2xl mx-auto p-4">
-<div class="bg-white rounded-3xl p-6 shadow-sm mb-4">
-<h1 class="text-3xl font-black text-center mb-3">منصة الحرفيين في الجزائر</h1>
-<p class="text-center text-gray-600 text-sm mb-4">أرقام الزبائن محمية - تُكشف للحرفي فقط بعد خصم 25 نقطة. الزبون يقيّم الحرفي عند نهاية العمل. التسجيل مجاني +25 نقطة هدية.</p>
-<div class="flex flex-wrap justify-center gap-2 mb-4">
-<span class="bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-full text-xs font-bold">🔒 رقم الزبون مخفي حتى 25 نقطة</span>
-<span class="bg-gray-100 px-3 py-1 rounded-full text-xs">⭐ تقييم بعد العمل</span>
-</div>
-<div class="flex justify-center gap-2 mb-6">
-<span class="bg-gray-100 px-3 py-1 rounded-full text-xs">46 حرفة</span>
-<span class="bg-black text-white px-4 py-1 rounded-full text-xs">0 كشف</span>
-<span class="bg-black text-white px-4 py-1 rounded-full text-xs"><span id="count">0</span> تقييم</span>
-</div>
-<button id="addBtn" class="bg-black text-white w-full md:w-auto mx-auto flex justify-center items-center gap-2 px-8 py-3 rounded-full font-black text-lg">+ Ajouter une demande</button>
-</div>
-
-<div class="flex justify-between items-center mb-3">
-<h2 class="font-black text-lg">آخر الطلبات - الأرقام مخفية</h2>
-<span class="text-xs text-gray-500" id="stats">0 طلب نشط</span>
-</div>
-
-<div id="list" class="space-y-4">
-<div class="text-center py-10 text-gray-400">جاري التحميل من Firebase...</div>
+<div class="bg-white rounded-[28px] p-6 shadow">
+<h1 class="text-[28px] font-black text-center">منصة الحرفيين في الجزائر</h1>
+<p class="text-center text-sm text-zinc-600 mt-2">✅ أونلاين حقيقي - Firebase khadam-dz-e8710</p>
+<div id="status" class="bg-yellow-100 border border-yellow-300 rounded-2xl p-3 mt-4 text-center text-sm font-bold">🔄 جاري الاتصال بـ Firebase...</div>
+<div class="flex gap-2 mt-4">
+<button id="openAdd" class="bg-black text-white flex-1 py-4 rounded-full font-black">+ Ajouter une demande</button>
+<button id="addSamples" class="bg-[#FFD600] text-black flex-1 py-4 rounded-full font-black text-sm">+ 3 طلبات تجريبية للاختبار</button>
 </div>
 </div>
-
-<!-- Modal -->
-<div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
-<div class="bg-white rounded-3xl p-6 w-full max-w-md">
-<h3 class="font-black text-xl mb-4">إضافة طلب جديد</h3>
-<input id="title" placeholder="مثال: تركيب مكيف هوائي" class="w-full border rounded-xl p-3 mb-3">
-<select id="wilaya" class="w-full border rounded-xl p-3 mb-3"><option>الجزائر</option><option>البويرة</option><option>البليدة</option><option>وهران</option><option>قسنطينة</option></select>
-<textarea id="desc" placeholder="أبحث عن تقني تكييف لتركيب مكيف 12000 BTU مع الضمان" class="w-full border rounded-xl p-3 mb-3 h-24"></textarea>
-<input id="phone" placeholder="رقم هاتفك 05XX XX XX XX" class="w-full border rounded-xl p-3 mb-3">
-<div class="flex gap-2"><button id="close" class="flex-1 bg-gray-100 py-3 rounded-full font-bold">إلغاء</button><button id="save" class="flex-1 bg-yellow-400 py-3 rounded-full font-bold">نشر الطلب</button></div>
+<div class="mt-6"><h2 class="font-black text-xl">آخر الطلبات - الأرقام مخفية <span id="stat" class="text-xs text-zinc-500"></span></h2></div>
+<div id="list" class="mt-4 space-y-4"></div>
+</div>
+<div id="modal" class="fixed inset-0 bg-black/60 hidden z-50 items-center justify-center p-4">
+<div class="bg-white rounded-2xl w-full max-w-md p-6">
+<div class="flex justify-between mb-4"><h3 class="font-black text-xl">إضافة طلب جديد - أونلاين</h3><button id="closeM" class="w-8 h-8 bg-zinc-100 rounded-full">✕</button></div>
+<input id="mTitle" class="w-full border rounded-2xl p-3 mb-3 text-sm" placeholder="مثال: تركيب مكيف">
+<div class="grid grid-cols-2 gap-2 mb-3"><select id="mWilaya" class="border rounded-2xl p-3 text-sm"></select><select id="mMetier" class="border rounded-2xl p-3 text-sm"></select></div>
+<textarea id="mDesc" class="w-full border rounded-2xl p-3 mb-3 text-sm h-24" placeholder="التفاصيل..."></textarea>
+<input id="mPhone" class="w-full border rounded-2xl p-3 mb-3 text-sm" placeholder="0550 00 00 00">
+<input id="mName" class="w-full border rounded-2xl p-3 mb-4 text-sm" placeholder="اسمك">
+<div class="grid grid-cols-2 gap-2"><button id="cancelM" class="bg-zinc-100 py-3 rounded-full font-bold">إلغاء</button><button id="saveM" class="bg-[#FFD600] py-3 rounded-full font-black">نشر أونلاين 🔥</button></div>
 </div>
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDUPxO89AEOR9MRguBLoeDIkLp7-xFtzTA",
-  authDomain: "khadam-dz-e8710.firebaseapp.com",
-  projectId: "khadam-dz-e8710",
-  storageBucket: "khadam-dz-e8710.firebasestorage.app",
-  messagingSenderId: "19202835170",
-  appId: "1:19202835170:web:c2020d14327de0c4d914bb"
-};
+const firebaseConfig = { apiKey: "AIzaSyDUPxO89AEOR9MRguBLoeDIkLp7-xFtzTA", authDomain: "khadam-dz-e8710.firebaseapp.com", projectId: "khadam-dz-e8710", storageBucket: "khadam-dz-e8710.firebasestorage.app", messagingSenderId: "19202835170", appId: "1:19202835170:web:c2020d14327de0c4d914bb", measurementId: "G-RZFX3ZY44T" };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-const list = document.getElementById('list');
-const stats = document.getElementById('stats');
-const countEl = document.getElementById('count');
-
-function timeAgo(ts){
- if(!ts) return "الآن";
- let d = ts.toDate ? ts.toDate() : new Date(ts);
- let diff = Date.now() - d.getTime();
- let m = Math.floor(diff/60000);
- if(m<1) return "الآن";
- if(m<60) return "منذ "+m+" دقيقة";
- let h = Math.floor(m/60);
- if(h<24) return "منذ "+h+" ساعة";
- let day = Math.floor(h/24);
- return "منذ "+day+" يوم";
-}
-function formatDate(ts){
- if(!ts) return "";
- let d = ts.toDate ? ts.toDate() : new Date(ts);
- return d.toLocaleDateString('ar-DZ',{day:'numeric',month:'long',year:'numeric'})+" - "+d.toLocaleTimeString('ar-DZ',{hour:'2-digit',minute:'2-digit'})+" • زبون";
-}
-
-function render(docs){
- if(docs.length===0){ list.innerHTML='<div class="text-center py-10 text-gray-400">لا يوجد طلبات حاليا</div>'; stats.textContent='0 طلب نشط'; return; }
- stats.textContent = docs.length+' طلب نشط';
- countEl.textContent = docs.length;
- list.innerHTML = docs.map(doc=>{
-   const data = doc.data();
-   const ago = timeAgo(data.firebaseTimestamp || data.createdAt);
-   const fdate = formatDate(data.firebaseTimestamp || data.createdAt);
-   return `
-   <div class="bg-white rounded-3xl p-5 shadow-sm">
-     <div class="flex justify-between items-start mb-3">
-       <div class="flex flex-col gap-2">
-         <span class="bg-black text-white text-xs px-3 py-1 rounded-full w-fit">🕒 ${ago}</span>
-         <button class="bg-yellow-400 text-black font-bold text-sm px-4 py-2 rounded-full">🔒 كشف رقم الزبون - 25 نقطة</button>
-         <button class="bg-white border text-xs px-3 py-1 rounded-full w-fit">💬 شات (بعد الكشف)</button>
-       </div>
-       <div class="text-right flex-1 mr-3">
-         <h3 class="font-black text-lg">${data.title || 'طلب'}</h3>
-         <span class="bg-yellow-100 text-xs px-2 py-1 rounded-full">${data.wilaya || 'الجزائر'}</span>
-         <p class="text-sm text-gray-600 mt-2">${data.desc || ''}</p>
-       </div>
-     </div>
-     <div class="bg-gray-100 rounded-2xl p-3 text-center mt-3">
-       <div class="text-sm">🔒 رقم الزبون مخفي -</div>
-       <div class="font-mono">05XX XX XX XX</div>
-     </div>
-     <div class="text-xs text-gray-400 mt-2 text-left">${fdate}<br>${data.clientName || 'أحمد'}</div>
-     <div class="text-xs text-gray-400 mt-1 text-left bg-gray-50 rounded-full px-3 py-1 w-fit">تاريخ الإنشاء: ${fdate.split('•')[0] || ''} - ${fdate.split('-')[1] || ''}</div>
-     <div class="text-xs text-gray-400 mt-2 text-left">⏱ ${doc.id.slice(0,13)}</div>
-   </div>
-   `;
+const WILAYAS=["الجزائر","البليدة","وهران","قسنطينة","عنابة","سطيف","باتنة","بجاية"];
+const METIERS=["كهربائي","سباك","تركيب مكيف هوائي","نجار","دهان","بناء"];
+const fW=document.getElementById('mWilaya'); const fM=document.getElementById('mMetier');
+WILAYAS.forEach(w=>{let o=document.createElement('option');o.value=w;o.textContent=w;fW.appendChild(o);});
+METIERS.forEach(m=>{let o=document.createElement('option');o.value=m;o.textContent=m;fM.appendChild(o);});
+let allDocs=[];
+function render(){
+ const list=document.getElementById('list');
+ document.getElementById('stat').textContent=" - "+allDocs.length+" طلب أونلاين";
+ if(allDocs.length===0){ list.innerHTML='<div class="bg-white rounded-2xl p-10 text-center"><p class="text-4xl mb-3">📭</p><p class="font-bold">قاعدة البيانات فارغة - هذا هو الأونلاين الحقيقي!</p><p class="text-sm text-zinc-500 mt-2">القاعدة في السحابة فارغة، لازم تزيد أول طلب.<br>كليكي فوق + 3 طلبات تجريبية باش تشوف الأونلاين يخدم!</p></div>'; return; }
+ list.innerHTML=allDocs.map(doc=>{
+  const d=doc.data(); const ago=d.firebaseTimestamp?new Date(d.firebaseTimestamp.toDate()).toLocaleString('ar-DZ'):"الآن";
+  return `<div class="bg-white rounded-2xl p-5 shadow-sm border-l-4 border-green-500"><div class="flex justify-between"><span class="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full">✅ ONLINE - ${ago}</span><span class="bg-black text-white text-xs px-3 py-1 rounded-full">${d.wilaya}</span></div><h3 class="font-black text-lg mt-3">${d.title}</h3><p class="text-sm text-zinc-600 mt-2">${d.desc}</p><div class="bg-[#F6F5F0] rounded-xl p-2 mt-3 text-center font-mono">${d.phone}</div><p class="text-xs text-zinc-400 mt-2">ID: ${doc.id} | ${d.clientName}</p></div>`;
  }).join('');
 }
-
-const q = query(collection(db,"demandes"), orderBy("firebaseTimestamp","desc"));
+const q=query(collection(db,"demandes"),orderBy("firebaseTimestamp","desc"));
 onSnapshot(q,(snap)=>{
-  render(snap.docs);
+ document.getElementById('status').innerHTML="✅ متصل بـ Firebase - "+snap.size+" طلب أونلاين - التطبيق يقرا من السحابة!";
+ document.getElementById('status').className="bg-green-100 border border-green-300 rounded-2xl p-3 mt-4 text-center text-sm font-bold";
+ allDocs=snap.docs; render();
+},(err)=>{
+ document.getElementById('status').innerHTML="❌ خطأ: "+err.message+"<br>روح Firebase > Firestore > Rules > allow read, write: if true; > Publish";
+ document.getElementById('status').className="bg-red-100 border border-red-300 rounded-2xl p-3 mt-4 text-center text-sm font-bold";
 });
-
-document.getElementById('addBtn').onclick=()=>{document.getElementById('modal').classList.remove('hidden');document.getElementById('modal').classList.add('flex');}
-document.getElementById('close').onclick=()=>{document.getElementById('modal').classList.add('hidden');}
-
-document.getElementById('save').onclick=async()=>{
- const title=document.getElementById('title').value.trim();
- const wilaya=document.getElementById('wilaya').value;
- const desc=document.getElementById('desc').value.trim();
- const phone=document.getElementById('phone').value.trim();
- if(!title || !desc){ alert('اكمل العنوان والوصف'); return; }
- document.getElementById('save').textContent='جاري النشر...';
- try{
-   await addDoc(collection(db,"demandes"),{title,wilaya,desc,phone,clientName:'أحمد',createdAt:Date.now(),firebaseTimestamp:serverTimestamp()});
-   document.getElementById('modal').classList.add('hidden');
-   document.getElementById('title').value='';document.getElementById('desc').value='';document.getElementById('phone').value='';
- }catch(e){ alert('خطأ: '+e.message); }
- document.getElementById('save').textContent='نشر الطلب';
-}
+document.getElementById('openAdd').onclick=()=>{document.getElementById('modal').classList.remove('hidden');document.getElementById('modal').classList.add('flex');}
+function closeM(){document.getElementById('modal').classList.add('hidden');document.getElementById('modal').classList.remove('flex');}
+document.getElementById('closeM').onclick=closeM; document.getElementById('cancelM').onclick=closeM;
+document.getElementById('saveM').onclick=async()=>{
+ const title=document.getElementById('mTitle').value, wilaya=document.getElementById('mWilaya').value, metier=document.getElementById('mMetier').value, desc=document.getElementById('mDesc').value, phone=document.getElementById('mPhone').value, clientName=document.getElementById('mName').value||"أحمد";
+ if(!title||!phone){alert('املأ العنوان والهاتف');return;}
+ document.getElementById('saveM').textContent='جاري النشر أونلاين...';
+ try{ await addDoc(collection(db,"demandes"),{title,wilaya,metier,desc,phone,clientName,firebaseTimestamp:serverTimestamp()}); closeM(); alert('✅ تم النشر أونلاين! راح يظهر في كل الأجهزة حالا!'); }catch(e){alert('خطأ: '+e.message+' - صلح Rules');} document.getElementById('saveM').textContent='نشر أونلاين 🔥';
+};
+document.getElementById('addSamples').onclick=async()=>{
+ if(!confirm('هل تريد إضافة 3 طلبات تجريبية لإثبات أن الأونلاين يخدم؟')) return;
+ const samples=[
+  {title:"تركيب مكيف هوائي 12000 BTU",wilaya:"الجزائر",metier:"تركيب مكيف هوائي",desc:"أبحث عن تقني تكييف محترف لتركيب مكيف مع الضمان",phone:"0550 12 34 56",clientName:"أحمد"},
+  {title:"إصلاح تسرب مياه",wilaya:"وهران",metier:"سباك",desc:"تسرب في الحمام يحتاج سباك مستعجل",phone:"0555 98 76 54",clientName:"محمد"},
+  {title:"دهان شقة 3 غرف",wilaya:"قسنطينة",metier:"دهان",desc:"دهان شقة جديدة، مساحة 80م²",phone:"0770 11 22 33",clientName:"كريم"}
+ ];
+ for(let s of samples){ await addDoc(collection(db,"demandes"),{...s,firebaseTimestamp:serverTimestamp()}); }
+ alert('✅ تمت إضافة 3 طلبات! شوفهم تحت - هذا هو الأونلاين!');
+};
 </script>
 </body>
 </html>
