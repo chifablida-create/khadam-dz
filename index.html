@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDUPxO89AEOR9MRguBLoeDIkLp7-xFtzTA",
+  authDomain: "khadam-dz-e8710.firebaseapp.com",
+  projectId: "khadam-dz-e8710",
+  storageBucket: "khadam-dz-e8710.firebasestorage.app",
+  messagingSenderId: "19202835170",
+  appId: "1:19202835170:web:c2020d14327de0c4d914bb",
+  measurementId: "G-RZFX3ZY44T"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window._khadma_db = db;
+window._khadma_addDemande = async (d)=>{
+  try{ await addDoc(collection(db,"demandes"),{...d,firebaseTimestamp:serverTimestamp()}); console.log("✅ تم الحفظ أونلاين"); }catch(e){ console.error(e); }
+};
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>React Artifact</title>
