@@ -1,29 +1,22 @@
 {
-  "name": "Khadam DZ - خدمات منزلية",
+  "name": "Khadam DZ",
   "short_name": "Khadam DZ",
-  "start_url": "./index.html",
+  "description": "تطبيق خدمات منزلية في الجزائر - سباكة، كهرباء، تنظيف وجميع الحرفيين قريب منك",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#22c55e",
+  "theme_color": "#00c853",
   "icons": [
     {
-      "src": "icon-512.png",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
     }
   ]
-}
- 
+} h
