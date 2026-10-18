@@ -1,9 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.chifablida_create.twa",
-        "sha256_cert_fingerprints": ["25:7A:B6:7C:FB:4E:0B:B8:45:45:9A:9E:2D:DC:9C:0C:B1:70:7F:10:F8:A3:B6:0C:90:11:61:54:C0:E4:2D:D2"]
-      }
-    }]
-
