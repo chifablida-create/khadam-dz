@@ -1,18 +1,12 @@
 {
-  "id": "/khadam-dz/",
   "name": "Khadam DZ - خدمة الجزائر",
   "short_name": "Khadam DZ",
-  "description": "منصة جزائرية للبحث عن حرفيين محترفين - سباك، كهربائي، نجار، دهان، تنظيف. خدمة سريعة في البليدة وكل الولايات - حرفي في 30 دقيقة",
+  "description": "منصة جزائرية للبحث عن حرفيين محترفين - سباك، كهربائي، نجار، دهان، تنظيف. خدمة سريعة في البليدة وكل الولايات. حرفي في 30 دقيقة",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
-  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#00c853",
-  "categories": [
-    "business",
-    "lifestyle"
-  ],
   "icons": [
     {
       "src": "icon-152.png",
