@@ -1,0 +1,22 @@
+{
+  "packageId": "dz.khadam.app",
+  "host": "chifablida-create.github.io",
+  "name": "خدّام ديزاد - Khadam DZ",
+  "launcherName": "خدّام DZ",
+  "themeColor": "#16a34a",
+  "navigationColor": "#080a12",
+  "backgroundColor": "#080a12",
+  "startUrl": "/khadam-dz/",
+  "iconUrl": "https://chifablida-create.github.io/khadam-dz/icon-512.png",
+  "maskableIconUrl": "https://chifablida-create.github.io/khadam-dz/icon-512.png",
+  "monochromeIconUrl": "https://chifablida-create.github.io/khadam-dz/icon-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://chifablida-create.github.io/khadam-dz/manifest.json",
+  "fallbackType": "customtabs",
+  "enableNotifications": true,
+  "display": "standalone",
+  "splashScreenFadeOutDuration": 300
+}
