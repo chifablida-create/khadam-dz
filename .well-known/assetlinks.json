@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "dz.khadam.app",
+      "sha256_cert_fingerprints": [
+        "D7:DF:48:FB:92:47:C6:9F:E4:3E:EC:CD:8E:68:A5:E0:52:CC:75:D0:9E:14:06:60:99:9A:EF:37:60:04:92:4C"
+      ]
+    }
+  }
+]
