@@ -182,7 +182,25 @@
         } catch (err) {}
       })();
     </script>
-  </head>
+    <style>
+  html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+  /* منع اي عنصر يخرج برا */
+    * {
+    box-sizing: border-box;
+  }
+  img, div, section {
+    max-width: 100%;
+  }
+  /* الهيدر اللي فيه الازرار */
+  header, .top-bar, div[style*="display: flex"] {
+    flex-wrap: wrap !important;
+  }
+</style>
+</head>
   <body class="bg-gray-100 antialiased selection:bg-emerald-500 selection:text-white">
     <div id="root">
       <!-- شاشة الترحيب الفورية للهواتف الضعيفة والإنترنت البطيء (تختفي تلقائياً فور فتح التطبيق) -->
