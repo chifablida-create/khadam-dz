@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Enforce crisp black text in light mode and pure white in dark mode */
+body {
+  font-family: 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  color: #000000;
+  background-color: #f3f4f6;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body,
+.dark body {
+  color: #ffffff;
+  background-color: #080a12;
+}
+
+/* Text visibility guarantees */
+html:not(.dark) .text-primary-dyn {
+  color: #000000 !important;
+}
+html.dark .text-primary-dyn {
+  color: #ffffff !important;
+}
+
+html:not(.dark) .text-secondary-dyn {
+  color: #1f2937 !important;
+}
+html.dark .text-secondary-dyn {
+  color: #f3f4f6 !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.dir-ltr {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Legacy Android (Android 5.0 - 9.0) & Weak Phone Compatibility Fallbacks */
+.inset-0 {
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+html, body {
+  -webkit-overflow-scrolling: touch;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Auto-Performance Mode for weak/old Android devices (disables heavy GPU blur for 60fps speed) */
+html.legacy-android-lite *,
+html.legacy-android-lite *::before,
+html.legacy-android-lite *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+

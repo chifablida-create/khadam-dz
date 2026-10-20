@@ -1,0 +1,6 @@
+{
+  "name": "خدّام ديزاد - Khadam DZ",
+  "description": "المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
