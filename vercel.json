@@ -1,37 +1,9 @@
 {
-  "version": 2,
-  "framework": null,
-  "installCommand": "echo 'Skip default npm install'",
-  "buildCommand": "if grep -q '/src/main.tsx' index.html 2>/dev/null; then npm install --legacy-peer-deps && npm run build && cp -r dist/* . 2>/dev/null || true; else echo 'Prebuilt bundle ready'; fi",
-  "outputDirectory": ".",
-  "cleanUrls": true,
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
-      ]
-    }
-  ],
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
-    { "source": "/api/baridimob/open", "destination": "/baridimob-open.html" },
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/privacy-policy", "destination": "/privacy.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
-فور حفظ التعديل في GitHub، سيقوم Vercel بإعادة النشر تلقائياً ويكتمل بنجاح خلال ثوانٍ دون أي خطأ npm error.
-flag
-Checkpoint
-lightbulb_tips
-Suggestions
-Make changes, add new features, ask for anything
-
