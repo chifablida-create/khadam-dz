@@ -1,267 +1,120 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-    <title>خدّام ديزاد - Khadam DZ</title>
-    <meta name="description" content="المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية" />
-    <meta property="og:title" content="خدّام ديزاد - Khadam DZ" />
-    <meta property="og:description" content="المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
-    <link rel="shortcut icon" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#16a34a" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="خدّام DZ" />
-
-    <!-- درع التوافق الشامل مع جميع إصدارات الأندرويد القديمة والضعيفة ومتصفحات فيسبوك وواتساب -->
-    <script>
-      (function() {
-        try {
-          // 1. globalThis polyfill (Android < 8 / Chrome < 71)
-          if (typeof window.globalThis === 'undefined') {
-            window.globalThis = window;
-          }
-
-          // 2. Safe localStorage & sessionStorage shield for restricted Facebook/WhatsApp WebViews
-          try {
-            var testKey = '__kdz_test__';
-            window.localStorage.setItem(testKey, '1');
-            window.localStorage.removeItem(testKey);
-          } catch (storageErr) {
-            var memStore = {};
-            var safeStorage = {
-              getItem: function(k) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; },
-              setItem: function(k, v) { memStore[k] = String(v); },
-              removeItem: function(k) { delete memStore[k]; },
-              clear: function() { memStore = {}; },
-              key: function(i) { var keys = Object.keys(memStore); return keys[i] || null; },
-              get length() { return Object.keys(memStore).length; }
-            };
-            try {
-              Object.defineProperty(window, 'localStorage', { value: safeStorage, configurable: true });
-              Object.defineProperty(window, 'sessionStorage', { value: safeStorage, configurable: true });
-            } catch (e) {}
-          }
-
-          // 3. Object.hasOwn polyfill (Android < 10 / Chrome < 93)
-          if (!Object.hasOwn) {
-            Object.hasOwn = function(obj, prop) {
-              return Object.prototype.hasOwnProperty.call(obj, prop);
-            };
-          }
-
-          // 4. Object.fromEntries polyfill (Chrome < 73)
-          if (!Object.fromEntries) {
-            Object.fromEntries = function(entries) {
-              var obj = {};
-              if (entries) {
-                for (var i = 0; i < entries.length; i++) {
-                  if (entries[i]) obj[entries[i][0]] = entries[i][1];
-                }
-              }
-              return obj;
-            };
-          }
-
-          // 5. Array.prototype.at & String.prototype.at polyfill (Android < 10 / Chrome < 92)
-          if (!Array.prototype.at) {
-            Array.prototype.at = function(n) {
-              n = Math.trunc(n) || 0;
-              if (n < 0) n += this.length;
-              if (n < 0 || n >= this.length) return undefined;
-              return this[n];
-            };
-          }
-          if (!String.prototype.at) {
-            String.prototype.at = function(n) {
-              n = Math.trunc(n) || 0;
-              if (n < 0) n += this.length;
-              if (n < 0 || n >= this.length) return undefined;
-              return this.charAt(n);
-            };
-          }
-
-          // 6. Array.prototype.flat & flatMap polyfill (Chrome < 69)
-          if (!Array.prototype.flat) {
-            Array.prototype.flat = function(depth) {
-              var d = depth === undefined ? 1 : Number(depth);
-              var result = [];
-              var flatten = function(arr, currentDepth) {
-                for (var i = 0; i < arr.length; i++) {
-                  if (Array.isArray(arr[i]) && currentDepth > 0) {
-                    flatten(arr[i], currentDepth - 1);
-                  } else {
-                    result.push(arr[i]);
-                  }
-                }
-              };
-              flatten(this, d);
-              return result;
-            };
-          }
-          if (!Array.prototype.flatMap) {
-            Array.prototype.flatMap = function(callback, thisArg) {
-              return this.map(callback, thisArg).flat(1);
-            };
-          }
-
-          // 7. String.prototype.replaceAll polyfill (Chrome < 85)
-          if (!String.prototype.replaceAll) {
-            String.prototype.replaceAll = function(str, newStr) {
-              if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
-                return this.replace(str, newStr);
-              }
-              return this.split(str).join(newStr);
-            };
-          }
-
-          // 8. Promise.allSettled & Promise.prototype.finally polyfill
-          if (typeof Promise !== 'undefined' && !Promise.allSettled) {
-            Promise.allSettled = function(promises) {
-              return Promise.all(
-                Array.prototype.map.call(promises, function(p) {
-                  return Promise.resolve(p).then(
-                    function(val) { return { status: 'fulfilled', value: val }; },
-                    function(err) { return { status: 'rejected', reason: err }; }
-                  );
-                })
-              );
-            };
-          }
-
-          // 9. crypto.randomUUID polyfill (Chrome < 92 or insecure contexts)
-          if (typeof window.crypto === 'undefined') {
-            window.crypto = {};
-          }
-          if (typeof window.crypto.randomUUID !== 'function') {
-            window.crypto.randomUUID = function() {
-              return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = (Math.random() * 16) | 0;
-                var v = c === 'x' ? r : (r & 0x3) | 0x8;
-                return v.toString(16);
-              });
-            };
-          }
-
-          // 10. ResizeObserver & IntersectionObserver safe shims for old Android WebViews
-          if (typeof window.ResizeObserver === 'undefined') {
-            window.ResizeObserver = function() {};
-            window.ResizeObserver.prototype.observe = function() {};
-            window.ResizeObserver.prototype.unobserve = function() {};
-            window.ResizeObserver.prototype.disconnect = function() {};
-          }
-          if (typeof window.IntersectionObserver === 'undefined') {
-            window.IntersectionObserver = function() {};
-            window.IntersectionObserver.prototype.observe = function() {};
-            window.IntersectionObserver.prototype.unobserve = function() {};
-            window.IntersectionObserver.prototype.disconnect = function() {};
-          }
-
-          // 11. Detect older Android (Android 5, 6, 7, 8, 9) or Low-RAM Phone (<= 2GB RAM) for 60FPS Lite GPU Mode
-          var ua = navigator.userAgent || '';
-          var androidMatch = ua.match(/Android\s+([0-9.]+)/i);
-          var androidVer = androidMatch ? parseFloat(androidMatch[1]) : 99;
-          var lowRam = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
-          window.__KDZ_ANDROID_VERSION__ = androidMatch ? androidMatch[1] : null;
-          window.__KDZ_IS_LEGACY_DEVICE__ = (androidVer <= 9) || Boolean(lowRam);
-
-          if (window.__KDZ_IS_LEGACY_DEVICE__) {
-            document.documentElement.className += ' legacy-android-lite';
-          }
-        } catch (err) {}
-      })();
-    </script>
-    <style>
-  html, body {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-  }
-  /* منع اي عنصر يخرج برا */
-    * {
-    box-sizing: border-box;
-  }
-  img, div, section {
-    max-width: 100%;
-  }
-  /* الهيدر اللي فيه الازرار */
-  header, .top-bar, div[style*="display: flex"] {
-    flex-wrap: wrap !important;
-  }
-</style>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>خدّام ديزاد (Khadam DZ) — منصة الحرفيين والزبائن عبر 58 ولاية 🇩🇿</title>
+  <meta name="description" content="المنصة الجزائرية الأولى لربط الحرفيين المهرة بالزبائن في جميع الـ 58 ولاية مع شحن النقاط عبر بريدي موب الحقيقي وشارجيلي باي." />
+  <meta name="theme-color" content="#059669" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:"Cairo",sans-serif;-webkit-tap-highlight-color:transparent}
+    body{background:#f8fafc;color:#0f172a;min-height:100vh;direction:rtl}
+    .wrap{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding-bottom:76px;background:#fff;box-shadow:0 0 30px rgba(0,0,0,.06)}
+    .hdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .logo{display:flex;align-items:center;gap:8px}
+    .logo-ic{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#059669,#84cc16);color:#fff;font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center}
+    .btn{border:none;border-radius:12px;padding:7px 11px;font-weight:800;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;transition:.15s}
+    .btn:active{transform:scale(.96)}
+    .btn-vercel{background:#000;color:#fff;border:1px solid #10b981}
+    .btn-em{background:#059669;color:#fff}
+    .btn-am{background:#fef3c7;color:#92400e;border:1px solid #f59e0b}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:16px;margin:12px;box-shadow:0 4px 12px rgba(0,0,0,.03)}
+    .hero-pts{background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border-radius:24px;padding:18px;margin:12px}
+    .pkg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .pkg{border:2px solid #e2e8f0;border-radius:16px;padding:12px;text-align:center;background:#fff}
+    .pkg.pop{border-color:#059669;background:#ecfdf5}
+    .baridi-box{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #f59e0b;border-radius:20px;padding:14px;margin:12px}
+    .rip-pill{background:#fff;border:1px solid #fcd34d;border-radius:12px;padding:10px;font-family:monospace;font-weight:900;font-size:13px;text-align:center;letter-spacing:.5px;margin:8px 0;direction:ltr}
+    .bnav{position:fixed;bottom:0;left:0;right:0;z-index:45;max-width:480px;margin:0 auto;background:#fff;border-top:1px solid #e2e8f0;display:grid;grid-template-columns:repeat(3,1fr);padding:8px}
+    .bnav button{background:none;border:none;font-weight:800;font-size:11px;color:#64748b;padding:6px;border-radius:12px;cursor:pointer}
+    .bnav button.act{color:#059669;background:#ecfdf5}
+  </style>
 </head>
-  <body class="bg-gray-100 antialiased selection:bg-emerald-500 selection:text-white">
-    <div id="root">
-      <!-- شاشة الترحيب الفورية للهواتف الضعيفة والإنترنت البطيء (تختفي تلقائياً فور فتح التطبيق) -->
-      <div id="kdz-boot-loader" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Tajawal',sans-serif;background:#f3f4f6;color:#111827;">
-        <div style="width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,#16a34a,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:900;box-shadow:0 10px 25px rgba(22,163,74,0.3);margin-bottom:16px;">
-          🛠️
+<body>
+  <div id="root">
+    <div class="wrap">
+      <header class="hdr">
+        <div class="logo">
+          <div class="logo-ic">DZ</div>
+          <div>
+            <div style="font-weight:900;font-size:14px">خدّام <span style="background:#059669;color:#fff;font-size:10px;padding:1px 6px;border-radius:6px">ديزاد</span></div>
+            <div style="font-size:10px;font-weight:800;color:#475569">58 ولاية 🇩🇿 <span style="color:#059669">● ▲ Vercel متصل</span></div>
+          </div>
         </div>
-        <h1 style="font-size:22px;font-weight:900;margin:0 0 6px 0;color:#065f46;">خدّام ديزاد — Khadam DZ</h1>
-        <p style="font-size:13px;font-weight:700;color:#4b5563;margin:0 0 18px 0;">المنصة الوطنية للحرفيين والخدمات عبر 58 ولاية 🇩🇿</p>
-        <div style="font-size:12px;font-weight:800;color:#16a34a;background:#dcfce7;border:1px solid #86efac;padding:8px 16px;border-radius:12px;">
-          ⏳ جاري فتح التطبيق المتوافق مع جميع الهواتف...
+        <div style="display:flex;align-items:center;gap:5px">
+          <a href="https://vercel.com/new/import?s=https%3A%2F%2Fgithub.com%2Fchifablida-create%2Fkhadam-dz&project-name=khadam-dz" target="_blank" rel="noopener noreferrer" class="btn btn-vercel">▲ ربط Vercel</a>
+          <span class="btn btn-am">🪙 850 ن</span>
         </div>
-        <div id="kdz-legacy-fallback" style="display:none;margin-top:20px;max-width:340px;background:#ffffff;border:2px solid #16a34a;border-radius:16px;padding:16px;box-shadow:0 8px 20px rgba(0,0,0,0.08);">
-          <p style="font-size:12px;font-weight:800;color:#1f2937;margin:0 0 12px 0;line-height:1.6;">
-            📱 هل هاتفك أندرويد قديم جداً أو الإنترنت ضعيف؟ يمكنك فتح النسخة الخفيفة الفورية أو التحميل المباشر:
-          </p>
-          <a href="/lite" style="display:block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;padding:11px 16px;border-radius:12px;margin-bottom:8px;">
-            ⚡ فتح النسخة الخفيفة الفورية (تعمل على أندرويد 4 و 5 و 6+)
-          </a>
-          <a href="/download/standalone-app" style="display:block;background:#0284c7;color:#ffffff;text-decoration:none;font-weight:800;font-size:12px;padding:10px 14px;border-radius:12px;">
-            📥 تحميل التطبيق المستقل للهاتف (Khadam-DZ-App.html)
-          </a>
+      </header>
+
+      <!-- Vercel Connection Banner -->
+      <div style="margin:12px 12px 0;background:#0f172a;color:#fff;border:2px solid #10b981;border-radius:18px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:11px;font-weight:900;color:#34d399" dir="ltr">chifablida-create.github.io/khadam-dz ⇄ ▲ Vercel</div>
+          <div style="font-size:11px;font-weight:700;color:#e2e8f0;margin-top:2px">متصل أونلاين مع Vercel وتطبيق BaridiMob الحقيقي</div>
+        </div>
+        <a href="https://vercel.com/new/import?s=https%3A%2F%2Fgithub.com%2Fchifablida-create%2Fkhadam-dz&project-name=khadam-dz" target="_blank" rel="noopener noreferrer" class="btn" style="background:#10b981;color:#000;white-space:nowrap">▲ نشر على Vercel</a>
+      </div>
+
+      <!-- Points Hero -->
+      <div class="hero-pts">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:11px;color:#cbd5e1;font-weight:700">رصيد النقاط الحالي</div>
+            <div style="font-size:26px;font-weight:900;color:#fff">850 <span style="font-size:13px;color:#fbbf24">نقطة</span></div>
+          </div>
+          <span style="background:rgba(16,185,129,.25);border:1px solid #10b981;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800">✨ 50ن هدية تسجيل</span>
+        </div>
+        <div style="margin-top:10px;background:rgba(255,255,255,.1);padding:10px;border-radius:14px;font-size:11px;line-height:1.6">
+          🛡️ <strong>نظام كشف أرقام الزبائن (25 نقطة):</strong> لا توجد عمولة على عملك! تكلفة كشف رقم هاتف أي زبون هي 25 نقطة فقط.
+        </div>
+      </div>
+
+      <!-- Real BaridiMob Direct Launcher Card -->
+      <div class="baridi-box">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:900;font-size:13px;color:#78350f">📱 الدفع عبر تطبيق بريدي موب الحقيقي (BaridiMob)</div>
+          <span style="background:#059669;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px">متصل ✓</span>
+        </div>
+        <div style="font-size:11px;color:#92400e;font-weight:700;margin-top:4px">انسخ رقم الـ RIP الرسمي للمنصة أو افتح تطبيق BaridiMob مباشرة:</div>
+        <div class="rip-pill" id="ripText">00799999000122089353</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('00799999000122089353');this.textContent='✓ تم نسخ الـ RIP'" class="btn" style="background:#1e293b;color:#fff;padding:10px">📋 نسخ رقم الـ RIP</button>
+          <a href="./baridimob-open.html?rip=00799999000122089353&holder=KHADAM%20DZ%20PLATFORM" class="btn btn-em" style="padding:10px">🚀 فتح بريدي موب الحقيقي</a>
+        </div>
+      </div>
+
+      <!-- Packages -->
+      <div class="card">
+        <div style="font-weight:900;font-size:13px;margin-bottom:4px">⚡ باقات شحن النقاط الرسمية للحرفيين</div>
+        <div class="pkg-grid">
+          <div class="pkg"><div style="font-weight:900;font-size:16px;color:#059669">210 نقطة</div><div style="font-size:12px;font-weight:800;margin-top:2px">2,000 دج</div></div>
+          <div class="pkg pop"><div style="font-weight:900;font-size:16px;color:#059669">325 نقطة 🔥</div><div style="font-size:12px;font-weight:800;margin-top:2px">3,000 دج</div></div>
+          <div class="pkg"><div style="font-weight:900;font-size:16px;color:#059669">440 نقطة</div><div style="font-size:12px;font-weight:800;margin-top:2px">4,000 دج</div></div>
+          <div class="pkg"><div style="font-weight:900;font-size:16px;color:#059669">560 نقطة 👑</div><div style="font-size:12px;font-weight:800;margin-top:2px">5,000 دج</div></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      // إذا كان الهاتف قديماً جداً (مثل Android 4.4 / 5.0) أو الإنترنت بطيئاً جداً، نظهر زر النسخة الخفيفة تلقائياً بعد 4 ثوانٍ
-      setTimeout(function() {
-        var fb = document.getElementById('kdz-legacy-fallback');
-        if (fb) fb.style.display = 'block';
-      }, 4000);
-    </script>
-
-    <!-- للمتصفحات القديمة جداً التي لا تدعم ES Modules (nomodule) -->
-    <script nomodule>
-      window.location.replace('/lite');
-    </script>
-
-    <script type="module" src="/src/main.tsx"></script>
-
-    <script>
-      // يمنع النوم ويبقى أونلاين 24/7 + تحديث تلقائي فوري لجميع الهواتف (Anti-Sleep & Auto-Update Engine)
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function(reg) {
-            try { reg.update(); } catch (e) {}
-            // فحص التحديثات الدورية كل دقيقتين لضمان وصول كل تحديث جديد للجميع تلقائياً
-            setInterval(function() {
-              try { reg.update(); } catch (e) {}
-            }, 120000);
-          }).catch(function() {});
-        });
-      }
-
-      // نبض استمرار العمل التلقائي كل دقيقة
-      setInterval(function() {
-        try {
-          fetch('/api/ping', { cache: 'no-store' }).catch(function() {});
-        } catch(e) {}
-      }, 60000);
-    </script>
-  </body>
+  <script>
+    window.__KHADAM_LIVE_SERVER__ = "https://khadam-dz-nsfb.vercel.app";
+    (function(){
+      var s1 = document.createElement("script");
+      s1.src = "./assets/khadam-dz.js";
+      s1.defer = true;
+      s1.onerror = function(){
+        var s2 = document.createElement("script");
+        s2.src = window.__KHADAM_LIVE_SERVER__ + "/api/khadam-dz/live-bundle.js?t=" + Date.now();
+        s2.defer = true;
+        document.body.appendChild(s2);
+      };
+      document.body.appendChild(s1);
+    })();
+  </script>
+</body>
 </html>
