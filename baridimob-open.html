@@ -5,62 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>فتح تطبيق بريدي موب الحقيقي — BaridiMob (خدّام ديزاد)</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Cairo', system-ui, -apple-system, sans-serif; }
+    * { box-sizing: border-box; font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif; }
     body { margin: 0; min-height: 100vh; background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); color: #fff; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .card { width: 100%; max-width: 420px; background: #fff; color: #0f172a; border-radius: 24px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.45); border: 3px solid #f59e0b; text-align: center; }
-    .badge { display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; font-weight: 900; font-size: 12px; padding: 4px 12px; border-radius: 999px; margin-bottom: 10px; }
+    .card { width: 100%; max-width: 430px; background: #fff; color: #0f172a; border-radius: 24px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.45); border: 3px solid #10b981; text-align: center; }
+    .badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #10b981; font-weight: 900; font-size: 12px; padding: 5px 14px; border-radius: 999px; margin-bottom: 10px; }
     h1 { font-size: 19px; margin: 4px 0 8px; font-weight: 900; color: #0f172a; }
     p { font-size: 13px; color: #334155; margin: 0 0 14px; font-weight: 700; line-height: 1.6; }
-    .rip-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 14px; padding: 10px; margin-bottom: 14px; }
-    .rip-label { font-size: 11px; color: #64748b; font-weight: 800; }
-    .rip-val { font-family: monospace; font-size: 16px; font-weight: 900; color: #059669; letter-spacing: 0.5px; margin-top: 2px; direction: ltr; }
-    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 16px; border-radius: 16px; font-size: 14px; font-weight: 900; text-decoration: none; margin-bottom: 10px; border: none; cursor: pointer; }
-    .btn-primary { background: linear-gradient(90deg, #f59e0b, #eab308); color: #000; box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35); }
-    .btn-secondary { background: #059669; color: #fff; }
+    .rip-box { background: #f8fafc; border: 2px dashed #10b981; border-radius: 16px; padding: 12px; margin-bottom: 14px; }
+    .rip-label { font-size: 11px; color: #047857; font-weight: 800; }
+    .rip-val { font-family: monospace; font-size: 16px; font-weight: 900; color: #0f172a; letter-spacing: 0.5px; margin: 4px 0 8px; direction: ltr; user-select: all; }
+    .copy-pill { background: #059669; color: #fff; border: none; border-radius: 10px; padding: 6px 14px; font-size: 12px; font-weight: 900; cursor: pointer; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 16px; border-radius: 16px; font-size: 14px; font-weight: 900; text-decoration: none; margin-bottom: 10px; border: none; cursor: pointer; transition: transform 0.1s; }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: linear-gradient(90deg, #059669, #10b981); color: #fff; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
+    .btn-secondary { background: linear-gradient(90deg, #f59e0b, #eab308); color: #000; box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3); }
     .btn-outline { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px; padding: 11px; }
+    .note { font-size: 11px; color: #475569; background: #f8fafc; border-radius: 12px; padding: 10px; margin-top: 6px; line-height: 1.6; font-weight: 700; border: 1px solid #e2e8f0; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="badge">Algérie Poste • BaridiMob الرسمي</div>
-    <h1>جاري فتح تطبيق بريدي موب الحقيقي...</h1>
-    <p>تم نسخ رقم الـ RIP تلقائياً. اضغط الزر الأصفر بالأسفل إذا لم يفتح التطبيق تلقائياً على هاتفك:</p>
+    <div class="badge">🇩🇿 Algérie Poste • BaridiMob الرسمي</div>
+    <h1>فتح تطبيق بريدي موب (BaridiMob)</h1>
+    <p>تم نسخ رقم الـ RIP الرسمي تلقائياً إلى حافظة هاتفك. اختر طريقة الفتح المباشرة:</p>
+
     <div class="rip-box">
-      <div class="rip-label">رقم الحساب البريدي الجاري (RIP) — تم نسخه ✓</div>
+      <div class="rip-label" id="holderLabel">رقم الحساب البريدي الجاري (RIP) — تم نسخه ✓</div>
       <div class="rip-val" id="ripVal">00799999000122089353</div>
+      <button type="button" class="copy-pill" id="copyBtn" onclick="copyRip()">📋 نسخ الـ RIP مرة أخرى</button>
     </div>
-    <a id="primaryIntentBtn" href="intent://pay?rip=00799999000122089353#Intent;scheme=baridimob;package=ru.bpc.mobilebank.bpa;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpa;end" class="btn btn-primary">
-      <span>🚀</span>
-      <span>افتح تطبيق بريدي موب (BaridiMob) الآن</span>
-    </a>
-    <a href="intent://#Intent;package=dz.poste.baridimob;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpa;end" class="btn btn-secondary">
+
+    <a id="primaryIntentBtn" href="intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end" onclick="copyRip()" class="btn btn-primary">
       <span>📲</span>
-      <span>فتح BaridiMob (النسخة البديلة لبريد الجزائر)</span>
+      <span>فتح تطبيق BaridiMob الآن (اضغط "فتح / Ouvrir")</span>
     </a>
-    <a href="https://play.google.com/store/apps/details?id=ru.bpc.mobilebank.bpa" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-      تثبيت أو تحديث BaridiMob من Google Play
+
+    <a id="directPackageBtn" href="intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=ru.bpc.mobilebank.bpc;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end" onclick="copyRip()" class="btn btn-secondary">
+      <span>🚀</span>
+      <span>إقلاع مباشر لتطبيق BaridiMob على الهاتف</span>
     </a>
+
+    <a href="https://edcarte.poste.dz/" onclick="copyRip()" class="btn btn-outline">
+      🌐 فتح بوابة بريد الجزائر الرسمية (Edcarte Poste)
+    </a>
+
     <a href="./index.html" class="btn btn-outline">
       ← العودة إلى منصة خدّام ديزاد وإرفاق الوصل
     </a>
+
+    <div class="note">
+      💡 <b>ملاحظة تقنية:</b> تطبيق <b>BaridiMob</b> محمي بنظام أمان بنكي. عند الضغط على الزر الأخضر تفتح نافذة BaridiMob الرسمية في هاتفك — اضغط فيها على <b>"فتح / Ouvrir"</b> ثم الصق الـ RIP المنسوخ.
+    </div>
   </div>
+
   <script>
-    (function() {
-      var params = new URLSearchParams(window.location.search);
-      var rip = (params.get('rip') || '00799999000122089353').replace(/\s+/g, '');
-      var ripEl = document.getElementById('ripVal');
-      if (ripEl) ripEl.textContent = rip;
+    var params = new URLSearchParams(window.location.search);
+    var rip = (params.get('rip') || '00799999000122089353').replace(/\s+/g, '');
+    var holder = params.get('holder') || 'KHADAM DZ PLATFORM';
+    var ripEl = document.getElementById('ripVal');
+    var holderEl = document.getElementById('holderLabel');
+    if (ripEl) ripEl.textContent = rip;
+    if (holderEl) holderEl.textContent = 'رقم الـ RIP (' + holder + ') — تم نسخه ✓';
+
+    function copyRip() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = rip;
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {}
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(rip).catch(function(){});
         }
       } catch (e) {}
-      var ua = navigator.userAgent || '';
-      if (/android/i.test(ua)) {
-        var intentUrl = "intent://pay?rip=" + encodeURIComponent(rip) + "#Intent;scheme=baridimob;package=ru.bpc.mobilebank.bpa;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpa;end";
-        setTimeout(function() { window.location.replace(intentUrl); }, 120);
-      }
-    })();
+      var btn = document.getElementById('copyBtn');
+      if (btn) btn.textContent = '✓ تم نسخ الـ RIP بنجاح!';
+    }
+
+    copyRip();
+
+    var ua = navigator.userAgent || '';
+    if (/android/i.test(ua)) {
+      var marketIntent = "intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end";
+      setTimeout(function() {
+        window.location.href = marketIntent;
+      }, 150);
+    } else if (/iphone|ipad|ipod/i.test(ua)) {
+      var iosUrl = "https://apps.apple.com/dz/app/baridimob/id1481839638";
+      var pBtn = document.getElementById('primaryIntentBtn');
+      if (pBtn) pBtn.href = iosUrl;
+    }
   </script>
 </body>
 </html>
