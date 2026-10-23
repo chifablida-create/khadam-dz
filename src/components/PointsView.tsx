@@ -1,7 +1,52 @@
 import React, { useState } from 'react';
-import { Coins, Copy, Check, UploadCloud, ShieldAlert, Sparkles, CheckCircle2, Clock, AlertCircle, Send, Smartphone, CreditCard, ExternalLink, Lock } from 'lucide-react';
+import {
+  Coins,
+  Copy,
+  Check,
+  UploadCloud,
+  ShieldAlert,
+  Sparkles,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Send,
+  Smartphone,
+  CreditCard,
+  ExternalLink
+} from 'lucide-react';
 import { RECHARGE_PACKAGES, PAYMENT_METHODS } from '../data/constants';
 import { PendingRecharge, PointLog } from '../types';
+
+function copyTextSynchronously(text: string): boolean {
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.top = '-9999px';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    textArea.setSelectionRange(0, text.length);
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return copied;
+  } catch {
+    return false;
+  }
+}
+
+function buildBaridiMobHref(rip: string): string {
+  const cleanRip = rip.replace(/\s+/g, '');
+  if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+    return 'intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end';
+  }
+  return `./baridimob-open.html?rip=${encodeURIComponent(cleanRip)}`;
+}
 
 interface PointsViewProps {
   points: number;
@@ -9,6 +54,12 @@ interface PointsViewProps {
   pointLogs: PointLog[];
   onOpenUploadReceipt: (selectedPkg?: { amount: number; pts: number }) => void;
   onOpenChargilyCheckout?: (selectedPkg?: { amount: number; pts: number }) => void;
+  onOpenAdminChat?: () => void;
+  onOpenGithubVercel?: () => void;
+  officialRip?: string;
+  officialHolder?: string;
+  officialCcp?: string;
+  officialCle?: string;
   isDark: boolean;
 }
 
@@ -21,11 +72,12 @@ export const PointsView: React.FC<PointsViewProps> = ({
   isDark
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [baridiLaunched, setBaridiLaunched] = useState(false);
 
   const handleCopy = (text: string, key: string) => {
-    navigator.clipboard?.writeText(text);
+    copyTextSynchronously(text);
     setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
+    setTimeout(() => setCopiedKey(null), 2500);
   };
 
   return (
@@ -96,7 +148,7 @@ export const PointsView: React.FC<PointsViewProps> = ({
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
           <h3 className={`text-sm font-black ${isDark ? 'text-white' : 'text-black'}`}>
-            باقات شحن النقاط الرسمية
+            باقات شحن النقاط
           </h3>
           <span className={`text-xs font-bold ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
             تفعيل فوري بعد إرسال الوصل
@@ -141,8 +193,8 @@ export const PointsView: React.FC<PointsViewProps> = ({
                 type="button"
                 onClick={() => onOpenUploadReceipt(pkg)}
                 className={`w-full py-2 rounded-xl font-black text-xs transition active:scale-95 ${
-                  isDark 
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white' 
+                  isDark
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                     : 'bg-black hover:bg-gray-900 text-white'
                 }`}
               >
@@ -154,9 +206,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
       </div>
 
       {/* Payment Information */}
-      <div className={`rounded-2xl border p-4 space-y-3.5 ${
-        isDark ? 'bg-[#151928] border-gray-800 text-white' : 'bg-white border-gray-300 text-black shadow-xs'
-      }`}>
+      <div
+        className={`rounded-2xl border p-4 space-y-3.5 ${
+          isDark ? 'bg-[#151928] border-gray-800 text-white' : 'bg-white border-gray-300 text-black shadow-xs'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <h4 className={`font-black text-xs ${isDark ? 'text-white' : 'text-black'}`}>
             معلومات الدفع (BaridiMob & CCP)
@@ -165,9 +219,13 @@ export const PointsView: React.FC<PointsViewProps> = ({
         </div>
 
         {/* BaridiMob Connection Card */}
-        <div className={`p-3.5 rounded-2xl border space-y-2.5 ${
-          isDark ? 'bg-gradient-to-r from-emerald-950/40 via-teal-950/20 to-gray-800 border-emerald-500/40' : 'bg-emerald-50/80 border-emerald-300'
-        }`}>
+        <div
+          className={`p-3.5 rounded-2xl border space-y-2.5 ${
+            isDark
+              ? 'bg-gradient-to-r from-emerald-950/40 via-teal-950/20 to-gray-800 border-emerald-500/40'
+              : 'bg-emerald-50/80 border-emerald-300'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
@@ -188,9 +246,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 font-mono ${
-            isDark ? 'bg-black/60 border-gray-700' : 'bg-white border-emerald-200'
-          }`}>
+          <div
+            className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 font-mono ${
+              isDark ? 'bg-black/60 border-gray-700' : 'bg-white border-emerald-200'
+            }`}
+          >
             <div>
               <span className="text-[9px] font-sans block text-gray-500 font-bold">رقم الحساب (RIP):</span>
               <span className="font-mono font-black text-xs tracking-wider dir-ltr text-emerald-600 dark:text-emerald-400 select-all">
@@ -209,45 +269,62 @@ export const PointsView: React.FC<PointsViewProps> = ({
             </button>
           </div>
 
-          {/* Action buttons for BaridiMob */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <button
-              type="button"
+          {/* Working Action buttons for BaridiMob (No target="_blank", uses real ru.bpc.mobilebank.bpc) */}
+          <div className="space-y-2 pt-1">
+            <a
+              href={buildBaridiMobHref(PAYMENT_METHODS.baridimob.rip)}
               onClick={() => {
                 handleCopy(PAYMENT_METHODS.baridimob.rip, 'rip');
-                const isAndroid = /android/i.test(navigator.userAgent);
-                if (isAndroid) {
-                  window.location.href = 'intent://#Intent;package=dz.poste.baridimob;scheme=baridimob;end';
-                  setTimeout(() => {
-                    window.open('https://play.google.com/store/apps/details?id=dz.poste.baridimob', '_blank');
-                  }, 1200);
-                } else {
-                  window.open('https://play.google.com/store/apps/details?id=dz.poste.baridimob', '_blank');
-                }
+                setBaridiLaunched(true);
               }}
-              className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer text-center"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-95 cursor-pointer text-center no-underline"
             >
-              <Smartphone className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">فتح تطبيق BaridiMob 📲</span>
-            </button>
+              <Smartphone className="w-4 h-4 shrink-0" />
+              <span>فتح تطبيق BaridiMob 📲 (نسخ RIP تلقائي)</span>
+            </a>
 
-            <button
-              type="button"
-              onClick={() => onOpenUploadReceipt()}
-              className={`py-2.5 px-3 rounded-xl border font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer text-center ${
-                isDark ? 'bg-gray-800 border-gray-700 text-emerald-400 hover:bg-gray-700' : 'bg-white border-gray-300 text-emerald-800 hover:bg-gray-100'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span className="truncate">فحص الوصل بالبوت 🤖</span>
-            </button>
+            {baridiLaunched && (
+              <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[11px] font-black text-emerald-600 dark:text-emerald-300 text-center">
+                ✓ تم نسخ الـ RIP ({PAYMENT_METHODS.baridimob.rip}) تلقائياً! اضغط "فتح / Ouvrir" في نافذة بريدي موب.
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={`./baridimob-open.html?rip=${encodeURIComponent(PAYMENT_METHODS.baridimob.rip.replace(/\s+/g, ''))}`}
+                onClick={() => handleCopy(PAYMENT_METHODS.baridimob.rip, 'rip')}
+                className={`py-2.5 px-3 rounded-xl border font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer text-center no-underline ${
+                  isDark
+                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60'
+                    : 'bg-white border-emerald-400 text-emerald-900 hover:bg-emerald-50'
+                }`}
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="truncate">بوابة BaridiMob 🚀</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => onOpenUploadReceipt()}
+                className={`py-2.5 px-3 rounded-xl border font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer text-center ${
+                  isDark ? 'bg-gray-800 border-gray-700 text-emerald-400 hover:bg-gray-700' : 'bg-white border-gray-300 text-emerald-800 hover:bg-gray-100'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span className="truncate">فحص الوصل بالبوت 🤖</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Chargily Pay Connection Card */}
-        <div className={`p-3.5 rounded-2xl border space-y-2.5 ${
-          isDark ? 'bg-gradient-to-r from-teal-950/40 via-emerald-950/20 to-gray-800 border-teal-500/40' : 'bg-teal-50/80 border-teal-300'
-        }`}>
+        <div
+          className={`p-3.5 rounded-2xl border space-y-2.5 ${
+            isDark
+              ? 'bg-gradient-to-r from-teal-950/40 via-emerald-950/20 to-gray-800 border-teal-500/40'
+              : 'bg-teal-50/80 border-teal-300'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-black flex items-center justify-center font-black shadow-xs shrink-0">
@@ -271,7 +348,6 @@ export const PointsView: React.FC<PointsViewProps> = ({
             {PAYMENT_METHODS.chargily.note} مع الشحن الفوري والتلقائي لنقاط حسابك في ثوانٍ.
           </p>
 
-          {/* Action buttons for Chargily Pay */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             <button
               type="button"
@@ -293,7 +369,9 @@ export const PointsView: React.FC<PointsViewProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className={`py-2.5 px-3 rounded-xl border font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer text-center ${
-                isDark ? 'bg-gray-800 border-gray-700 text-teal-400 hover:bg-gray-700' : 'bg-white border-gray-300 text-teal-800 hover:bg-gray-100'
+                isDark
+                  ? 'bg-gray-800 border-gray-700 text-teal-400 hover:bg-gray-700'
+                  : 'bg-white border-gray-300 text-teal-800 hover:bg-gray-100'
               }`}
             >
               <span>بوابة Chargily الخارجية</span>
@@ -303,16 +381,20 @@ export const PointsView: React.FC<PointsViewProps> = ({
         </div>
 
         {/* CCP */}
-        <div className={`p-3 rounded-xl border flex items-center justify-between gap-2 ${
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
-        }`}>
+        <div
+          className={`p-3 rounded-xl border flex items-center justify-between gap-2 ${
+            isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
+          }`}
+        >
           <div>
             <div className={`text-[11px] font-black ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
               {PAYMENT_METHODS.ccp.title}
             </div>
-            <div className={`font-mono font-black text-xs tracking-wider dir-ltr mt-0.5 ${
-              isDark ? 'text-emerald-400' : 'text-black font-extrabold'
-            }`}>
+            <div
+              className={`font-mono font-black text-xs tracking-wider dir-ltr mt-0.5 ${
+                isDark ? 'text-emerald-400' : 'text-black font-extrabold'
+              }`}
+            >
               CCP: {PAYMENT_METHODS.ccp.ccpNumber} / Clé: {PAYMENT_METHODS.ccp.cle}
             </div>
           </div>
@@ -329,28 +411,36 @@ export const PointsView: React.FC<PointsViewProps> = ({
         </div>
 
         {/* Flexy Numbers */}
-        <div className={`p-3 rounded-xl border space-y-1.5 ${
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
-        }`}>
+        <div
+          className={`p-3 rounded-xl border space-y-1.5 ${
+            isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
+          }`}
+        >
           <div className={`text-[11px] font-black ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
             {PAYMENT_METHODS.flexy.title}:
           </div>
           <div className="grid grid-cols-3 gap-1.5 text-center font-mono font-black text-[11px]">
-            <div className={`p-1.5 rounded-lg border ${
-              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
-            }`}>
+            <div
+              className={`p-1.5 rounded-lg border ${
+                isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
+              }`}
+            >
               <span className={`text-[9px] block font-sans ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Mobilis</span>
               {PAYMENT_METHODS.flexy.mobilis}
             </div>
-            <div className={`p-1.5 rounded-lg border ${
-              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
-            }`}>
+            <div
+              className={`p-1.5 rounded-lg border ${
+                isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
+              }`}
+            >
               <span className={`text-[9px] block font-sans ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Djezzy</span>
               {PAYMENT_METHODS.flexy.djezzy}
             </div>
-            <div className={`p-1.5 rounded-lg border ${
-              isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
-            }`}>
+            <div
+              className={`p-1.5 rounded-lg border ${
+                isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-black'
+              }`}
+            >
               <span className={`text-[9px] block font-sans ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Ooredoo</span>
               {PAYMENT_METHODS.flexy.ooredoo}
             </div>
@@ -358,9 +448,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
         </div>
 
         {/* AI Bot Notice */}
-        <div className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs font-bold leading-relaxed ${
-          isDark ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-200' : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-        }`}>
+        <div
+          className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs font-bold leading-relaxed ${
+            isDark ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-200' : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+          }`}
+        >
           <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
           <span>
             <strong>بوت الفحص التلقائي الذكي مفعّل:</strong> ارفع وصل بريدي موب أو شارجيلي (صورة أو PDF)، وسيقرأ البوت رقم المعاملة والمبلغ ويضيف النقاط لحسابك فوراً.
@@ -395,9 +487,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
 
       {/* Pending Recharges Section */}
       {pendingRecharges.length > 0 && (
-        <div className={`rounded-2xl border p-4 space-y-2.5 ${
-          isDark ? 'bg-[#151928] border-gray-800 text-white' : 'bg-white border-gray-300 text-black shadow-xs'
-        }`}>
+        <div
+          className={`rounded-2xl border p-4 space-y-2.5 ${
+            isDark ? 'bg-[#151928] border-gray-800 text-white' : 'bg-white border-gray-300 text-black shadow-xs'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <h4 className={`font-black text-xs ${isDark ? 'text-white' : 'text-black'}`}>
               طلبات الشحن الخاصة بك
@@ -451,9 +545,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
       )}
 
       {/* Point Activity History */}
-      <div className={`rounded-2xl border p-4 space-y-2.5 ${
-        isDark ? 'bg-[#151928] border-gray-800 text-white' : 'bg-white border-gray-300 text-black shadow-xs'
-      }`}>
+      <div
+        className={`rounded-2xl border p-4 space-y-2.5 ${
+          isDark ? 'bg-[#151928] border-gray-800 text-white' : 'bg-white border-gray-300 text-black shadow-xs'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <h4 className={`font-black text-xs ${isDark ? 'text-white' : 'text-black'}`}>
             سجل حركة النقاط
@@ -482,9 +578,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
                     {new Date(log.createdAt).toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
-                <span className={`font-mono font-black ${
-                  log.pts > 0 ? (isDark ? 'text-emerald-400' : 'text-emerald-700 font-extrabold') : 'text-red-600'
-                }`}>
+                <span
+                  className={`font-mono font-black ${
+                    log.pts > 0 ? (isDark ? 'text-emerald-400' : 'text-emerald-700 font-extrabold') : 'text-red-600'
+                  }`}
+                >
                   {log.pts > 0 ? `+${log.pts}` : log.pts} ن
                 </span>
               </div>
