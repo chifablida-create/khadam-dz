@@ -1,9 +1,186 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { setLivePublicTunnelUrl } from '../utils/appUrl';
 
+const PERMANENT_VERCEL_URL = 'https://khadam-dz-adua.vercel.app';
+const LIVE_SERVER_FALLBACK = 'https://ais-pre-xlv6qxqnnf5qh6djqimeul-84338738632.europe-west2.run.app';
+const FIRESTORE_BASE_URL =
+  'https://firestore.googleapis.com/v1/projects/charismatic-castle-z6shk/databases/ai-studio-khadamdz-e03a2bd4-f7fc-4cb5-9f70-63f2c22b676a/documents';
+const FIRESTORE_API_KEY = 'AIzaSyDIEs9pw-I8tLu31RIOza2PYu5VZ_ulGp0';
+
+export function getKhadamApiBase(): string {
+  if (typeof window === 'undefined') return '';
+  const host = window.location.hostname;
+  if (host.includes('vercel.app') || host.includes('github.io')) {
+    return LIVE_SERVER_FALLBACK;
+  }
+  return '';
+}
+
+function isFakeOrBotRequestItem(r: any): boolean {
+  if (!r || !r.id) return true;
+  const id = String(r.id);
+  const title = String(r.title || '');
+  const desc = String(r.desc || '');
+  if (
+    id.startsWith('req_bot_') ||
+    id.startsWith('r_bot_') ||
+    id.startsWith('r_match_') ||
+    id.startsWith('r_bg_') ||
+    title.includes('موثق بالبوت') ||
+    desc.includes('تم توليد وتوثيق هذا الطلب تلقائياً')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function cleanAndDeduplicateRequests(list: any[]): any[] {
+  const byId = new Map<string, any>();
+  const seenKeys = new Set<string>();
+  const sorted = [...list].filter((r) => !isFakeOrBotRequestItem(r));
+  for (const r of sorted) {
+    const id = String(r.id);
+    const dedupKey = `${String(r.title || '').trim()}|${String(r.wilaya || '').trim()}|${String(r.craft || '').trim()}`;
+    if (!byId.has(id) && !seenKeys.has(dedupKey)) {
+      byId.set(id, r);
+      seenKeys.add(dedupKey);
+    }
+  }
+  return Array.from(byId.values()).sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+}
+
+function fromFirestoreFields(fields: Record<string, any> | undefined): Record<string, any> {
+  const out: Record<string, any> = {};
+  if (!fields) return out;
+  for (const [k, v] of Object.entries(fields)) {
+    if ('stringValue' in v) out[k] = v.stringValue;
+    else if ('integerValue' in v) out[k] = Number(v.integerValue);
+    else if ('doubleValue' in v) out[k] = Number(v.doubleValue);
+    else if ('booleanValue' in v) out[k] = Boolean(v.booleanValue);
+  }
+  return out;
+}
+
+async function fetchFirestoreRequestsAndCraftsmen(): Promise<{ requests: any[]; craftsmen: any[] } | null> {
+  try {
+    const [reqRes, crRes] = await Promise.all([
+      fetch(`${FIRESTORE_BASE_URL}:runQuery?key=${FIRESTORE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          structuredQuery: {
+            from: [{ collectionId: 'requests' }],
+            where: {
+              fieldFilter: {
+                field: { fieldPath: 'status' },
+                op: 'IN',
+                value: {
+                  arrayValue: {
+                    values: [
+                      { stringValue: 'open' },
+                      { stringValue: 'in_progress' },
+                      { stringValue: 'completed' }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        })
+      }),
+      fetch(`${FIRESTORE_BASE_URL}:runQuery?key=${FIRESTORE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          structuredQuery: {
+            from: [{ collectionId: 'craftsmen' }],
+            where: {
+              fieldFilter: {
+                field: { fieldPath: 'status' },
+                op: 'IN',
+                value: {
+                  arrayValue: {
+                    values: [{ stringValue: 'active' }, { stringValue: 'suspended' }]
+                  }
+                }
+              }
+            }
+          }
+        })
+      })
+    ]);
+
+    const requests: any[] = [];
+    if (reqRes.ok) {
+      const rows = await reqRes.json();
+      if (Array.isArray(rows)) {
+        for (const row of rows) {
+          if (row?.document?.fields) {
+            const parsed = fromFirestoreFields(row.document.fields);
+            if (parsed.id && !isFakeOrBotRequestItem(parsed)) {
+              requests.push(parsed);
+            }
+          }
+        }
+      }
+    }
+
+    const craftsmen: any[] = [];
+    if (crRes.ok) {
+      const rows = await crRes.json();
+      if (Array.isArray(rows)) {
+        for (const row of rows) {
+          if (row?.document?.fields) {
+            const parsed = fromFirestoreFields(row.document.fields);
+            if (parsed.id) {
+              craftsmen.push(parsed);
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      requests: cleanAndDeduplicateRequests(requests),
+      craftsmen
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function pushRequestToFirestoreRest(req: any): Promise<void> {
+  if (!req || !req.id || isFakeOrBotRequestItem(req)) return;
+  try {
+    const docId = encodeURIComponent(String(req.id));
+    await fetch(`${FIRESTORE_BASE_URL}/requests/${docId}?key=${FIRESTORE_API_KEY}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          id: { stringValue: String(req.id) },
+          craft: { stringValue: String(req.craft || 'سباك') },
+          wilaya: { stringValue: String(req.wilaya || '16 الجزائر') },
+          title: { stringValue: String(req.title || '') },
+          desc: { stringValue: String(req.desc || '') },
+          phone: { stringValue: String(req.phone || '') },
+          createdAt: { integerValue: String(Math.floor(Number(req.createdAt || Date.now()))) },
+          priority: { booleanValue: Boolean(req.priority) },
+          status: { stringValue: String(req.status || 'open') },
+          ...(req.budget ? { budget: { stringValue: String(req.budget) } } : {})
+        }
+      })
+    });
+  } catch {
+    // ignore network error
+  }
+}
+
 interface UseKeepAliveOptions {
   onLiveRequest?: (req: any) => void;
+  onLiveCraftsman?: (craftsman: any) => void;
   onLiveBroadcast?: (bc: any) => void;
+  onFullStateSync?: (state: any) => void;
 }
 
 export function useKeepAlive(options?: UseKeepAliveOptions) {
@@ -22,6 +199,7 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
   const reconnectTimerRef = useRef<any>(null);
   const consecutiveFailuresRef = useRef<number>(0);
   const lastRevisionRef = useRef<number>(1);
+  const pushedRequestIdsRef = useRef<Set<string>>(new Set());
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
@@ -36,11 +214,10 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
         }).catch(() => {});
       }
     } catch {
-      // ignore on legacy browsers without SW
+      // ignore
     }
   }, []);
 
-  // Request Screen Wake Lock to prevent screen sleep
   const requestWakeLock = useCallback(async () => {
     if (typeof navigator !== 'undefined' && 'wakeLock' in navigator && (navigator as any).wakeLock) {
       try {
@@ -53,13 +230,11 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
           });
         }
       } catch {
-        // Fallback: anti-sleep worker remains active even if screen wakeLock is declined
         setIsWakeLockActive(false);
       }
     }
   }, []);
 
-  // Release Wake Lock
   const releaseWakeLock = useCallback(() => {
     if (wakeLockRef.current) {
       try {
@@ -72,7 +247,6 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
     }
   }, []);
 
-  // Start inaudible WebAudio keep-alive oscillator so mobile browsers never suspend background tab
   const startSilentAudioKeepAlive = useCallback(() => {
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -81,7 +255,7 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
         const ctx = new AudioCtx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        gain.gain.value = 0.00001; // Completely inaudible
+        gain.gain.value = 0.00001;
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -91,7 +265,7 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
       }
       setIsAntiSleepActive(true);
     } catch {
-      // ignore if blocked before gesture
+      // ignore
     }
   }, []);
 
@@ -111,54 +285,78 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
     });
   }, [requestWakeLock, releaseWakeLock, startSilentAudioKeepAlive]);
 
-  // Fast Heartbeat function to ping server & service worker
   const sendHeartbeat = useCallback(async () => {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 7000);
-      const res = await fetch('/api/health', {
-        method: 'GET',
-        cache: 'no-store',
-        signal: controller.signal
-      });
-      clearTimeout(timeout);
+    setLivePublicTunnelUrl(PERMANENT_VERCEL_URL);
 
-      if (res.ok) {
-        const data = await res.json();
+    try {
+      const rawLocal = localStorage.getItem('khadam_dz_requests');
+      if (rawLocal) {
+        const parsedLocal = JSON.parse(rawLocal);
+        if (Array.isArray(parsedLocal)) {
+          const cleanedLocal = cleanAndDeduplicateRequests(parsedLocal);
+          if (cleanedLocal.length !== parsedLocal.length) {
+            const nextJson = JSON.stringify(cleanedLocal);
+            localStorage.setItem('khadam_dz_requests', nextJson);
+            window.dispatchEvent(
+              new StorageEvent('storage', { key: 'khadam_dz_requests', newValue: nextJson })
+            );
+          }
+          for (const item of cleanedLocal) {
+            if (item && item.id && !pushedRequestIdsRef.current.has(String(item.id))) {
+              pushedRequestIdsRef.current.add(String(item.id));
+              pushRequestToFirestoreRest(item).catch(() => {});
+            }
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const fsData = await fetchFirestoreRequestsAndCraftsmen();
+      if (fsData && (fsData.requests.length > 0 || fsData.craftsmen.length > 0)) {
         consecutiveFailuresRef.current = 0;
         setIsOnline(true);
         setIsLiveStreaming(true);
         setLastHeartbeat(Date.now());
-        if (typeof data.uptimeSeconds === 'number') {
-          setServerUptime(data.uptimeSeconds);
+        for (const r of fsData.requests) {
+          if (r?.id) pushedRequestIdsRef.current.add(String(r.id));
         }
-        if (typeof data.pulseCount === 'number') {
-          setPulseCount((prev) => Math.max(prev + 1, data.pulseCount));
+        optionsRef.current?.onFullStateSync?.(fsData);
+        for (const req of fsData.requests) {
+          if (req && req.id) {
+            optionsRef.current?.onLiveRequest?.(req);
+          }
         }
-        if (typeof data.connectedClients === 'number') {
-          setConnectedClients(Math.max(1, data.connectedClients));
+        for (const cr of fsData.craftsmen) {
+          if (cr && cr.id) {
+            optionsRef.current?.onLiveCraftsman?.(cr);
+          }
         }
-        if (data.publicTunnelUrl) {
-          setLivePublicTunnelUrl(data.publicTunnelUrl);
-        }
-        if (typeof data.updateRevision === 'number' && data.updateRevision > lastRevisionRef.current) {
-          lastRevisionRef.current = data.updateRevision;
-          refreshServiceWorkerCache();
+        try {
+          const rawLocal = localStorage.getItem('khadam_dz_requests');
+          const localArr = rawLocal ? JSON.parse(rawLocal) : [];
+          const merged = cleanAndDeduplicateRequests([
+            ...fsData.requests,
+            ...(Array.isArray(localArr) ? localArr : [])
+          ]);
+          const prevJson = rawLocal || '';
+          const nextJson = JSON.stringify(merged);
+          if (prevJson !== nextJson) {
+            localStorage.setItem('khadam_dz_requests', nextJson);
+            window.dispatchEvent(
+              new StorageEvent('storage', { key: 'khadam_dz_requests', newValue: nextJson })
+            );
+          }
+        } catch {
+          // ignore
         }
       }
     } catch {
-      consecutiveFailuresRef.current += 1;
-      // Never falsely drop the live stream on a single transient hiccup
-      if (consecutiveFailuresRef.current >= 4 && typeof navigator !== 'undefined' && !navigator.onLine) {
-        setIsOnline(false);
-      } else {
-        setIsOnline(true);
-        setLastHeartbeat(Date.now());
-        setServerUptime((prev) => prev + 12);
-      }
+      // ignore
     }
 
-    // Ping Service Worker
     try {
       if (navigator.serviceWorker && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({
@@ -169,199 +367,46 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
     } catch {
       // ignore
     }
-  }, []);
+  }, [refreshServiceWorkerCache]);
 
-  // Connect to 24/7 Non-Stop SSE Live Broadcast Stream (/api/live-stream)
   const connectLiveStream = useCallback(() => {
-    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+    // Firestore REST sync runs via Web Worker timer every 10s
+  }, []);
 
-    try {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-
-      const es = new EventSource('/api/live-stream');
-      eventSourceRef.current = es;
-
-      es.addEventListener('connected', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          consecutiveFailuresRef.current = 0;
-          setIsOnline(true);
-          setIsLiveStreaming(true);
-          setLastHeartbeat(Date.now());
-          if (data.uptimeSeconds) setServerUptime(data.uptimeSeconds);
-          if (data.connectedClients) setConnectedClients(Math.max(1, data.connectedClients));
-          if (data.pulseCount) setPulseCount(data.pulseCount);
-          if (data.publicTunnelUrl) setLivePublicTunnelUrl(data.publicTunnelUrl);
-        } catch {
-          // ignore parse error
-        }
-      });
-
-      es.addEventListener('pulse', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          consecutiveFailuresRef.current = 0;
-          setIsOnline(true);
-          setIsLiveStreaming(true);
-          setLastHeartbeat(Date.now());
-          if (typeof data.uptimeSeconds === 'number') setServerUptime(data.uptimeSeconds);
-          if (typeof data.pulseId === 'number') setPulseCount(data.pulseId);
-          if (typeof data.connectedClients === 'number') setConnectedClients(Math.max(1, data.connectedClients));
-          if (data.publicTunnelUrl) setLivePublicTunnelUrl(data.publicTunnelUrl);
-        } catch {
-          // ignore
-        }
-      });
-
-      es.addEventListener('tunnel_url', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.publicTunnelUrl) setLivePublicTunnelUrl(data.publicTunnelUrl);
-        } catch {
-          // ignore
-        }
-      });
-
-      es.addEventListener('new_request', (event: MessageEvent) => {
-        try {
-          const req = JSON.parse(event.data);
-          optionsRef.current?.onLiveRequest?.(req);
-        } catch {
-          // ignore
-        }
-      });
-
-      es.addEventListener('admin_broadcast', (event: MessageEvent) => {
-        try {
-          const bc = JSON.parse(event.data);
-          optionsRef.current?.onLiveBroadcast?.(bc);
-        } catch {
-          // ignore
-        }
-      });
-
-      es.addEventListener('app_update', (event: MessageEvent) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (typeof data.updateRevision === 'number') {
-            lastRevisionRef.current = data.updateRevision;
-          }
-          refreshServiceWorkerCache();
-          sendHeartbeat();
-        } catch {
-          // ignore
-        }
-      });
-
-      es.onerror = () => {
-        // Automatically reconnect SSE stream without interrupting UI
-        es.close();
-        eventSourceRef.current = null;
-        if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = setTimeout(() => {
-          sendHeartbeat();
-          connectLiveStream();
-        }, 3000);
-      };
-    } catch {
-      // Fallback to Web Worker heartbeat polling
-    }
-  }, [sendHeartbeat]);
-
-  // Push a new request to the shared live stream so all devices see it immediately
   const pushLiveRequest = useCallback(async (request: any) => {
-    try {
-      await fetch('/api/live-state/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request })
-      });
-    } catch {
-      // ignore offline
-    }
+    await pushRequestToFirestoreRest(request);
   }, []);
 
-  // Push an admin broadcast to the shared live stream so all devices receive it immediately
-  const pushLiveBroadcast = useCallback(async (broadcast: any) => {
-    try {
-      await fetch('/api/live-state/broadcast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ broadcast })
-      });
-    } catch {
-      // ignore offline
-    }
-  }, []);
+  const pushLiveBroadcast = useCallback(async () => {}, []);
 
   useEffect(() => {
-    const handleOnline = () => {
-      consecutiveFailuresRef.current = 0;
-      setIsOnline(true);
-      setIsLiveStreaming(true);
-      sendHeartbeat();
-      connectLiveStream();
-    };
-
-    const handleOffline = () => {
-      // Even if browser reports offline briefly, try heartbeat first
-      sendHeartbeat();
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Unlock anti-sleep on first user interaction
-    const handleFirstInteraction = () => {
-      requestWakeLock();
-      startSilentAudioKeepAlive();
-    };
-    window.addEventListener('click', handleFirstInteraction, { once: true, passive: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
-
-    // Initial connection
     sendHeartbeat();
     requestWakeLock();
-    connectLiveStream();
 
-    // Create an un-throttled Web Worker timer (every 12 seconds) so background tabs never stop
     let worker: Worker | null = null;
     let fallbackInterval: any = null;
     try {
-      const workerCode = 'setInterval(function() { postMessage("tick"); }, 12000);';
+      const workerCode = 'setInterval(function() { postMessage("tick"); }, 10000);';
       const blob = new Blob([workerCode], { type: 'application/javascript' });
       worker = new Worker(URL.createObjectURL(blob));
       worker.onmessage = () => {
         sendHeartbeat();
-        if (!eventSourceRef.current || eventSourceRef.current.readyState === 2) {
-          connectLiveStream();
-        }
       };
     } catch {
       fallbackInterval = setInterval(() => {
         sendHeartbeat();
-      }, 12000);
+      }, 10000);
     }
 
-    // Re-request wake lock & reconnect immediately when user returns to tab
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         sendHeartbeat();
         requestWakeLock();
-        if (!eventSourceRef.current || eventSourceRef.current.readyState === 2) {
-          connectLiveStream();
-        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (worker) worker.terminate();
       if (fallbackInterval) clearInterval(fallbackInterval);
@@ -369,7 +414,7 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
       if (eventSourceRef.current) eventSourceRef.current.close();
       releaseWakeLock();
     };
-  }, [sendHeartbeat, requestWakeLock, releaseWakeLock, connectLiveStream, startSilentAudioKeepAlive]);
+  }, [sendHeartbeat, requestWakeLock, releaseWakeLock]);
 
   return {
     isOnline,
