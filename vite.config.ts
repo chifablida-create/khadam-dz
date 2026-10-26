@@ -13,6 +13,13 @@ function vercelOutputDirSyncPlugin() {
         const distDir = path.resolve(rootDir, 'dist');
         if (!fs.existsSync(distDir)) return;
 
+        // Ensure Google Search Console verification file is always in dist
+        fs.writeFileSync(
+          path.resolve(distDir, 'googlea428081754d85133.html'),
+          'google-site-verification: googlea428081754d85133.html',
+          'utf8'
+        );
+
         const initCwd = process.env.INIT_CWD ? path.resolve(process.env.INIT_CWD) : rootDir;
         const isVercelOrSubdir = Boolean(
           process.env.VERCEL || process.env.CI || initCwd !== rootDir
@@ -50,7 +57,10 @@ export default defineConfig(() => {
     },
     server: {
       allowedHosts: true as const,
+      // HMR is disabled in AI Studio via DISABLE_HMR env var.
+      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
+      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
     build: {
@@ -62,3 +72,4 @@ export default defineConfig(() => {
     },
   };
 });
+
