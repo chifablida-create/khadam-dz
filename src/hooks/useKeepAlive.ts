@@ -37,6 +37,36 @@ const FAKE_DEMO_TITLES = new Set([
   'تجديد دهان فيلا خارجية مع عزل مائي'
 ]);
 
+export function maskPhoneNumbersInText(input: any, shortMask: boolean = false): string {
+  if (!input) return '';
+  const replacement = shortMask
+    ? ' [🔒 رقم محجوب] '
+    : ' [🔒 رقم الهاتف محجوب - اكشف الرقم عبر المنصة] ';
+  let text = String(input);
+
+  // 1. Mask any sequence of 8 to 14 digits (including Arabic/Persian digits and separators like spaces, dots, dashes)
+  const phoneRegex =
+    /(?:\+?\s*213[\s.\-_/*(),]*|00\s*213[\s.\-_/*(),]*)?[0-9٠-٩۰-۹](?:[\s.\-_/*(),]*[0-9٠-٩۰-۹]){7,13}/g;
+  text = text.replace(phoneRegex, replacement);
+
+  // 2. Mask phone numbers written out in Arabic words (3+ consecutive number words)
+  const arabicWordNum =
+    '(?:و)?(?:صفر|واحد|زوج|اثنان|اثنين|ثلاثة|ثلاثه|اربعة|أربعة|اربعه|خمسة|خمسه|ستة|سته|سبعة|سبعه|ثمانية|ثمانيه|تسعة|تسعه|عشرة|عشرين|ثلاثين|اربعين|أربعين|خمسين|ستين|سبعين|ثمانين|تسعين|زيرو|سانك|سيس|سات|ويت|ناف)';
+  const wordPhoneRegex = new RegExp(arabicWordNum + '(?:[\\s،,-]+' + arabicWordNum + '){2,}', 'gi');
+  text = text.replace(wordPhoneRegex, replacement);
+
+  return text.replace(/\s{2,}/g, ' ').trim();
+}
+
+export function sanitizeRequestItem(r: any): any {
+  if (!r || typeof r !== 'object') return r;
+  return {
+    ...r,
+    title: maskPhoneNumbersInText(r.title, true),
+    desc: maskPhoneNumbersInText(r.desc, false)
+  };
+}
+
 export function getKhadamApiBase(): string {
   if (typeof window === 'undefined') return '';
   const host = window.location.hostname;
@@ -133,7 +163,9 @@ export function isFakeOrDeletedRequestItem(r: any): boolean {
 export function cleanAndDeduplicateRequests(list: any[]): any[] {
   const byId = new Map<string, any>();
   const seenKeys = new Set<string>();
-  const sorted = (Array.isArray(list) ? list : []).filter((r) => !isFakeOrDeletedRequestItem(r));
+  const sorted = (Array.isArray(list) ? list : [])
+    .filter((r) => !isFakeOrDeletedRequestItem(r))
+    .map((r) => sanitizeRequestItem(r));
   for (const r of sorted) {
     const id = String(r.id);
     const dedupKey = getRequestSignature(r);
@@ -181,7 +213,8 @@ function installPermanentDeleteInterceptor() {
       khadam_pending_points: new Set(['pr1', 'pr2']),
       khadam_complaints: new Set(['co1', 'co2']),
       khadam_broadcast_notifications: new Set(['bc1', 'bc2']),
-      khadam_app_notifications: new Set(['notif_match_1', 'notif_points_warn'])
+      khadam_app_notifications: new Set(['notif_match_1', 'notif_points_warn']),
+      khadam_ratings: new Set(['rt1', 'rt2', 'rt3'])
     };
     for (const [k, fakeIds] of Object.entries(demoCleanMap)) {
       try {
@@ -191,12 +224,18 @@ function installPermanentDeleteInterceptor() {
         } else {
           const arr = JSON.parse(raw);
           if (Array.isArray(arr)) {
-            const filtered = arr.filter(
-              (item: any) =>
-                item &&
-                !fakeIds.has(String(item.id || '')) &&
-                !String(item.id || '').includes('r_sim_')
-            );
+            const filtered = arr
+              .filter(
+                (item: any) =>
+                  item &&
+                  !fakeIds.has(String(item.id || '')) &&
+                  !String(item.id || '').includes('r_sim_')
+              )
+              .map((item: any) =>
+                k === 'khadam_ratings' && item?.comment
+                  ? { ...item, comment: maskPhoneNumbersInText(item.comment, false) }
+                  : item
+              );
             origSetItem(k, JSON.stringify(filtered));
           }
         }
@@ -226,6 +265,19 @@ function installPermanentDeleteInterceptor() {
           }
         } catch {
           // fallback to normal setItem
+        }
+      }
+      if (key === 'khadam_ratings' || key === 'khadam_dz_ratings') {
+        try {
+          const nextRatings = value ? JSON.parse(value) : [];
+          if (Array.isArray(nextRatings)) {
+            const sanitizedRatings = nextRatings.map((rt: any) =>
+              rt && rt.comment ? { ...rt, comment: maskPhoneNumbersInText(rt.comment, false) } : rt
+            );
+            return origSetItem(key, JSON.stringify(sanitizedRatings));
+          }
+        } catch {
+          // fallback
         }
       }
       return origSetItem(key, value);
@@ -323,6 +375,17 @@ function installCleanPublicUiShield() {
             txt.includes('تنزيل ملف AAB'))
         ) {
           (div as HTMLElement).style.display = 'none';
+        }
+      });
+
+      // Also scrub any phone numbers leaked inside visible request titles, descriptions, or comments in the DOM
+      const textElements = document.querySelectorAll('h3, p');
+      textElements.forEach((el) => {
+        const rawText = el.textContent || '';
+        if (!rawText || rawText.includes('هاتف الزبون:') || rawText.includes('0550 00')) return;
+        const masked = maskPhoneNumbersInText(rawText, el.tagName === 'H3');
+        if (masked !== rawText) {
+          el.textContent = masked;
         }
       });
     } catch {
@@ -488,7 +551,7 @@ async function fetchFirestoreRequestsAndCraftsmen(): Promise<{ requests: any[]; 
       if (Array.isArray(rows)) {
         for (const row of rows) {
           if (row?.document?.fields) {
-            const parsed = fromFirestoreFields(row.document.fields);
+            const parsed = sanitizeRequestItem(fromFirestoreFields(row.document.fields));
             if (parsed.id && !isFakeOrDeletedRequestItem(parsed)) {
               requests.push(parsed);
             }
@@ -523,22 +586,23 @@ async function fetchFirestoreRequestsAndCraftsmen(): Promise<{ requests: any[]; 
 
 async function pushRequestToFirestoreRest(req: any): Promise<void> {
   if (!req || !req.id || isFakeOrDeletedRequestItem(req)) return;
+  const sanitized = sanitizeRequestItem(req);
   try {
-    const docId = encodeURIComponent(String(req.id).replace(/[^a-zA-Z0-9_-]/g, '_'));
+    const docId = encodeURIComponent(String(sanitized.id).replace(/[^a-zA-Z0-9_-]/g, '_'));
     await fetch(`${FIRESTORE_BASE_URL}/requests/${docId}?key=${FIRESTORE_API_KEY}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
-          id: { stringValue: String(req.id) },
-          craft: { stringValue: String(req.craft || 'سباك') },
-          wilaya: { stringValue: String(req.wilaya || '16 الجزائر') },
-          title: { stringValue: String(req.title || '') },
-          desc: { stringValue: String(req.desc || '') },
-          phone: { stringValue: String(req.phone || '') },
-          createdAt: { integerValue: String(Math.floor(Number(req.createdAt || Date.now()))) },
-          priority: { booleanValue: Boolean(req.priority) },
-          status: { stringValue: String(req.status || 'open') }
+          id: { stringValue: String(sanitized.id) },
+          craft: { stringValue: String(sanitized.craft || 'سباك') },
+          wilaya: { stringValue: String(sanitized.wilaya || '16 الجزائر') },
+          title: { stringValue: String(sanitized.title || '') },
+          desc: { stringValue: String(sanitized.desc || '') },
+          phone: { stringValue: String(sanitized.phone || '') },
+          createdAt: { integerValue: String(Math.floor(Number(sanitized.createdAt || Date.now()))) },
+          priority: { booleanValue: Boolean(sanitized.priority) },
+          status: { stringValue: String(sanitized.status || 'open') }
         }
       })
     });
@@ -621,7 +685,7 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
               if (item?.id) seenFirestoreIdsRef.current.add(String(item.id));
             }
             const cleanedLocal = cleanAndDeduplicateRequests(parsedLocal);
-            if (cleanedLocal.length !== parsedLocal.length && rawStorageSetItem) {
+            if (rawStorageSetItem) {
               rawStorageSetItem(reqKey, JSON.stringify(cleanedLocal));
             }
             for (const item of cleanedLocal) {
@@ -644,7 +708,10 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
         setIsLiveStreaming(true);
         setLastHeartbeat(Date.now());
 
-        const validFsRequests = fsData.requests.filter((r) => !isFakeOrDeletedRequestItem(r));
+        const validFsRequests = fsData.requests
+          .filter((r) => !isFakeOrDeletedRequestItem(r))
+          .map((r) => sanitizeRequestItem(r));
+
         for (const r of validFsRequests) {
           const rid = String(r.id);
           pushedRequestIdsRef.current.add(rid);
@@ -672,9 +739,10 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
 
   const pushLiveRequest = useCallback(async (request: any) => {
     if (!request || isFakeOrDeletedRequestItem(request)) return;
-    seenFirestoreIdsRef.current.add(String(request.id));
-    pushedRequestIdsRef.current.add(String(request.id));
-    await pushRequestToFirestoreRest(request);
+    const sanitized = sanitizeRequestItem(request);
+    seenFirestoreIdsRef.current.add(String(sanitized.id));
+    pushedRequestIdsRef.current.add(String(sanitized.id));
+    await pushRequestToFirestoreRest(sanitized);
   }, []);
 
   const pushLiveBroadcast = useCallback(async () => {}, []);
