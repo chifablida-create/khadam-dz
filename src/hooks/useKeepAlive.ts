@@ -148,14 +148,33 @@ function installPermanentDeleteInterceptor() {
   }
 }
 
+let isUiShieldInstalled = false;
 function installCleanPublicUiShield() {
   if (typeof document === 'undefined') return;
   if (!document.getElementById('kdz-clean-public-ui-style')) {
     const style = document.createElement('style');
     style.id = 'kdz-clean-public-ui-style';
     style.textContent = `
+      header, header * {
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent;
+      }
       header button[title*="لوحة إدارة التطبيق"] {
-        display: none !important;
+        opacity: 0 !important;
+        width: 0px !important;
+        height: 0px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+        position: absolute !important;
+      }
+      header > div > div:first-child,
+      header > div > div:first-child * {
+        cursor: pointer !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
       }
     `;
     document.head.appendChild(style);
@@ -199,6 +218,18 @@ function installCleanPublicUiShield() {
         ) {
           (div as HTMLElement).style.display = 'none';
         }
+        if (
+          div.classList.contains('p-4') &&
+          div.classList.contains('rounded-2xl') &&
+          div.classList.contains('border') &&
+          (txt.includes('إشهارات التطبيق والرابط الرسمي') ||
+            txt.includes('انسخ رابط التطبيق وبوستات الإعلانات') ||
+            txt.includes('تطبيق متجر Google Play للأندرويد') ||
+            txt.includes('تحميل AAB') ||
+            txt.includes('تنزيل ملف AAB'))
+        ) {
+          (div as HTMLElement).style.display = 'none';
+        }
       });
     } catch {
       // ignore DOM scrub errors
@@ -206,8 +237,94 @@ function installCleanPublicUiShield() {
   };
 
   scrubLeaks();
-  const observer = new MutationObserver(() => scrubLeaks());
-  observer.observe(document.body, { childList: true, subtree: true });
+
+  if (!isUiShieldInstalled) {
+    isUiShieldInstalled = true;
+    const observer = new MutationObserver(() => scrubLeaks());
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    const showTapToast = (msg: string) => {
+      try {
+        let toast = document.getElementById('kdz-secret-tap-toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'kdz-secret-tap-toast';
+          toast.style.cssText =
+            'position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:99999;background:#065f46;color:#fff;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,0.3);pointer-events:none;transition:opacity 0.2s;border:1px solid #34d399;';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+      } catch {
+        // ignore
+      }
+    };
+
+    const hideTapToast = () => {
+      const toast = document.getElementById('kdz-secret-tap-toast');
+      if (toast) toast.style.opacity = '0';
+    };
+
+    const triggerAdminOpen = () => {
+      const hiddenAdminBtn = document.querySelector(
+        'header button[title*="لوحة إدارة التطبيق"]'
+      ) as HTMLButtonElement | null;
+      if (hiddenAdminBtn) {
+        hiddenAdminBtn.click();
+        return;
+      }
+      const allButtons = Array.from(document.querySelectorAll('button'));
+      for (const btn of allButtons) {
+        const t = (btn.getAttribute('title') || '') + ' ' + (btn.textContent || '');
+        if (
+          t.includes('لوحة إدارة التطبيق') ||
+          t.includes('لوحة الإدارة') ||
+          t.includes('إدارة التطبيق')
+        ) {
+          (btn as HTMLButtonElement).click();
+          return;
+        }
+      }
+    };
+
+    let tapCount = 0;
+    let tapResetTimer: any = null;
+    document.addEventListener(
+      'click',
+      (e) => {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        const inHeaderBrand = Boolean(
+          target.closest('header > div > div:first-child') ||
+            (target.closest('header') && !target.closest('button'))
+        );
+        const inDzBadge = Boolean(
+          target.closest('span')?.textContent?.includes('موثق DZ') ||
+            target.closest('span')?.textContent?.includes('ديزاد')
+        );
+        if (!inHeaderBrand && !inDzBadge) return;
+
+        tapCount += 1;
+        if (tapResetTimer) clearTimeout(tapResetTimer);
+
+        if (tapCount >= 5) {
+          tapCount = 0;
+          showTapToast('🔓 فتح الإدارة...');
+          setTimeout(hideTapToast, 900);
+          triggerAdminOpen();
+        } else {
+          if (tapCount >= 2) {
+            showTapToast(`🔐 الإدارة: ${tapCount} / 5`);
+          }
+          tapResetTimer = setTimeout(() => {
+            tapCount = 0;
+            hideTapToast();
+          }, 4000);
+        }
+      },
+      true
+    );
+  }
 }
 
 function fromFirestoreFields(fields: Record<string, any> | undefined): Record<string, any> {
