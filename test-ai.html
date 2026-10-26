@@ -1,0 +1,16 @@
+<h1>جرب مساعد خدّام</h1>
+<input id="q" placeholder="اكتب: نحتاج كهربائي في البليدة" style="width:80%;padding:10px">
+<button onclick="go()" style="padding:10px">اسأل</button>
+<p id="a"></p>
+<script>
+const API_KEY = "الصق_مفتاحك_هنا_لي_ينتهي_ب_Z09g";
+async function go(){
+ let qq=document.getElementById("q").value;
+ document.getElementById("a").innerText="نحوسلك...";
+ let r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,{
+  method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({contents:[{parts:[{text:qq}]}]})});
+ let d=await r.json();
+ document.getElementById("a").innerText=d.candidates[0].content.parts[0].text;
+}
+</script>
