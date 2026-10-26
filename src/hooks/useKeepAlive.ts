@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { setLivePublicTunnelUrl } from '../utils/appUrl';
 
-const PERMANENT_VERCEL_URL = 'https://khadam-dz-adua.vercel.app';
+const PERMANENT_VERCEL_URL = 'https://chifablida-create.github.io/khadam-dz/';
 const LIVE_SERVER_FALLBACK = 'https://ais-pre-xlv6qxqnnf5qh6djqimeul-84338738632.europe-west2.run.app';
 const FIRESTORE_BASE_URL =
   'https://firestore.googleapis.com/v1/projects/charismatic-castle-z6shk/databases/ai-studio-khadamdz-e03a2bd4-f7fc-4cb5-9f70-63f2c22b676a/documents';
 const FIRESTORE_API_KEY = 'AIzaSyDIEs9pw-I8tLu31RIOza2PYu5VZ_ulGp0';
+const DELETED_REQUESTS_STORAGE_KEY = 'khadam_dz_deleted_requests_v1';
 
 export function getKhadamApiBase(): string {
   if (typeof window === 'undefined') return '';
@@ -16,9 +17,67 @@ export function getKhadamApiBase(): string {
   return '';
 }
 
-function isFakeOrBotRequestItem(r: any): boolean {
+function getRequestSignature(r: any): string {
+  if (!r) return '';
+  return `${String(r.title || '').trim()}|${String(r.wilaya || '').trim()}|${String(r.craft || '').trim()}`;
+}
+
+function loadDeletedRequestsSet(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_REQUESTS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDeletedRequestsSet(set: Set<string>): void {
+  try {
+    localStorage.setItem(DELETED_REQUESTS_STORAGE_KEY, JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export async function markRequestDeletedPermanently(id: string, reqObj?: any): Promise<void> {
+  if (!id) return;
+  const cleanId = String(id).trim();
+  const deletedSet = loadDeletedRequestsSet();
+  deletedSet.add(cleanId);
+  if (reqObj) {
+    const sig = getRequestSignature(reqObj);
+    if (sig) deletedSet.add(sig);
+  }
+  saveDeletedRequestsSet(deletedSet);
+
+  try {
+    const docId = encodeURIComponent(cleanId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+    await fetch(`${FIRESTORE_BASE_URL}/requests/${docId}?key=${FIRESTORE_API_KEY}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          id: { stringValue: cleanId },
+          title: { stringValue: 'موثق بالبوت - محذوف' },
+          desc: { stringValue: 'تم توليد وتوثيق هذا الطلب تلقائياً' },
+          craft: { stringValue: String(reqObj?.craft || 'سباك') },
+          wilaya: { stringValue: String(reqObj?.wilaya || '16 الجزائر') },
+          phone: { stringValue: '0550000000' },
+          status: { stringValue: 'completed' },
+          createdAt: { integerValue: '1000' }
+        }
+      })
+    });
+  } catch {
+    // ignore network error
+  }
+}
+
+export function isFakeOrDeletedRequestItem(r: any): boolean {
   if (!r || !r.id) return true;
-  const id = String(r.id);
+  const id = String(r.id).trim();
   const title = String(r.title || '');
   const desc = String(r.desc || '');
   if (
@@ -26,27 +85,129 @@ function isFakeOrBotRequestItem(r: any): boolean {
     id.startsWith('r_bot_') ||
     id.startsWith('r_match_') ||
     id.startsWith('r_bg_') ||
+    id.startsWith('r_sim_') ||
     title.includes('موثق بالبوت') ||
     desc.includes('تم توليد وتوثيق هذا الطلب تلقائياً')
   ) {
     return true;
   }
+  const deletedSet = loadDeletedRequestsSet();
+  if (deletedSet.has(id)) return true;
+  const sig = getRequestSignature(r);
+  if (sig && deletedSet.has(sig)) return true;
   return false;
 }
 
-function cleanAndDeduplicateRequests(list: any[]): any[] {
+export function cleanAndDeduplicateRequests(list: any[]): any[] {
   const byId = new Map<string, any>();
   const seenKeys = new Set<string>();
-  const sorted = [...list].filter((r) => !isFakeOrBotRequestItem(r));
+  const sorted = (Array.isArray(list) ? list : []).filter((r) => !isFakeOrDeletedRequestItem(r));
   for (const r of sorted) {
     const id = String(r.id);
-    const dedupKey = `${String(r.title || '').trim()}|${String(r.wilaya || '').trim()}|${String(r.craft || '').trim()}`;
+    const dedupKey = getRequestSignature(r);
     if (!byId.has(id) && !seenKeys.has(dedupKey)) {
       byId.set(id, r);
       seenKeys.add(dedupKey);
     }
   }
   return Array.from(byId.values()).sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+}
+
+let isStorageHookInstalled = false;
+function installPermanentDeleteInterceptor() {
+  if (isStorageHookInstalled || typeof window === 'undefined') return;
+  isStorageHookInstalled = true;
+  try {
+    const origSetItem = window.localStorage.setItem.bind(window.localStorage);
+    const origGetItem = window.localStorage.getItem.bind(window.localStorage);
+
+    window.localStorage.setItem = function (key: string, value: string) {
+      if (key === 'khadam_dz_requests') {
+        try {
+          const prevRaw = origGetItem('khadam_dz_requests');
+          const prevList = prevRaw ? JSON.parse(prevRaw) : [];
+          const nextList = value ? JSON.parse(value) : [];
+          if (Array.isArray(prevList) && Array.isArray(nextList)) {
+            const nextIds = new Set(nextList.map((item: any) => String(item?.id || '')));
+            for (const oldItem of prevList) {
+              if (oldItem && oldItem.id && !nextIds.has(String(oldItem.id))) {
+                markRequestDeletedPermanently(String(oldItem.id), oldItem).catch(() => {});
+              }
+            }
+            const cleanedNext = cleanAndDeduplicateRequests(nextList);
+            return origSetItem(key, JSON.stringify(cleanedNext));
+          }
+        } catch {
+          // fallback to normal setItem
+        }
+      }
+      return origSetItem(key, value);
+    };
+  } catch {
+    // ignore if storage cannot be wrapped
+  }
+}
+
+function installCleanPublicUiShield() {
+  if (typeof document === 'undefined') return;
+  if (!document.getElementById('kdz-clean-public-ui-style')) {
+    const style = document.createElement('style');
+    style.id = 'kdz-clean-public-ui-style';
+    style.textContent = `
+      header button[title*="لوحة إدارة التطبيق"] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const scrubLeaks = () => {
+    try {
+      const divs = document.querySelectorAll('div');
+      divs.forEach((div) => {
+        if (div.closest('.fixed.inset-0')) return;
+        const txt = (div.textContent || '').trim();
+        if (
+          div.classList.contains('border-b') &&
+          (txt.includes('نقل لـ GitHub') ||
+            txt.includes('نشر Vercel أونلاين') ||
+            (txt.includes('بث مباشر 24/7') && txt.includes('نسخ الرابط')))
+        ) {
+          (div as HTMLElement).style.display = 'none';
+        }
+        if (
+          div.classList.contains('border-b') &&
+          txt.includes('البوت الذكي والإدارة في خدمة الحرفي') &&
+          txt.includes('لوحة الإدارة')
+        ) {
+          (div as HTMLElement).style.display = 'none';
+        }
+        if (
+          div.classList.contains('px-3') &&
+          div.classList.contains('pt-2') &&
+          (txt.includes('تطبيق الهاتف (بدون 403)') ||
+            txt.includes('رابط الشحن والإشهار') ||
+            txt.includes('نسخ الرابط العام') ||
+            txt.includes('بدون خطأ 403'))
+        ) {
+          (div as HTMLElement).style.display = 'none';
+        }
+        if (
+          div.classList.contains('border-t') &&
+          txt.includes('إدارة التطبيق') &&
+          txt.includes('الإشهار والرابط')
+        ) {
+          (div as HTMLElement).style.display = 'none';
+        }
+      });
+    } catch {
+      // ignore DOM scrub errors
+    }
+  };
+
+  scrubLeaks();
+  const observer = new MutationObserver(() => scrubLeaks());
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function fromFirestoreFields(fields: Record<string, any> | undefined): Record<string, any> {
@@ -117,7 +278,7 @@ async function fetchFirestoreRequestsAndCraftsmen(): Promise<{ requests: any[]; 
         for (const row of rows) {
           if (row?.document?.fields) {
             const parsed = fromFirestoreFields(row.document.fields);
-            if (parsed.id && !isFakeOrBotRequestItem(parsed)) {
+            if (parsed.id && !isFakeOrDeletedRequestItem(parsed)) {
               requests.push(parsed);
             }
           }
@@ -150,9 +311,9 @@ async function fetchFirestoreRequestsAndCraftsmen(): Promise<{ requests: any[]; 
 }
 
 async function pushRequestToFirestoreRest(req: any): Promise<void> {
-  if (!req || !req.id || isFakeOrBotRequestItem(req)) return;
+  if (!req || !req.id || isFakeOrDeletedRequestItem(req)) return;
   try {
-    const docId = encodeURIComponent(String(req.id));
+    const docId = encodeURIComponent(String(req.id).replace(/[^a-zA-Z0-9_-]/g, '_'));
     await fetch(`${FIRESTORE_BASE_URL}/requests/${docId}?key=${FIRESTORE_API_KEY}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -166,8 +327,7 @@ async function pushRequestToFirestoreRest(req: any): Promise<void> {
           phone: { stringValue: String(req.phone || '') },
           createdAt: { integerValue: String(Math.floor(Number(req.createdAt || Date.now()))) },
           priority: { booleanValue: Boolean(req.priority) },
-          status: { stringValue: String(req.status || 'open') },
-          ...(req.budget ? { budget: { stringValue: String(req.budget) } } : {})
+          status: { stringValue: String(req.status || 'open') }
         }
       })
     });
@@ -194,28 +354,14 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
   const [connectedClients, setConnectedClients] = useState<number>(1);
 
   const wakeLockRef = useRef<any>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const reconnectTimerRef = useRef<any>(null);
-  const consecutiveFailuresRef = useRef<number>(0);
-  const lastRevisionRef = useRef<number>(1);
   const pushedRequestIdsRef = useRef<Set<string>>(new Set());
+  const seenFirestoreIdsRef = useRef<Set<string>>(new Set());
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  const refreshServiceWorkerCache = useCallback(() => {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'FORCE_UPDATE_ALL' });
-        }
-        navigator.serviceWorker.getRegistration().then((reg) => {
-          if (reg) reg.update().catch(() => {});
-        }).catch(() => {});
-      }
-    } catch {
-      // ignore
-    }
+  useEffect(() => {
+    installPermanentDeleteInterceptor();
+    installCleanPublicUiShield();
   }, []);
 
   const requestWakeLock = useCallback(async () => {
@@ -247,43 +393,9 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
     }
   }, []);
 
-  const startSilentAudioKeepAlive = useCallback(() => {
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      if (!audioCtxRef.current) {
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        gain.gain.value = 0.00001;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        audioCtxRef.current = ctx;
-      } else if (audioCtxRef.current.state === 'suspended') {
-        audioCtxRef.current.resume().catch(() => {});
-      }
-      setIsAntiSleepActive(true);
-    } catch {
-      // ignore
-    }
-  }, []);
-
   const toggleAntiSleep = useCallback(() => {
-    setIsAntiSleepActive((prev) => {
-      const next = !prev;
-      if (next) {
-        requestWakeLock();
-        startSilentAudioKeepAlive();
-      } else {
-        releaseWakeLock();
-        if (audioCtxRef.current && audioCtxRef.current.state === 'running') {
-          audioCtxRef.current.suspend().catch(() => {});
-        }
-      }
-      return next;
-    });
-  }, [requestWakeLock, releaseWakeLock, startSilentAudioKeepAlive]);
+    setIsAntiSleepActive((prev) => !prev);
+  }, []);
 
   const sendHeartbeat = useCallback(async () => {
     setLivePublicTunnelUrl(PERMANENT_VERCEL_URL);
@@ -293,13 +405,12 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
       if (rawLocal) {
         const parsedLocal = JSON.parse(rawLocal);
         if (Array.isArray(parsedLocal)) {
+          for (const item of parsedLocal) {
+            if (item?.id) seenFirestoreIdsRef.current.add(String(item.id));
+          }
           const cleanedLocal = cleanAndDeduplicateRequests(parsedLocal);
           if (cleanedLocal.length !== parsedLocal.length) {
-            const nextJson = JSON.stringify(cleanedLocal);
-            localStorage.setItem('khadam_dz_requests', nextJson);
-            window.dispatchEvent(
-              new StorageEvent('storage', { key: 'khadam_dz_requests', newValue: nextJson })
-            );
+            localStorage.setItem('khadam_dz_requests', JSON.stringify(cleanedLocal));
           }
           for (const item of cleanedLocal) {
             if (item && item.id && !pushedRequestIdsRef.current.has(String(item.id))) {
@@ -310,70 +421,40 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
         }
       }
     } catch {
-      // ignore
+      // ignore storage errors
     }
 
     try {
       const fsData = await fetchFirestoreRequestsAndCraftsmen();
-      if (fsData && (fsData.requests.length > 0 || fsData.craftsmen.length > 0)) {
-        consecutiveFailuresRef.current = 0;
+      if (fsData) {
         setIsOnline(true);
         setIsLiveStreaming(true);
         setLastHeartbeat(Date.now());
-        for (const r of fsData.requests) {
-          if (r?.id) pushedRequestIdsRef.current.add(String(r.id));
-        }
-        optionsRef.current?.onFullStateSync?.(fsData);
-        for (const req of fsData.requests) {
-          if (req && req.id) {
-            optionsRef.current?.onLiveRequest?.(req);
-          }
-        }
-        for (const cr of fsData.craftsmen) {
-          if (cr && cr.id) {
-            optionsRef.current?.onLiveCraftsman?.(cr);
-          }
-        }
-        try {
-          const rawLocal = localStorage.getItem('khadam_dz_requests');
-          const localArr = rawLocal ? JSON.parse(rawLocal) : [];
-          const merged = cleanAndDeduplicateRequests([
-            ...fsData.requests,
-            ...(Array.isArray(localArr) ? localArr : [])
-          ]);
-          const prevJson = rawLocal || '';
-          const nextJson = JSON.stringify(merged);
-          if (prevJson !== nextJson) {
-            localStorage.setItem('khadam_dz_requests', nextJson);
-            window.dispatchEvent(
-              new StorageEvent('storage', { key: 'khadam_dz_requests', newValue: nextJson })
-            );
-          }
-        } catch {
-          // ignore
-        }
-      }
-    } catch {
-      // ignore
-    }
 
-    try {
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'KEEP_ALIVE_PING',
-          ts: Date.now()
+        const validFsRequests = fsData.requests.filter((r) => !isFakeOrDeletedRequestItem(r));
+        for (const r of validFsRequests) {
+          const rid = String(r.id);
+          pushedRequestIdsRef.current.add(rid);
+          if (!seenFirestoreIdsRef.current.has(rid)) {
+            seenFirestoreIdsRef.current.add(rid);
+            optionsRef.current?.onLiveRequest?.(r);
+          }
+        }
+
+        optionsRef.current?.onFullStateSync?.({
+          requests: validFsRequests,
+          craftsmen: fsData.craftsmen
         });
       }
     } catch {
-      // ignore
+      // ignore firestore error
     }
-  }, [refreshServiceWorkerCache]);
-
-  const connectLiveStream = useCallback(() => {
-    // Firestore REST sync runs via Web Worker timer every 10s
   }, []);
 
   const pushLiveRequest = useCallback(async (request: any) => {
+    if (!request || isFakeOrDeletedRequestItem(request)) return;
+    seenFirestoreIdsRef.current.add(String(request.id));
+    pushedRequestIdsRef.current.add(String(request.id));
     await pushRequestToFirestoreRest(request);
   }, []);
 
@@ -382,36 +463,11 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
   useEffect(() => {
     sendHeartbeat();
     requestWakeLock();
-
-    let worker: Worker | null = null;
-    let fallbackInterval: any = null;
-    try {
-      const workerCode = 'setInterval(function() { postMessage("tick"); }, 10000);';
-      const blob = new Blob([workerCode], { type: 'application/javascript' });
-      worker = new Worker(URL.createObjectURL(blob));
-      worker.onmessage = () => {
-        sendHeartbeat();
-      };
-    } catch {
-      fallbackInterval = setInterval(() => {
-        sendHeartbeat();
-      }, 10000);
-    }
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        sendHeartbeat();
-        requestWakeLock();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
+    const interval = setInterval(() => {
+      sendHeartbeat();
+    }, 12000);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (worker) worker.terminate();
-      if (fallbackInterval) clearInterval(fallbackInterval);
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-      if (eventSourceRef.current) eventSourceRef.current.close();
+      clearInterval(interval);
       releaseWakeLock();
     };
   }, [sendHeartbeat, requestWakeLock, releaseWakeLock]);
