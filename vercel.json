@@ -1,10 +1,11 @@
-
 {
-  "installCommand": "sed -i 's/0.25.0/0.27.0/g' package.json && echo legacy-peer-deps=true > .npmrc && npm install --legacy-peer-deps",
-  "buildCommand": "npm run build",
+  "installCommand": "if [ -f package.json ]; then sed -i 's/0.25.0/0.27.0/g' package.json && echo legacy-peer-deps=true > .npmrc && npm install --legacy-peer-deps; elif [ -f ../package.json ]; then sed -i 's/0.25.0/0.27.0/g' ../package.json && echo legacy-peer-deps=true > ../.npmrc && npm install --prefix .. --legacy-peer-deps; else echo 'No package.json, skipping install'; fi",
+  "buildCommand": "if [ -f package.json ]; then npm run build && mkdir -p api/dist && cp -r dist/* api/dist/ 2>/dev/null || true; elif [ -f ../package.json ]; then npm run build --prefix .. && mkdir -p dist && cp -r ../dist/* dist/ 2>/dev/null || true; else mkdir -p dist && cp -r *.html *.json *.js *.svg *.png *.csv .well-known dist/ 2>/dev/null || true; fi",
   "outputDirectory": "dist",
-  "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
