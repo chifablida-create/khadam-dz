@@ -148,6 +148,7 @@ function installPermanentDeleteInterceptor() {
   }
 }
 
+let isUiShieldInstalled = false;
 function installCleanPublicUiShield() {
   if (typeof document === 'undefined') return;
   if (!document.getElementById('kdz-clean-public-ui-style')) {
@@ -156,6 +157,12 @@ function installCleanPublicUiShield() {
     style.textContent = `
       header button[title*="لوحة إدارة التطبيق"] {
         display: none !important;
+      }
+      header > div > div:first-child {
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
     `;
     document.head.appendChild(style);
@@ -167,6 +174,7 @@ function installCleanPublicUiShield() {
       divs.forEach((div) => {
         if (div.closest('.fixed.inset-0')) return;
         const txt = (div.textContent || '').trim();
+        // 1. Hide top OnlineKeepAliveStatus bar
         if (
           div.classList.contains('border-b') &&
           (txt.includes('نقل لـ GitHub') ||
@@ -175,6 +183,7 @@ function installCleanPublicUiShield() {
         ) {
           (div as HTMLElement).style.display = 'none';
         }
+        // 2. Hide subtitle bar with "لوحة الإدارة 🤖"
         if (
           div.classList.contains('border-b') &&
           txt.includes('البوت الذكي والإدارة في خدمة الحرفي') &&
@@ -182,6 +191,7 @@ function installCleanPublicUiShield() {
         ) {
           (div as HTMLElement).style.display = 'none';
         }
+        // 3. Hide AppPromoBanner green card
         if (
           div.classList.contains('px-3') &&
           div.classList.contains('pt-2') &&
@@ -192,10 +202,26 @@ function installCleanPublicUiShield() {
         ) {
           (div as HTMLElement).style.display = 'none';
         }
+        // 4. Hide bottom 3-button bar
         if (
           div.classList.contains('border-t') &&
           txt.includes('إدارة التطبيق') &&
           txt.includes('الإشهار والرابط')
+        ) {
+          (div as HTMLElement).style.display = 'none';
+        }
+        // 5. Hide the two cards in Craftsman Account (حسابي):
+        //    - "إشهارات التطبيق والرابط الرسمي"
+        //    - "تطبيق متجر Google Play للأندرويد" / "تحميل AAB"
+        if (
+          div.classList.contains('p-4') &&
+          div.classList.contains('rounded-2xl') &&
+          div.classList.contains('border') &&
+          (txt.includes('إشهارات التطبيق والرابط الرسمي') ||
+            txt.includes('انسخ رابط التطبيق وبوستات الإعلانات') ||
+            txt.includes('تطبيق متجر Google Play للأندرويد') ||
+            txt.includes('تحميل AAB') ||
+            txt.includes('تنزيل ملف AAB'))
         ) {
           (div as HTMLElement).style.display = 'none';
         }
@@ -206,8 +232,42 @@ function installCleanPublicUiShield() {
   };
 
   scrubLeaks();
-  const observer = new MutationObserver(() => scrubLeaks());
-  observer.observe(document.body, { childList: true, subtree: true });
+
+  if (!isUiShieldInstalled) {
+    isUiShieldInstalled = true;
+    const observer = new MutationObserver(() => scrubLeaks());
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Secret 5-tap handler on the "خدّام ديزاد / DZ" badge in the top navbar
+    let tapCount = 0;
+    let tapResetTimer: any = null;
+    document.addEventListener(
+      'click',
+      (e) => {
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        const headerBrand = target.closest('header > div > div:first-child') as HTMLElement | null;
+        if (!headerBrand) return;
+
+        tapCount += 1;
+        if (tapResetTimer) clearTimeout(tapResetTimer);
+        if (tapCount >= 5) {
+          tapCount = 0;
+          const hiddenAdminBtn = document.querySelector(
+            'header button[title*="لوحة إدارة التطبيق"]'
+          ) as HTMLButtonElement | null;
+          if (hiddenAdminBtn) {
+            hiddenAdminBtn.click();
+          }
+        } else {
+          tapResetTimer = setTimeout(() => {
+            tapCount = 0;
+          }, 2500);
+        }
+      },
+      true
+    );
+  }
 }
 
 function fromFirestoreFields(fields: Record<string, any> | undefined): Record<string, any> {
