@@ -1,12 +1,41 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { setLivePublicTunnelUrl } from '../utils/appUrl';
 
-const PERMANENT_VERCEL_URL = 'https://chifablida-create.github.io/khadam-dz/';
+const PERMANENT_VERCEL_URL = 'https://khadam-dz-adua.vercel.app/';
 const LIVE_SERVER_FALLBACK = 'https://ais-pre-xlv6qxqnnf5qh6djqimeul-84338738632.europe-west2.run.app';
 const FIRESTORE_BASE_URL =
   'https://firestore.googleapis.com/v1/projects/charismatic-castle-z6shk/databases/ai-studio-khadamdz-e03a2bd4-f7fc-4cb5-9f70-63f2c22b676a/documents';
 const FIRESTORE_API_KEY = 'AIzaSyDIEs9pw-I8tLu31RIOza2PYu5VZ_ulGp0';
 const DELETED_REQUESTS_STORAGE_KEY = 'khadam_dz_deleted_requests_v1';
+
+const FAKE_DEMO_TITLES = new Set([
+  'تسريب مياه في المطبخ يحتاج إصلاح فوري',
+  'انقطاع كهرباء في غرفة واحدة',
+  'تركيب باب خشبي جديد مع الإطار',
+  'مكيف هوائي لا يبرد - سامسونغ 12000 BTU',
+  'دهان شقة كاملة مساحة 70 متر مربع',
+  'تغيير زيت + فلتر لسيارة كليو 4',
+  'استبدال زجاج نافذة مكسور 120x100',
+  'تعديل وتضييق بدلة رجالية رسمية',
+  'بناء جدار فاصل 4 أمتار في فناء المنزل',
+  'صناعة باب حديدي خارجي للحديقة',
+  'استبدال شاشة ايفون 12 مكسورة',
+  'غسالة كوندور أوتوماتيك لا تدور في مرحلة العصر',
+  'تسريب مياه ساخنة في الحمام يحتاج إصلاح فوري',
+  'تركيب سخان ماء جديد وشبكة أنابيب نحاسية',
+  'انسداد في مجرى المطبخ يحتاج تسليك عاجل',
+  'انقطاع كهرباء في المحل التجاري وقواطع تسقط باستمرار',
+  'تركيب سبوتات ليد ولوحة كهربائية جديدة',
+  'تشخيص شورت كهربائي منزلي وإصلاح القاطع',
+  'إصلاح باب خشب صلب معلق وتغيير القفل الداخلي',
+  'تفصيل وتركيب خزانة ملابس عصرية MDF',
+  'تركيب مطبخ عصري مجهز بالدرارية',
+  'مكيف كوندور 18000 BTU ينقط ماء ولا يبرد الغرفة',
+  'شحن غاز فريون R410 مع تنظيف الفلاتر بالكامل',
+  'صيانة مكيف مركزي للصالون التجاري',
+  'دهان صالون وشقة كاملة بلون ساتيني عاجي مع معالجة الرطوبة',
+  'تجديد دهان فيلا خارجية مع عزل مائي'
+]);
 
 export function getKhadamApiBase(): string {
   if (typeof window === 'undefined') return '';
@@ -24,7 +53,7 @@ function getRequestSignature(r: any): string {
 
 function loadDeletedRequestsSet(): Set<string> {
   try {
-    const raw = localStorage.getItem(DELETED_REQUESTS_STORAGE_KEY);
+    const raw = window.localStorage.getItem(DELETED_REQUESTS_STORAGE_KEY);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw);
     return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
@@ -35,7 +64,7 @@ function loadDeletedRequestsSet(): Set<string> {
 
 function saveDeletedRequestsSet(set: Set<string>): void {
   try {
-    localStorage.setItem(DELETED_REQUESTS_STORAGE_KEY, JSON.stringify(Array.from(set)));
+    window.localStorage.setItem(DELETED_REQUESTS_STORAGE_KEY, JSON.stringify(Array.from(set)));
   } catch {
     // ignore storage errors
   }
@@ -78,16 +107,19 @@ export async function markRequestDeletedPermanently(id: string, reqObj?: any): P
 export function isFakeOrDeletedRequestItem(r: any): boolean {
   if (!r || !r.id) return true;
   const id = String(r.id).trim();
-  const title = String(r.title || '');
-  const desc = String(r.desc || '');
+  const title = String(r.title || '').trim();
+  const desc = String(r.desc || '').trim();
   if (
+    /^r([1-9]|1[0-9]|20)$/.test(id) ||
     id.startsWith('req_bot_') ||
     id.startsWith('r_bot_') ||
     id.startsWith('r_match_') ||
     id.startsWith('r_bg_') ||
     id.startsWith('r_sim_') ||
     title.includes('موثق بالبوت') ||
-    desc.includes('تم توليد وتوثيق هذا الطلب تلقائياً')
+    FAKE_DEMO_TITLES.has(title) ||
+    desc.includes('تم توليد وتوثيق هذا الطلب تلقائياً') ||
+    desc.includes('زبون يبحث عن حرفي معتمد في')
   ) {
     return true;
   }
@@ -113,18 +145,70 @@ export function cleanAndDeduplicateRequests(list: any[]): any[] {
   return Array.from(byId.values()).sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 }
 
+function isRequestsKey(key: string): boolean {
+  return key === 'khadam_requests' || key === 'khadam_dz_requests';
+}
+
 let isStorageHookInstalled = false;
+let rawStorageSetItem: ((k: string, v: string) => void) | null = null;
+let rawStorageGetItem: ((k: string) => string | null) | null = null;
+
 function installPermanentDeleteInterceptor() {
   if (isStorageHookInstalled || typeof window === 'undefined') return;
   isStorageHookInstalled = true;
   try {
     const origSetItem = window.localStorage.setItem.bind(window.localStorage);
     const origGetItem = window.localStorage.getItem.bind(window.localStorage);
+    rawStorageSetItem = origSetItem;
+    rawStorageGetItem = origGetItem;
+
+    for (const reqKey of ['khadam_requests', 'khadam_dz_requests']) {
+      try {
+        const raw = origGetItem(reqKey);
+        if (!raw) {
+          origSetItem(reqKey, '[]');
+        } else {
+          const parsed = JSON.parse(raw);
+          const cleaned = cleanAndDeduplicateRequests(Array.isArray(parsed) ? parsed : []);
+          origSetItem(reqKey, JSON.stringify(cleaned));
+        }
+      } catch {
+        origSetItem(reqKey, '[]');
+      }
+    }
+
+    const demoCleanMap: Record<string, Set<string>> = {
+      khadam_pending_points: new Set(['pr1', 'pr2']),
+      khadam_complaints: new Set(['co1', 'co2']),
+      khadam_broadcast_notifications: new Set(['bc1', 'bc2']),
+      khadam_app_notifications: new Set(['notif_match_1', 'notif_points_warn'])
+    };
+    for (const [k, fakeIds] of Object.entries(demoCleanMap)) {
+      try {
+        const raw = origGetItem(k);
+        if (!raw) {
+          origSetItem(k, '[]');
+        } else {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) {
+            const filtered = arr.filter(
+              (item: any) =>
+                item &&
+                !fakeIds.has(String(item.id || '')) &&
+                !String(item.id || '').includes('r_sim_')
+            );
+            origSetItem(k, JSON.stringify(filtered));
+          }
+        }
+      } catch {
+        origSetItem(k, '[]');
+      }
+    }
 
     window.localStorage.setItem = function (key: string, value: string) {
-      if (key === 'khadam_dz_requests') {
+      if (isRequestsKey(key)) {
         try {
-          const prevRaw = origGetItem('khadam_dz_requests');
+          const prevRaw = origGetItem(key);
           const prevList = prevRaw ? JSON.parse(prevRaw) : [];
           const nextList = value ? JSON.parse(value) : [];
           if (Array.isArray(prevList) && Array.isArray(nextList)) {
@@ -135,7 +219,10 @@ function installPermanentDeleteInterceptor() {
               }
             }
             const cleanedNext = cleanAndDeduplicateRequests(nextList);
-            return origSetItem(key, JSON.stringify(cleanedNext));
+            const serialized = JSON.stringify(cleanedNext);
+            origSetItem('khadam_requests', serialized);
+            origSetItem('khadam_dz_requests', serialized);
+            return;
           }
         } catch {
           // fallback to normal setItem
@@ -148,6 +235,10 @@ function installPermanentDeleteInterceptor() {
   }
 }
 
+if (typeof window !== 'undefined') {
+  installPermanentDeleteInterceptor();
+}
+
 let isUiShieldInstalled = false;
 function installCleanPublicUiShield() {
   if (typeof document === 'undefined') return;
@@ -155,6 +246,9 @@ function installCleanPublicUiShield() {
     const style = document.createElement('style');
     style.id = 'kdz-clean-public-ui-style';
     style.textContent = `
+      header, header > div {
+        flex-wrap: nowrap !important;
+      }
       header, header * {
         touch-action: manipulation !important;
         -webkit-tap-highlight-color: transparent;
@@ -517,28 +611,30 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
   const sendHeartbeat = useCallback(async () => {
     setLivePublicTunnelUrl(PERMANENT_VERCEL_URL);
 
-    try {
-      const rawLocal = localStorage.getItem('khadam_dz_requests');
-      if (rawLocal) {
-        const parsedLocal = JSON.parse(rawLocal);
-        if (Array.isArray(parsedLocal)) {
-          for (const item of parsedLocal) {
-            if (item?.id) seenFirestoreIdsRef.current.add(String(item.id));
-          }
-          const cleanedLocal = cleanAndDeduplicateRequests(parsedLocal);
-          if (cleanedLocal.length !== parsedLocal.length) {
-            localStorage.setItem('khadam_dz_requests', JSON.stringify(cleanedLocal));
-          }
-          for (const item of cleanedLocal) {
-            if (item && item.id && !pushedRequestIdsRef.current.has(String(item.id))) {
-              pushedRequestIdsRef.current.add(String(item.id));
-              pushRequestToFirestoreRest(item).catch(() => {});
+    for (const reqKey of ['khadam_requests', 'khadam_dz_requests']) {
+      try {
+        const rawLocal = rawStorageGetItem ? rawStorageGetItem(reqKey) : localStorage.getItem(reqKey);
+        if (rawLocal) {
+          const parsedLocal = JSON.parse(rawLocal);
+          if (Array.isArray(parsedLocal)) {
+            for (const item of parsedLocal) {
+              if (item?.id) seenFirestoreIdsRef.current.add(String(item.id));
+            }
+            const cleanedLocal = cleanAndDeduplicateRequests(parsedLocal);
+            if (cleanedLocal.length !== parsedLocal.length && rawStorageSetItem) {
+              rawStorageSetItem(reqKey, JSON.stringify(cleanedLocal));
+            }
+            for (const item of cleanedLocal) {
+              if (item && item.id && !pushedRequestIdsRef.current.has(String(item.id))) {
+                pushedRequestIdsRef.current.add(String(item.id));
+                pushRequestToFirestoreRest(item).catch(() => {});
+              }
             }
           }
         }
+      } catch {
+        // ignore storage errors
       }
-    } catch {
-      // ignore storage errors
     }
 
     try {
@@ -556,6 +652,12 @@ export function useKeepAlive(options?: UseKeepAliveOptions) {
             seenFirestoreIdsRef.current.add(rid);
             optionsRef.current?.onLiveRequest?.(r);
           }
+        }
+
+        if (rawStorageSetItem) {
+          const serialized = JSON.stringify(validFsRequests);
+          rawStorageSetItem('khadam_requests', serialized);
+          rawStorageSetItem('khadam_dz_requests', serialized);
         }
 
         optionsRef.current?.onFullStateSync?.({
