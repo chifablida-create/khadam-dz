@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "./?v=2",
   "name": "خدّام ديزاد - Khadam DZ",
   "short_name": "خدّام DZ",
   "description": "المنصة الجزائرية الأولى لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#080a12",
@@ -14,25 +14,25 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "/pwa-192x192.png",
+      "src": "./pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa-512x512.png",
+      "src": "./pwa-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa-maskable-512x512.png",
+      "src": "./pwa-maskable-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
