@@ -1,7 +1,7 @@
-export const OFFICIAL_VERCEL_APP_URL = 'https://khadam-dz-adua.vercel.app';
+زexport const OFFICIAL_VERCEL_APP_URL = 'https://khadam-dz-2q6o.vercel.app';
 export const PERMANENT_VERCEL_URL = OFFICIAL_VERCEL_APP_URL;
-export const GITHUB_PAGES_URL = 'https://chifablida-create.github.io/khadam-dz/';
-export const GITHUB_REPO_URL = 'https://github.com/chifablida-create/khadam-dz';
+export const GITHUB_PAGES_URL = 'https://khadam-dz-2q6o.vercel.app/';
+export const GITHUB_REPO_URL = 'https://khadam-dz-2q6o.vercel.app';
 export const DEFAULT_PUBLIC_TUNNEL_URL = OFFICIAL_VERCEL_APP_URL;
 export const CLOUD_RUN_PRE_URL = OFFICIAL_VERCEL_APP_URL;
 export const DEV_PREVIEW_URL = OFFICIAL_VERCEL_APP_URL;
@@ -11,7 +11,12 @@ const listeners = new Set<(url: string) => void>();
 
 export function setLivePublicTunnelUrl(url?: string | null) {
   if (!url || typeof url !== 'string' || !url.startsWith('https://')) return;
-  if (url.includes('.trycloudflare.com') || url.includes('khadam-dz.vercel.app')) {
+  if (
+    url.includes('.trycloudflare.com') ||
+    url.includes('github.io') ||
+    url.includes('khadam-dz-adua.vercel.app') ||
+    url.includes('khadam-dz.vercel.app')
+  ) {
     return;
   }
   if (url !== livePublicUrl) {
@@ -31,6 +36,12 @@ if (typeof window !== 'undefined') {
   try {
     sessionStorage.removeItem('khadam_live_tunnel_url');
     localStorage.removeItem('khadam_live_tunnel_url');
+    if (
+      window.location.hostname.includes('github.io') ||
+      window.location.hostname.includes('khadam-dz-adua.vercel.app')
+    ) {
+      window.location.replace('https://khadam-dz-2q6o.vercel.app/');
+    }
   } catch {
     // ignore
   }
