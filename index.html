@@ -5,11 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <title>خدّام ديزاد - Khadam DZ</title>
+    <meta name="google-site-verification" content="googlea428081754d85133" />
+    <meta name="google-site-verification" content="a428081754d85133" />
     <meta name="description" content="المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية" />
+    <link rel="canonical" href="https://khadam-dz-adua.vercel.app/" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="./sitemap.xml" />
     <meta property="og:title" content="خدّام ديزاد - Khadam DZ" />
     <meta property="og:description" content="المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية" />
+    <meta property="og:url" content="https://khadam-dz-adua.vercel.app/" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
@@ -24,189 +28,68 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="خدّام DZ" />
 
-    <!-- درع التوافق الشامل مع جميع إصدارات الأندرويد القديمة والضعيفة ومتصفحات فيسبوك وواتساب -->
     <script>
       (function() {
         try {
-          // 1. globalThis polyfill (Android < 8 / Chrome < 71)
-          if (typeof window.globalThis === 'undefined') {
-            window.globalThis = window;
-          }
-
-          // 2. Safe localStorage & sessionStorage shield for restricted Facebook/WhatsApp WebViews
-          try {
-            var testKey = '__kdz_test__';
-            window.localStorage.setItem(testKey, '1');
-            window.localStorage.removeItem(testKey);
-          } catch (storageErr) {
-            var memStore = {};
-            var safeStorage = {
-              getItem: function(k) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; },
-              setItem: function(k, v) { memStore[k] = String(v); },
-              removeItem: function(k) { delete memStore[k]; },
-              clear: function() { memStore = {}; },
-              key: function(i) { var keys = Object.keys(memStore); return keys[i] || null; },
-              get length() { return Object.keys(memStore).length; }
-            };
-            try {
-              Object.defineProperty(window, 'localStorage', { value: safeStorage, configurable: true });
-              Object.defineProperty(window, 'sessionStorage', { value: safeStorage, configurable: true });
-            } catch (e) {}
-          }
-
-          // 3. Object.hasOwn polyfill (Android < 10 / Chrome < 93)
-          if (!Object.hasOwn) {
-            Object.hasOwn = function(obj, prop) {
-              return Object.prototype.hasOwnProperty.call(obj, prop);
-            };
-          }
-
-          // 4. Object.fromEntries polyfill (Chrome < 73)
-          if (!Object.fromEntries) {
-            Object.fromEntries = function(entries) {
-              var obj = {};
-              if (entries) {
-                for (var i = 0; i < entries.length; i++) {
-                  if (entries[i]) obj[entries[i][0]] = entries[i][1];
+          if (typeof window.globalThis === 'undefined') { window.globalThis = window; }
+          var origOpen = window.open;
+          window.open = function(url, target, features) {
+            var sUrl = String(url || '');
+            if (sUrl.indexOf('dz.poste.baridimob') !== -1 || sUrl.indexOf('ru.bpc.mobilebank') !== -1 || sUrl.indexOf('baridimob') !== -1) {
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText('00799999000122089353').catch(function(){});
                 }
-              }
-              return obj;
-            };
-          }
-
-          // 5. Array.prototype.at & String.prototype.at polyfill (Android < 10 / Chrome < 92)
-          if (!Array.prototype.at) {
-            Array.prototype.at = function(n) {
-              n = Math.trunc(n) || 0;
-              if (n < 0) n += this.length;
-              if (n < 0 || n >= this.length) return undefined;
-              return this[n];
-            };
-          }
-          if (!String.prototype.at) {
-            String.prototype.at = function(n) {
-              n = Math.trunc(n) || 0;
-              if (n < 0) n += this.length;
-              if (n < 0 || n >= this.length) return undefined;
-              return this.charAt(n);
-            };
-          }
-
-          // 6. Array.prototype.flat & flatMap polyfill (Chrome < 69)
-          if (!Array.prototype.flat) {
-            Array.prototype.flat = function(depth) {
-              var d = depth === undefined ? 1 : Number(depth);
-              var result = [];
-              var flatten = function(arr, currentDepth) {
-                for (var i = 0; i < arr.length; i++) {
-                  if (Array.isArray(arr[i]) && currentDepth > 0) {
-                    flatten(arr[i], currentDepth - 1);
-                  } else {
-                    result.push(arr[i]);
-                  }
-                }
-              };
-              flatten(this, d);
-              return result;
-            };
-          }
-          if (!Array.prototype.flatMap) {
-            Array.prototype.flatMap = function(callback, thisArg) {
-              return this.map(callback, thisArg).flat(1);
-            };
-          }
-
-          // 7. String.prototype.replaceAll polyfill (Chrome < 85)
-          if (!String.prototype.replaceAll) {
-            String.prototype.replaceAll = function(str, newStr) {
-              if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
-                return this.replace(str, newStr);
-              }
-              return this.split(str).join(newStr);
-            };
-          }
-
-          // 8. Promise.allSettled & Promise.prototype.finally polyfill
-          if (typeof Promise !== 'undefined' && !Promise.allSettled) {
-            Promise.allSettled = function(promises) {
-              return Promise.all(
-                Array.prototype.map.call(promises, function(p) {
-                  return Promise.resolve(p).then(
-                    function(val) { return { status: 'fulfilled', value: val }; },
-                    function(err) { return { status: 'rejected', reason: err }; }
-                  );
-                })
-              );
-            };
-          }
-
-          // 9. crypto.randomUUID polyfill (Chrome < 92 or insecure contexts)
-          if (typeof window.crypto === 'undefined') {
-            window.crypto = {};
-          }
-          if (typeof window.crypto.randomUUID !== 'function') {
-            window.crypto.randomUUID = function() {
-              return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = (Math.random() * 16) | 0;
-                var v = c === 'x' ? r : (r & 0x3) | 0x8;
-                return v.toString(16);
-              });
-            };
-          }
-
-          // 10. ResizeObserver & IntersectionObserver safe shims for old Android WebViews
-          if (typeof window.ResizeObserver === 'undefined') {
-            window.ResizeObserver = function() {};
-            window.ResizeObserver.prototype.observe = function() {};
-            window.ResizeObserver.prototype.unobserve = function() {};
-            window.ResizeObserver.prototype.disconnect = function() {};
-          }
-          if (typeof window.IntersectionObserver === 'undefined') {
-            window.IntersectionObserver = function() {};
-            window.IntersectionObserver.prototype.observe = function() {};
-            window.IntersectionObserver.prototype.unobserve = function() {};
-            window.IntersectionObserver.prototype.disconnect = function() {};
-          }
-
-          // 11. Detect older Android (Android 5, 6, 7, 8, 9) or Low-RAM Phone (<= 2GB RAM) for 60FPS Lite GPU Mode
-          var ua = navigator.userAgent || '';
-          var androidMatch = ua.match(/Android\s+([0-9.]+)/i);
-          var androidVer = androidMatch ? parseFloat(androidMatch[1]) : 99;
-          var lowRam = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
-          window.__KDZ_ANDROID_VERSION__ = androidMatch ? androidMatch[1] : null;
-          window.__KDZ_IS_LEGACY_DEVICE__ = (androidVer <= 9) || Boolean(lowRam);
-
-          if (window.__KDZ_IS_LEGACY_DEVICE__) {
-            document.documentElement.className += ' legacy-android-lite';
-          }
+              } catch (e) {}
+              window.location.href = './baridimob-open.html?rip=00799999000122089353';
+              return null;
+            }
+            return origOpen ? origOpen.call(window, url, target, features) : null;
+          };
         } catch (err) {}
       })();
     </script>
+
     <style>
-  html, body {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-  }
-
-  /* منع اي عنصر يخرج برا */
-  * {
-    box-sizing: border-box;
-  }
-
-  img, div, section {
-    max-width: 100%;
-  }
-
-  /* الهيدر اللي فيه الازرار */
-  header, .top-bar, div[style*="display: flex"] {
-    flex-wrap: wrap !important;
-  }
+      html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      img, div, section {
+        max-width: 100%;
+      }
+      header, .top-bar, div[style*="display: flex"] {
+        flex-wrap: wrap !important;
+      }
+      /* إظهار جميع أقسام الإدارة الـ 8 (الإعدادات، الشحن، الحرفيين، الطلبات، الشكاوى، الشات، البوت) أمامك معاً بدون إخفاء */
+      .no-scrollbar, .overflow-x-auto {
+        flex-wrap: wrap !important;
+        overflow-x: visible !important;
+        gap: 6px !important;
+      }
+      .no-scrollbar > button {
+        flex: 1 1 45% !important;
+        justify-content: center !important;
+        font-size: 11px !important;
+        padding: 7px 8px !important;
+      }
+      /* تحويل اللوحة السوداء العلوية إلى شريط أخضر خفيف ومختصر */
+      .fixed.inset-0 .from-gray-950 {
+        background: linear-gradient(90deg, #047857, #0d9488) !important;
+        padding: 8px 10px !important;
+      }
+      /* إخفاء الزر الأسود والأصفر السفلي لعدم حجب الإعدادات */
+      div:has(> a[href*="AdminDashboardModal.tsx"]) {
+        display: none !important;
+      }
     </style>
-</head>
+  </head>
   <body class="bg-gray-100 antialiased selection:bg-emerald-500 selection:text-white">
     <div id="root">
-      <!-- شاشة الترحيب الفورية للهواتف الضعيفة والإنترنت البطيء (تختفي تلقائياً فور فتح التطبيق) -->
       <div id="kdz-boot-loader" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Tajawal',sans-serif;background:#f3f4f6;color:#111827;">
         <div style="width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,#16a34a,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:900;box-shadow:0 10px 25px rgba(22,163,74,0.3);margin-bottom:16px;">
           🛠️
@@ -222,25 +105,11 @@
     <script type="module" src="/src/main.tsx"></script>
 
     <script>
-      if ('caches' in window) {
-        caches.delete('khadam-dz-v5').catch(function() {});
-      }
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function(reg) {
-            try { reg.update(); } catch (e) {}
-            setInterval(function() {
-              try { reg.update(); } catch (e) {}
-            }, 120000);
-          }).catch(function() {});
+          navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(function() {});
         });
       }
-
-      setInterval(function() {
-        try {
-          fetch('/api/ping', { cache: 'no-store' }).catch(function() {});
-        } catch(e) {}
-      }, 60000);
     </script>
   </body>
 </html>
