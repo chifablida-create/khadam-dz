@@ -294,18 +294,20 @@
             return f;
           };
 
+          window.__KDZ_LAST_SYNC_TS__ = Date.now();
           var origFetch = window.fetch ? window.fetch.bind(window) : null;
           var lastCloudPoll = 0;
           var pollPromise = null;
 
-          var syncFromCloudRelay = function() {
+          var syncFromCloudRelay = function(forceNow) {
             if (!origFetch) return Promise.resolve();
             var now = Date.now();
-            if (pollPromise && (now - lastCloudPoll < 6000)) return pollPromise;
+            if (!forceNow && pollPromise && (now - lastCloudPoll < 6000)) return pollPromise;
             lastCloudPoll = now;
             pollPromise = origFetch(CLOUD_SYNC_URL + '/json?poll=1&since=all')
               .then(function(res) { return res.ok ? res.text() : ''; })
               .then(function(txt) {
+                window.__KDZ_LAST_SYNC_TS__ = Date.now();
                 if (!txt) return;
                 var lines = txt.split('\n');
                 for (var i = 0; i < lines.length; i++) {
@@ -345,6 +347,7 @@
                   try {
                     var parsed = bodyStr ? JSON.parse(bodyStr) : {};
                     var doc = fromFsFields(parsed.fields || {});
+                    window.__KDZ_LAST_SYNC_TS__ = Date.now();
                     if (url.indexOf('/documents/requests/') !== -1 && doc.id) {
                       if (String(doc.title || '').indexOf('محذوف') !== -1) {
                         delMap[doc.id] = true;
@@ -373,7 +376,8 @@
 
                 if (method === 'POST' && url.indexOf(':runQuery') !== -1) {
                   var isCraftsmenQuery = bodyStr.indexOf('"craftsmen"') !== -1;
-                  return syncFromCloudRelay().then(function() {
+                  return syncFromCloudRelay(false).then(function() {
+                    window.__KDZ_LAST_SYNC_TS__ = Date.now();
                     var rows = [];
                     if (isCraftsmenQuery) {
                       var localUsers = readJson('khadam_users', []);
@@ -414,6 +418,64 @@
               return origFetch(input, init);
             };
           }
+
+          // 14. مؤشر حالة الاتصال الحي (Online Indicator) في نافذة الإدارة وتوقيت آخر تحديث بالثواني
+          setInterval(function() {
+            try {
+              if (document.getElementById('kdz-admin-live-sync-bar')) return;
+              var adminHeader = document.querySelector('.fixed.inset-0 .from-gray-950');
+              if (!adminHeader || !adminHeader.parentNode) return;
+              var bar = document.getElementById('kdz-admin-live-sync-bar-injected');
+              if (!bar) {
+                bar = document.createElement('div');
+                bar.id = 'kdz-admin-live-sync-bar-injected';
+                bar.style.cssText = 'padding:6px 12px;background:#ecfdf5;border-bottom:1px solid #a7f3d0;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:900;color:#064e3b;flex-shrink:0;';
+                bar.innerHTML =
+                  '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' +
+                    '<span id="kdz-sync-dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.25);"></span>' +
+                    '<span id="kdz-sync-state" style="color:#059669;">متصل أونلاين (Online)</span>' +
+                    '<span style="opacity:0.4;">•</span>' +
+                    '<span>آخر تحديث: <b id="kdz-sync-clock" dir="ltr" style="font-family:monospace;background:#fff;padding:1px 6px;border-radius:6px;border:1px solid #6ee7b7;color:#065f46;">--:--:--</b></span>' +
+                    '<span id="kdz-sync-elapsed" style="color:#d97706;font-size:10px;">(الآن)</span>' +
+                  '</div>' +
+                  '<button type="button" id="kdz-sync-now-btn" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:900;cursor:pointer;">🔄 تحديث الآن</button>';
+                if (adminHeader.nextSibling) {
+                  adminHeader.parentNode.insertBefore(bar, adminHeader.nextSibling);
+                } else {
+                  adminHeader.parentNode.appendChild(bar);
+                }
+                var btn = document.getElementById('kdz-sync-now-btn');
+                if (btn) {
+                  btn.onclick = function() {
+                    btn.textContent = '⏳ جاري التحديث...';
+                    syncFromCloudRelay(true).then(function() {
+                      window.__KDZ_LAST_SYNC_TS__ = Date.now();
+                      btn.textContent = '✓ تم التحديث';
+                      setTimeout(function() { btn.textContent = '🔄 تحديث الآن'; }, 1200);
+                    });
+                  };
+                }
+              }
+              var isOn = navigator.onLine !== false;
+              var ts = Number(window.__KDZ_LAST_SYNC_TS__ || Date.now());
+              var diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+              var d = new Date(ts);
+              var pad = function(n) { return (n < 10 ? '0' : '') + n; };
+              var clockStr = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+              var elapsedStr = diffSec === 0 ? '(الآن • 0 ثانية)' : (diffSec < 60 ? '(منذ ' + diffSec + ' ثانية)' : '(منذ ' + Math.floor(diffSec / 60) + ' د و ' + (diffSec % 60) + ' ثانية)');
+              var dotEl = document.getElementById('kdz-sync-dot');
+              var stateEl = document.getElementById('kdz-sync-state');
+              var clockEl = document.getElementById('kdz-sync-clock');
+              var elapsedEl = document.getElementById('kdz-sync-elapsed');
+              if (dotEl) dotEl.style.background = isOn ? '#10b981' : '#ef4444';
+              if (stateEl) {
+                stateEl.textContent = isOn ? 'متصل أونلاين (Online)' : 'غير متصل (Offline)';
+                stateEl.style.color = isOn ? '#059669' : '#dc2626';
+              }
+              if (clockEl) clockEl.textContent = clockStr;
+              if (elapsedEl) elapsedEl.textContent = elapsedStr;
+            } catch (e) {}
+          }, 1000);
         } catch (err) {}
       })();
     </script>
