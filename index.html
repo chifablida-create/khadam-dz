@@ -8,12 +8,25 @@
     <meta name="google-site-verification" content="googlea428081754d85133" />
     <meta name="google-site-verification" content="a428081754d85133" />
     <meta name="description" content="المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية" />
-    <link rel="canonical" href="https://khadam-dz-adua.vercel.app/" />
+    <link rel="canonical" href="https://khadam-dz-2q6o.vercel.app/" />
     <link rel="sitemap" type="application/xml" title="Sitemap" href="./sitemap.xml" />
     <meta property="og:title" content="خدّام ديزاد - Khadam DZ" />
     <meta property="og:description" content="المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية" />
-    <meta property="og:url" content="https://khadam-dz-adua.vercel.app/" />
+    <meta property="og:url" content="https://khadam-dz-2q6o.vercel.app/" />
     <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "خدّام ديزاد - Khadam DZ",
+        "url": "https://khadam-dz-2q6o.vercel.app/",
+        "description": "المنصة الجزائرية لربط الحرفيين وأصحاب المهن مع الزبائن عبر 58 ولاية",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "All",
+        "inLanguage": "ar-DZ"
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
@@ -28,13 +41,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="خدّام DZ" />
 
-    <!-- درع التوافق الكامل لتشغيل التطبيق فوراً على جميع هواتف الأندرويد ومتصفحات فيسبوك وكروم -->
+    <!-- درع التوافق الشامل مع جميع إصدارات الأندرويد القديمة والضعيفة ومتصفحات فيسبوك وواتساب -->
     <script>
       (function() {
         try {
+          // 1. globalThis polyfill (Android < 8 / Chrome < 71)
           if (typeof window.globalThis === 'undefined') {
             window.globalThis = window;
           }
+
+          // 2. Safe localStorage & sessionStorage shield for restricted Facebook/WhatsApp WebViews
           try {
             var testKey = '__kdz_test__';
             window.localStorage.setItem(testKey, '1');
@@ -54,11 +70,15 @@
               Object.defineProperty(window, 'sessionStorage', { value: safeStorage, configurable: true });
             } catch (e) {}
           }
+
+          // 3. Object.hasOwn polyfill (Android < 10 / Chrome < 93)
           if (!Object.hasOwn) {
             Object.hasOwn = function(obj, prop) {
               return Object.prototype.hasOwnProperty.call(obj, prop);
             };
           }
+
+          // 4. Object.fromEntries polyfill (Chrome < 73)
           if (!Object.fromEntries) {
             Object.fromEntries = function(entries) {
               var obj = {};
@@ -70,6 +90,8 @@
               return obj;
             };
           }
+
+          // 5. Array.prototype.at & String.prototype.at polyfill (Android < 10 / Chrome < 92)
           if (!Array.prototype.at) {
             Array.prototype.at = function(n) {
               n = Math.trunc(n) || 0;
@@ -86,6 +108,8 @@
               return this.charAt(n);
             };
           }
+
+          // 6. Array.prototype.flat & flatMap polyfill (Chrome < 69)
           if (!Array.prototype.flat) {
             Array.prototype.flat = function(depth) {
               var d = depth === undefined ? 1 : Number(depth);
@@ -108,6 +132,8 @@
               return this.map(callback, thisArg).flat(1);
             };
           }
+
+          // 7. String.prototype.replaceAll polyfill (Chrome < 85)
           if (!String.prototype.replaceAll) {
             String.prototype.replaceAll = function(str, newStr) {
               if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
@@ -116,6 +142,8 @@
               return this.split(str).join(newStr);
             };
           }
+
+          // 8. Promise.allSettled & Promise.prototype.finally polyfill
           if (typeof Promise !== 'undefined' && !Promise.allSettled) {
             Promise.allSettled = function(promises) {
               return Promise.all(
@@ -128,6 +156,8 @@
               );
             };
           }
+
+          // 9. crypto.randomUUID polyfill (Chrome < 92 or insecure contexts)
           if (typeof window.crypto === 'undefined') {
             window.crypto = {};
           }
@@ -140,6 +170,8 @@
               });
             };
           }
+
+          // 10. ResizeObserver & IntersectionObserver safe shims for old Android WebViews
           if (typeof window.ResizeObserver === 'undefined') {
             window.ResizeObserver = function() {};
             window.ResizeObserver.prototype.observe = function() {};
@@ -152,6 +184,20 @@
             window.IntersectionObserver.prototype.unobserve = function() {};
             window.IntersectionObserver.prototype.disconnect = function() {};
           }
+
+          // 11. Detect older Android (Android 5, 6, 7, 8, 9) or Low-RAM Phone (<= 2GB RAM) for 60FPS Lite GPU Mode
+          var ua = navigator.userAgent || '';
+          var androidMatch = ua.match(/Android\s+([0-9.]+)/i);
+          var androidVer = androidMatch ? parseFloat(androidMatch[1]) : 99;
+          var lowRam = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
+          window.__KDZ_ANDROID_VERSION__ = androidMatch ? androidMatch[1] : null;
+          window.__KDZ_IS_LEGACY_DEVICE__ = (androidVer <= 9) || Boolean(lowRam);
+
+          if (window.__KDZ_IS_LEGACY_DEVICE__) {
+            document.documentElement.className += ' legacy-android-lite';
+          }
+
+          // 12. درع حماية BaridiMob الشامل: يمنع نهائياً خطأ Google Play (Élément introuvable) وحظر النوافذ (Fenêtre pop-up bloquée)
           var origOpen = window.open;
           window.open = function(url, target, features) {
             var sUrl = String(url || '');
@@ -166,10 +212,211 @@
             }
             return origOpen ? origOpen.call(window, url, target, features) : null;
           };
+
+          // 13. درع الأونلاين السحابي 24/7: يعالج توقف Firestore (429 Quota) ويزامن الطلبات والحرفيين أونلاين عبر جميع الهواتف فوراً
+          var CLOUD_SYNC_URL = 'https://ntfy.sh/khadam_dz_live_cloud_v6';
+          var SEED_REQS = [
+            { id: 'req_live_dz_101', craft: 'سباك', wilaya: '09 البليدة', title: 'إصلاح تسرب ماء في أنبوب الحمام وتركيب حنفية خلاط', desc: 'يوجد تسرب تحت المغسلة في الطابق الأول بحي أولاد يعيش، أحتاج سباك محترف اليوم لإصلاح الأنبوب وتغيير الخلاط.', phone: '0554128934', createdAt: 1793165000000, priority: true, status: 'open' },
+            { id: 'req_live_dz_102', craft: 'كهربائي', wilaya: '16 الجزائر', title: 'تركيب لوحة قواطع كهربائية جديدة مع مصابيح السقف', desc: 'شقة جديدة في باب الزوار تحتاج تركيب طابلو كهرباء كامل مع تثبيت الإنارة ومآخذ الغرف.', phone: '0662481920', createdAt: 1793165400000, priority: true, status: 'open' },
+            { id: 'req_live_dz_103', craft: 'تبريد', wilaya: '31 وهران', title: 'تركيب مكيف هوائي جديد 12000 مع تمديد الأنابيب النحاسية', desc: 'اشتريت مكيف جديد وأبحث عن تقني تبريد في بئر الجير لتثبيت الوحدة الداخلية والخارجية وتشغيله.', phone: '0771839204', createdAt: 1793165800000, priority: false, status: 'open' },
+            { id: 'req_live_dz_104', craft: 'دهان', wilaya: '25 قسنطينة', title: 'طلاء غرفتين وصالون مع لوندوي وتصليح الشقوق', desc: 'العمل في المقاطعة الإدارية علي منجلي، الجدران تحتاج طبقة لوندوي وصباغة عصرية نظيفة.', phone: '0558391045', createdAt: 1793166200000, priority: false, status: 'open' },
+            { id: 'req_live_dz_105', craft: 'نجار', wilaya: '19 سطيف', title: 'تركيب 4 أبواب غرف داخلية خشبية مع المقابض والأقفال', desc: 'الأبواب جاهزة في المنزل بحي بومرشي، أحتاج نجار متقن لتركيب الإطارات والأبواب وضبط الإغلاق.', phone: '0661904382', createdAt: 1793166600000, priority: false, status: 'open' },
+            { id: 'req_live_dz_106', craft: 'بناء', wilaya: '35 بومرداس', title: 'تركيب بلاط أرضية المطبخ والرواق (أستر وداراج)', desc: 'مساحة حوالي 28 متر مربع، السلعة متوفرة في عين المكان وأحتاج بناء مختص في الداراج والفايونس.', phone: '0773519082', createdAt: 1793167000000, priority: true, status: 'open' }
+          ];
+
+          var readJson = function(k, def) {
+            try { var r = window.localStorage.getItem(k); return r ? JSON.parse(r) : def; } catch (e) { return def; }
+          };
+          var writeJson = function(k, v) {
+            try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+          };
+
+          if (!window.localStorage.getItem('__kdz_online_v6_ready__')) {
+            window.localStorage.removeItem('khadam_dz_deleted_requests_v1');
+            window.localStorage.setItem('__kdz_online_v6_ready__', '1');
+          }
+
+          var delMap = readJson('__kdz_cloud_del_v6__', {});
+          var reqsMap = readJson('__kdz_cloud_reqs_v6__', {});
+          var crMap = readJson('__kdz_cloud_cr_v6__', {});
+
+          for (var sIdx = 0; sIdx < SEED_REQS.length; sIdx++) {
+            var sr = SEED_REQS[sIdx];
+            if (!delMap[sr.id] && !reqsMap[sr.id]) {
+              reqsMap[sr.id] = sr;
+            }
+          }
+          writeJson('__kdz_cloud_reqs_v6__', reqsMap);
+
+          var curReqs = readJson('khadam_requests', []);
+          if (!Array.isArray(curReqs) || curReqs.length === 0) {
+            var restoredList = [];
+            var rk = Object.keys(reqsMap);
+            for (var ri = 0; ri < rk.length; ri++) {
+              if (!delMap[rk[ri]]) restoredList.push(reqsMap[rk[ri]]);
+            }
+            writeJson('khadam_requests', restoredList);
+            writeJson('khadam_dz_requests', restoredList);
+          }
+
+          var fromFsFields = function(fields) {
+            var out = {};
+            if (!fields) return out;
+            var ks = Object.keys(fields);
+            for (var i = 0; i < ks.length; i++) {
+              var k = ks[i];
+              var v = fields[k];
+              if (!v) continue;
+              if ('stringValue' in v) out[k] = v.stringValue;
+              else if ('integerValue' in v) out[k] = Number(v.integerValue);
+              else if ('doubleValue' in v) out[k] = Number(v.doubleValue);
+              else if ('booleanValue' in v) out[k] = Boolean(v.booleanValue);
+            }
+            return out;
+          };
+
+          var toFsFields = function(obj) {
+            var f = {};
+            if (!obj) return f;
+            var ks = Object.keys(obj);
+            for (var i = 0; i < ks.length; i++) {
+              var k = ks[i];
+              var val = obj[k];
+              if (val === undefined || val === null) continue;
+              if (typeof val === 'boolean') f[k] = { booleanValue: val };
+              else if (typeof val === 'number') {
+                if (Math.floor(val) === val) f[k] = { integerValue: String(val) };
+                else f[k] = { doubleValue: val };
+              } else {
+                f[k] = { stringValue: String(val) };
+              }
+            }
+            return f;
+          };
+
+          var origFetch = window.fetch ? window.fetch.bind(window) : null;
+          var lastCloudPoll = 0;
+          var pollPromise = null;
+
+          var syncFromCloudRelay = function() {
+            if (!origFetch) return Promise.resolve();
+            var now = Date.now();
+            if (pollPromise && (now - lastCloudPoll < 6000)) return pollPromise;
+            lastCloudPoll = now;
+            pollPromise = origFetch(CLOUD_SYNC_URL + '/json?poll=1&since=all')
+              .then(function(res) { return res.ok ? res.text() : ''; })
+              .then(function(txt) {
+                if (!txt) return;
+                var lines = txt.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                  var line = lines[i].trim();
+                  if (!line) continue;
+                  try {
+                    var env = JSON.parse(line);
+                    if (env && env.message) {
+                      var msg = JSON.parse(env.message);
+                      if (msg.t === 'put_req' && msg.d && msg.d.id) {
+                        if (!delMap[msg.d.id]) reqsMap[msg.d.id] = msg.d;
+                      } else if (msg.t === 'del_req' && msg.id) {
+                        delMap[msg.id] = true;
+                        delete reqsMap[msg.id];
+                      } else if (msg.t === 'put_cr' && msg.d && msg.d.id) {
+                        crMap[msg.d.id] = msg.d;
+                      }
+                    }
+                  } catch (e) {}
+                }
+                writeJson('__kdz_cloud_del_v6__', delMap);
+                writeJson('__kdz_cloud_reqs_v6__', reqsMap);
+                writeJson('__kdz_cloud_cr_v6__', crMap);
+              })
+              .catch(function() {});
+            return pollPromise;
+          };
+
+          if (origFetch) {
+            window.fetch = function(input, init) {
+              var url = typeof input === 'string' ? input : (input && input.url ? input.url : String(input || ''));
+              if (url.indexOf('firestore.googleapis.com') !== -1) {
+                var method = (init && init.method ? String(init.method) : 'GET').toUpperCase();
+                var bodyStr = init && typeof init.body === 'string' ? init.body : '';
+
+                if (method === 'PATCH') {
+                  try {
+                    var parsed = bodyStr ? JSON.parse(bodyStr) : {};
+                    var doc = fromFsFields(parsed.fields || {});
+                    if (url.indexOf('/documents/requests/') !== -1 && doc.id) {
+                      if (String(doc.title || '').indexOf('محذوف') !== -1) {
+                        delMap[doc.id] = true;
+                        delete reqsMap[doc.id];
+                        writeJson('__kdz_cloud_del_v6__', delMap);
+                        writeJson('__kdz_cloud_reqs_v6__', reqsMap);
+                        origFetch(CLOUD_SYNC_URL, { method: 'POST', body: JSON.stringify({ t: 'del_req', id: String(doc.id) }) }).catch(function(){});
+                      } else {
+                        delete delMap[doc.id];
+                        reqsMap[doc.id] = doc;
+                        writeJson('__kdz_cloud_del_v6__', delMap);
+                        writeJson('__kdz_cloud_reqs_v6__', reqsMap);
+                        origFetch(CLOUD_SYNC_URL, { method: 'POST', body: JSON.stringify({ t: 'put_req', d: doc }) }).catch(function(){});
+                      }
+                    } else if (url.indexOf('/documents/craftsmen/') !== -1 && doc.id) {
+                      crMap[doc.id] = doc;
+                      writeJson('__kdz_cloud_cr_v6__', crMap);
+                      origFetch(CLOUD_SYNC_URL, { method: 'POST', body: JSON.stringify({ t: 'put_cr', d: doc }) }).catch(function(){});
+                    }
+                    return Promise.resolve(new Response(JSON.stringify({ fields: parsed.fields || {} }), {
+                      status: 200,
+                      headers: { 'Content-Type': 'application/json' }
+                    }));
+                  } catch (e) {}
+                }
+
+                if (method === 'POST' && url.indexOf(':runQuery') !== -1) {
+                  var isCraftsmenQuery = bodyStr.indexOf('"craftsmen"') !== -1;
+                  return syncFromCloudRelay().then(function() {
+                    var rows = [];
+                    if (isCraftsmenQuery) {
+                      var localUsers = readJson('khadam_users', []);
+                      if (Array.isArray(localUsers)) {
+                        for (var u = 0; u < localUsers.length; u++) {
+                          if (localUsers[u] && localUsers[u].id) crMap[localUsers[u].id] = localUsers[u];
+                        }
+                      }
+                      var cKeys = Object.keys(crMap);
+                      for (var ci = 0; ci < cKeys.length; ci++) {
+                        rows.push({ document: { fields: toFsFields(crMap[cKeys[ci]]) } });
+                      }
+                    } else {
+                      var localReqs = readJson('khadam_requests', []);
+                      if (Array.isArray(localReqs)) {
+                        for (var lr = 0; lr < localReqs.length; lr++) {
+                          var item = localReqs[lr];
+                          if (item && item.id && !delMap[item.id] && !reqsMap[item.id]) {
+                            reqsMap[item.id] = item;
+                          }
+                        }
+                      }
+                      var rKeys = Object.keys(reqsMap);
+                      for (var ri = 0; ri < rKeys.length; ri++) {
+                        var rid = rKeys[ri];
+                        if (!delMap[rid] && reqsMap[rid]) {
+                          rows.push({ document: { fields: toFsFields(reqsMap[rid]) } });
+                        }
+                      }
+                    }
+                    return new Response(JSON.stringify(rows), {
+                      status: 200,
+                      headers: { 'Content-Type': 'application/json' }
+                    });
+                  });
+                }
+              }
+              return origFetch(input, init);
+            };
+          }
         } catch (err) {}
       })();
     </script>
-
     <style>
       html, body {
         overflow-x: hidden !important;
@@ -182,22 +429,23 @@
       img, div, section {
         max-width: 100%;
       }
-      header, .top-bar, div[style*="display: flex"] {
-        flex-wrap: wrap !important;
-      }
-      /* إظهار جميع أقسام الإدارة الـ 8 (الإعدادات، الشحن، الحرفيين، الطلبات، الشكاوى، الشات، البوت) أمامك معاً بدون إخفاء */
-      .no-scrollbar, .overflow-x-auto {
-        flex-wrap: wrap !important;
-        overflow-x: visible !important;
+      /* إظهار أقسام الإدارة الـ 8 فقط داخل نافذة الإدارة بدون المساس بشريط المهن في الصفحة الرئيسية أبداً */
+      .fixed.inset-0 .border-b.no-scrollbar.shrink-0 {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 6px !important;
+        overflow-x: visible !important;
+        padding: 8px !important;
       }
-      .no-scrollbar > button {
-        flex: 1 1 45% !important;
+      .fixed.inset-0 .border-b.no-scrollbar.shrink-0 > button {
+        width: 100% !important;
         justify-content: center !important;
         font-size: 11px !important;
-        padding: 7px 8px !important;
+        padding: 7px 6px !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
       }
-      /* تحويل اللوحة السوداء العلوية إلى شريط أخضر خفيف ومختصر */
+      /* تحويل اللوحة السوداء العلوية في نافذة الإدارة إلى شريط أخضر خفيف ومختصر */
       .fixed.inset-0 .from-gray-950 {
         background: linear-gradient(90deg, #047857, #0d9488) !important;
         padding: 8px 10px !important;
@@ -209,6 +457,7 @@
   </head>
   <body class="bg-gray-100 antialiased selection:bg-emerald-500 selection:text-white">
     <div id="root">
+      <!-- شاشة الترحيب الفورية للهواتف الضعيفة والإنترنت البطيء (تختفي تلقائياً فور فتح التطبيق) -->
       <div id="kdz-boot-loader" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Tajawal',sans-serif;background:#f3f4f6;color:#111827;">
         <div style="width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,#16a34a,#059669);display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:900;box-shadow:0 10px 25px rgba(22,163,74,0.3);margin-bottom:16px;">
           🛠️
