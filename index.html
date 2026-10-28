@@ -28,10 +28,130 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="خدّام DZ" />
 
+    <!-- درع التوافق الكامل لتشغيل التطبيق فوراً على جميع هواتف الأندرويد ومتصفحات فيسبوك وكروم -->
     <script>
       (function() {
         try {
-          if (typeof window.globalThis === 'undefined') { window.globalThis = window; }
+          if (typeof window.globalThis === 'undefined') {
+            window.globalThis = window;
+          }
+          try {
+            var testKey = '__kdz_test__';
+            window.localStorage.setItem(testKey, '1');
+            window.localStorage.removeItem(testKey);
+          } catch (storageErr) {
+            var memStore = {};
+            var safeStorage = {
+              getItem: function(k) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; },
+              setItem: function(k, v) { memStore[k] = String(v); },
+              removeItem: function(k) { delete memStore[k]; },
+              clear: function() { memStore = {}; },
+              key: function(i) { var keys = Object.keys(memStore); return keys[i] || null; },
+              get length() { return Object.keys(memStore).length; }
+            };
+            try {
+              Object.defineProperty(window, 'localStorage', { value: safeStorage, configurable: true });
+              Object.defineProperty(window, 'sessionStorage', { value: safeStorage, configurable: true });
+            } catch (e) {}
+          }
+          if (!Object.hasOwn) {
+            Object.hasOwn = function(obj, prop) {
+              return Object.prototype.hasOwnProperty.call(obj, prop);
+            };
+          }
+          if (!Object.fromEntries) {
+            Object.fromEntries = function(entries) {
+              var obj = {};
+              if (entries) {
+                for (var i = 0; i < entries.length; i++) {
+                  if (entries[i]) obj[entries[i][0]] = entries[i][1];
+                }
+              }
+              return obj;
+            };
+          }
+          if (!Array.prototype.at) {
+            Array.prototype.at = function(n) {
+              n = Math.trunc(n) || 0;
+              if (n < 0) n += this.length;
+              if (n < 0 || n >= this.length) return undefined;
+              return this[n];
+            };
+          }
+          if (!String.prototype.at) {
+            String.prototype.at = function(n) {
+              n = Math.trunc(n) || 0;
+              if (n < 0) n += this.length;
+              if (n < 0 || n >= this.length) return undefined;
+              return this.charAt(n);
+            };
+          }
+          if (!Array.prototype.flat) {
+            Array.prototype.flat = function(depth) {
+              var d = depth === undefined ? 1 : Number(depth);
+              var result = [];
+              var flatten = function(arr, currentDepth) {
+                for (var i = 0; i < arr.length; i++) {
+                  if (Array.isArray(arr[i]) && currentDepth > 0) {
+                    flatten(arr[i], currentDepth - 1);
+                  } else {
+                    result.push(arr[i]);
+                  }
+                }
+              };
+              flatten(this, d);
+              return result;
+            };
+          }
+          if (!Array.prototype.flatMap) {
+            Array.prototype.flatMap = function(callback, thisArg) {
+              return this.map(callback, thisArg).flat(1);
+            };
+          }
+          if (!String.prototype.replaceAll) {
+            String.prototype.replaceAll = function(str, newStr) {
+              if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
+                return this.replace(str, newStr);
+              }
+              return this.split(str).join(newStr);
+            };
+          }
+          if (typeof Promise !== 'undefined' && !Promise.allSettled) {
+            Promise.allSettled = function(promises) {
+              return Promise.all(
+                Array.prototype.map.call(promises, function(p) {
+                  return Promise.resolve(p).then(
+                    function(val) { return { status: 'fulfilled', value: val }; },
+                    function(err) { return { status: 'rejected', reason: err }; }
+                  );
+                })
+              );
+            };
+          }
+          if (typeof window.crypto === 'undefined') {
+            window.crypto = {};
+          }
+          if (typeof window.crypto.randomUUID !== 'function') {
+            window.crypto.randomUUID = function() {
+              return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = (Math.random() * 16) | 0;
+                var v = c === 'x' ? r : (r & 0x3) | 0x8;
+                return v.toString(16);
+              });
+            };
+          }
+          if (typeof window.ResizeObserver === 'undefined') {
+            window.ResizeObserver = function() {};
+            window.ResizeObserver.prototype.observe = function() {};
+            window.ResizeObserver.prototype.unobserve = function() {};
+            window.ResizeObserver.prototype.disconnect = function() {};
+          }
+          if (typeof window.IntersectionObserver === 'undefined') {
+            window.IntersectionObserver = function() {};
+            window.IntersectionObserver.prototype.observe = function() {};
+            window.IntersectionObserver.prototype.unobserve = function() {};
+            window.IntersectionObserver.prototype.disconnect = function() {};
+          }
           var origOpen = window.open;
           window.open = function(url, target, features) {
             var sUrl = String(url || '');
@@ -82,8 +202,7 @@
         background: linear-gradient(90deg, #047857, #0d9488) !important;
         padding: 8px 10px !important;
       }
-      /* إخفاء الزر الأسود والأصفر السفلي لعدم حجب الإعدادات */
-      div:has(> a[href*="AdminDashboardModal.tsx"]) {
+      a[href*="AdminDashboardModal.tsx"] {
         display: none !important;
       }
     </style>
@@ -105,11 +224,34 @@
     <script type="module" src="/src/main.tsx"></script>
 
     <script>
+      if ('caches' in window) {
+        caches.keys().then(function(ks) {
+          ks.forEach(function(k) { caches.delete(k); });
+        }).catch(function() {});
+      }
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(function() {});
+          navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function(reg) {
+            try { reg.update(); } catch (e) {}
+          }).catch(function() {});
         });
       }
+      setTimeout(function() {
+        var loader = document.getElementById('kdz-boot-loader');
+        if (loader) {
+          try {
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(rs) {
+                rs.forEach(function(r) { r.unregister(); });
+              });
+            }
+            if (!sessionStorage.getItem('kdz_recovered_once')) {
+              sessionStorage.setItem('kdz_recovered_once', '1');
+              window.location.reload();
+            }
+          } catch (e) {}
+        }
+      }, 3500);
     </script>
   </body>
 </html>
