@@ -1,6 +1,6 @@
 {
   "installCommand": "[ -f package.json ] && P=package.json || P=../package.json; sed -i 's/0.25.0/0.27.0/g' $P && npm i --legacy-peer-deps",
-  "buildCommand": "node -e \"const fs=require('fs');['index.html','../index.html'].forEach(f=>{if(fs.existsSync(f)){let c=fs.readFileSync(f,'utf8');if(c.includes('assets/index')){c=c.replace(/<script[^>]*src=['\\\"][^'\\\"]*assets\\/index[^'\\\"]*['\\\"][^>]*>\\s*<\\/script>/gi,'').replace(/<link[^>]*href=['\\\"][^'\\\"]*assets\\/index[^'\\\"]*['\\\"][^>]*>/gi,'');if(fs.existsSync('src/main.tsx')&&!c.includes('/src/main.tsx')){c=c.replace('</body>','<script type=\\\"module\\\" src=\\\"/src/main.tsx\\\"></script></body>');}fs.writeFileSync(f,c,'utf8');}}})\" && npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
+  "buildCommand": "[ -f index.html ] && (sed -i 's|<link[^>]*assets/index[^>]*>||g; s|<script[^>]*assets/index[^>]*></script>||g' index.html; grep -q '/src/main.tsx' index.html || sed -i 's|</body>|<script type=\"module\" src=\"/src/main.tsx\"></script></body>|' index.html); npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
   "outputDirectory": "dist",
   "framework": "vite",
   "headers": [
