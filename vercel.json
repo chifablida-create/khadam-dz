@@ -3,9 +3,50 @@
   "buildCommand": "npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
   "outputDirectory": "dist",
   "framework": "vite",
-  "rewrites": [
+  "headers": [
     {
       "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
       "destination": "/index.html"
     }
   ]
