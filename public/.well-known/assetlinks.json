@@ -1,16 +1,24 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "dz.khadam.app",
       "sha256_cert_fingerprints": [
-        "14:6D:E9:7F:0F:52:EA:CB:25:4B:E4:3E:92:02:18:2B:A3:16:32:86:C4:42:0F:7B:69:0E:64:14:CE:00:8F:A9"
+        "14:6D:E9:7F:0F:52:EA:CB:25:4B:E4:3E:92:02:18:2B:A3:16:32:86:C4:42:0F:7B:69:0E:64:14:CE:00:8F:A9",
+        "15:82:10:24:85:D1:F5:ED:27:FF:80:48:1F:25:8A:A2:A7:3E:DD:0A:72:8E:33:9D:1B:17:72:10:96:C2:13:5B",
+        "DA:76:1B:A0:D3:98:19:36:6D:98:F5:2A:27:3B:36:0A:D3:00:51:22:28:25:6B:CE:43:EA:24:CD:D7:39:95:8C",
+        "A8:97:4D:23:4B:11:98:51:B4:86:EB:C8:A2:6B:6E:9B:A8:84:2C:97:84:1C:32:ED:80:BC:77:8C:5A:AB:9F:68"
       ]
     }
   },
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.example.khadam_dz",
