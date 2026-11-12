@@ -1,52 +1,30 @@
 {
   "installCommand": "[ -f package.json ] && P=package.json || P=../package.json; sed -i 's/0.25.0/0.27.0/g' $P && npm i --legacy-peer-deps",
-  "buildCommand": "[ -f index.html ] && (sed -i 's|<link[^>]*assets/index[^>]*>||g; s|<script[^>]*assets/index[^>]*></script>||g' index.html; grep -q '/src/main.tsx' index.html || sed -i 's|</body>|<script type=\"module\" src=\"/src/main.tsx\"></script></body>|' index.html); npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
+  "buildCommand": "npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
   "outputDirectory": "dist",
   "framework": "vite",
   "headers": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
-    },
-    {
-      "source": "/sitemap.xml",
+      "source": "/.well-known/assetlinks.json",
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/xml; charset=utf-8"
+          "value": "application/json; charset=utf-8"
         },
         {
-          "key": "X-Robots-Tag",
-          "value": "index, follow"
-        }
-      ]
-    },
-    {
-      "source": "/robots.txt",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        },
-        {
-          "key": "X-Robots-Tag",
-          "value": "index, follow"
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
         }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/((?!sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
+      "source": "/khadam-dz/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
+      "source": "/((?!\\.well-known/|sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
       "destination": "/index.html"
     }
   ]
