@@ -28,6 +28,7 @@ import { BotSyncBanner } from './components/BotSyncBanner';
 import { PushNotificationToast, UnifiedNotification } from './components/PushNotificationToast';
 import { OnlineKeepAliveStatus } from './components/OnlineKeepAliveStatus';
 import { useKeepAlive } from './hooks/useKeepAlive';
+import './lib/startSync.js';
 import {
   RequestItem,
   CraftsmanUser,
