@@ -207,6 +207,24 @@ export default function App() {
         return [liveReq, ...prev];
       });
     },
+    onFullStateSync: (state: any) => {
+      if (Array.isArray(state?.requests) && state.requests.length > 0) {
+        setRequests((prev) => {
+          const byId = new Map<string, RequestItem>();
+          for (const item of state.requests) { if (item && item.id) byId.set(String(item.id), item); }
+          for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
+          return Array.from(byId.values());
+        });
+      }
+      if (Array.isArray(state?.craftsmen) && state.craftsmen.length > 0) {
+        setCraftsmen((prev) => {
+          const byId = new Map<string, CraftsmanUser>();
+          for (const item of state.craftsmen) { if (item && item.id) byId.set(String(item.id), item); }
+          for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
+          return Array.from(byId.values());
+        });
+      }
+    },
     onLiveBroadcast: (liveBc: BroadcastNotification) => {
       setBroadcasts((prev) => {
         if (prev.some((b) => b.id === liveBc.id)) return prev;
@@ -311,8 +329,18 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    fetchDemandesFromSupabase().then((d) => { if (Array.isArray(d) && d.length > 0) setRequests(d as any); }).catch(() => {});
-    fetchArtisansFromSupabase().then((a) => { if (Array.isArray(a) && a.length > 0) setCraftsmen(a as any); }).catch(() => {});
+    fetchDemandesFromSupabase().then((d) => { if (Array.isArray(d) && d.length > 0) setRequests((prev) => {
+      const byId = new Map<string, RequestItem>();
+      for (const item of d) { if (item && item.id) byId.set(String(item.id), item as RequestItem); }
+      for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
+      return Array.from(byId.values());
+    }); }).catch(() => {});
+    fetchArtisansFromSupabase().then((a) => { if (Array.isArray(a) && a.length > 0) setCraftsmen((prev) => {
+      const byId = new Map<string, CraftsmanUser>();
+      for (const item of a) { if (item && item.id) byId.set(String(item.id), item as CraftsmanUser); }
+      for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
+      return Array.from(byId.values());
+    }); }).catch(() => {});
     const onGuardianSync = (ev: Event) => {
       const detail = (ev as CustomEvent)?.detail;
       if (!detail) return;

@@ -35,6 +35,8 @@ export const supabase = createClient(
 const KDZ_META_MARKER = '\n<!--kdz:';
 const KDZ_META_END = '-->';
 
+import { INITIAL_REQUESTS, INITIAL_CRAFTSMEN } from './data/constants';
+
 // In-memory 24/24 Guardian Bot store keyed strictly by id (Zero localStorage usage)
 const guardianDemandesById = new Map();
 const guardianArtisansById = new Map();
@@ -42,6 +44,24 @@ const guardianPointsById = new Map();
 const pendingOutboundDemandes = new Map();
 const pendingOutboundArtisans = new Map();
 const pendingOutboundPoints = new Map();
+
+if (Array.isArray(INITIAL_REQUESTS)) {
+  for (const r of INITIAL_REQUESTS) {
+    if (r && r.id) {
+      guardianDemandesById.set(String(r.id), r);
+    }
+  }
+}
+if (Array.isArray(INITIAL_CRAFTSMEN)) {
+  for (const c of INITIAL_CRAFTSMEN) {
+    if (c && c.id) {
+      guardianArtisansById.set(String(c.id), c);
+      if (typeof c.points === 'number') {
+        guardianPointsById.set(String(c.id), c.points);
+      }
+    }
+  }
+}
 
 function packTextWithMeta(cleanText, metaObj) {
   const base = String(cleanText || '').split(KDZ_META_MARKER)[0].trim();
