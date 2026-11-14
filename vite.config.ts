@@ -7,19 +7,6 @@ import {defineConfig} from 'vite';
 function vercelOutputDirSyncPlugin() {
   return {
     name: 'vercel-output-dir-sync',
-    enforce: 'pre' as const,
-    transformIndexHtml(html: string) {
-      let cleaned = html;
-      if (cleaned.includes('assets/index')) {
-        cleaned = cleaned
-          .replace(/<script[^>]*src=['"][^'"]*assets\/index[^'"]*['"][^>]*>\s*<\/script>/gi, '')
-          .replace(/<link[^>]*href=['"][^'"]*assets\/index[^'"]*['"][^>]*>/gi, '');
-        if (!cleaned.includes('/src/main.tsx')) {
-          cleaned = cleaned.replace('</body>', '<script type="module" src="/src/main.tsx"></script>\n</body>');
-        }
-      }
-      return cleaned;
-    },
     closeBundle() {
       try {
         const rootDir = process.cwd();
