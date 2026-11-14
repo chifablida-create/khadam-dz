@@ -3,6 +3,7 @@
   "buildCommand": "npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
   "outputDirectory": "dist",
   "framework": "vite",
+  "regions": ["cdg1"],
   "headers": [
     {
       "source": "/.well-known/assetlinks.json",
