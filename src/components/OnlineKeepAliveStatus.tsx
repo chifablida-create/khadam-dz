@@ -40,6 +40,15 @@ interface GitHubPushResult {
   filesList: string[];
 }
 
+interface VercelDeployResult {
+  projectName: string;
+  deploymentId: string;
+  liveVercelUrl: string;
+  deploymentUrl: string;
+  readyState: string;
+  filesCount: number;
+}
+
 interface OnlineKeepAliveStatusProps {
   isOnline: boolean;
   isLiveStreaming?: boolean;
@@ -54,6 +63,7 @@ interface OnlineKeepAliveStatusProps {
   onOpenPlayStore?: () => void;
   onOpenAdmin?: () => void;
   isDark: boolean;
+  defaultOpenModal?: boolean;
 }
 
 export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
@@ -67,33 +77,35 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
   onToggleAntiSleep,
   onOpenPlayStore,
   onOpenAdmin,
-  isDark
+  isDark,
+  defaultOpenModal = false
 }) => {
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(defaultOpenModal);
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedPagesUrl, setCopiedPagesUrl] = useState(false);
+  const [copiedVercelUrl, setCopiedVercelUrl] = useState(false);
   const [pushingGlobalUpdate, setPushingGlobalUpdate] = useState(false);
   const [globalUpdateMsg, setGlobalUpdateMsg] = useState<string | null>(null);
   const [publicUrl, setPublicUrl] = useState<string>(() => getPublicAppUrl());
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+
+  // Direct Vercel Online Deployment State
+  const [vercelToken, setVercelToken] = useState<string>('');
+  const [vercelProjectName, setVercelProjectName] = useState<string>('khadam-dz');
+  const [isDeployingVercel, setIsDeployingVercel] = useState<boolean>(false);
+  const [vercelError, setVercelError] = useState<string | null>(null);
+  const [vercelResult, setVercelResult] = useState<VercelDeployResult | null>(null);
 
   // Real GitHub Transfer State (Zero Fake Files)
   const [realFiles, setRealFiles] = useState<RealFileEntry[]>([]);
   const [totalBytes, setTotalBytes] = useState<number>(0);
   const [showFileInspector, setShowFileInspector] = useState<boolean>(false);
   const [githubToken, setGithubToken] = useState<string>('');
-  const [repoName, setRepoName] = useState<string>('khadam-dz');
+  const [repoName, setRepoName] = useState<string>('dar-al-athath');
   const [isPushingGitHub, setIsPushingGitHub] = useState<boolean>(false);
   const [githubError, setGithubError] = useState<string | null>(null);
-  const [githubResult, setGithubResult] = useState<GitHubPushResult | null>(() => {
-    try {
-      const saved = localStorage.getItem('khadam_github_push_result');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [githubResult, setGithubResult] = useState<GitHubPushResult | null>(null);
 
   useEffect(() => {
     setPublicUrl(getPublicAppUrl());
@@ -115,6 +127,38 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
         .catch(() => {});
     }
   }, [showDetails]);
+
+  const handleDeployToVercel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVercelError(null);
+    if (!vercelToken.trim()) {
+      setVercelError('يرجى لصق رمز الوصول (Vercel Token) لنشر الموقع أونلاين فوراً، أو اضغط زر الربط السريع عبر GitHub بالأسفل.');
+      return;
+    }
+
+    setIsDeployingVercel(true);
+    try {
+      const res = await fetch('/api/vercel/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: vercelToken.trim(),
+          projectName: vercelProjectName.trim() || 'khadam-dz'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setVercelError(data.error || 'تعذر النشر المباشر على Vercel. تأكد من صلاحية الـ Token.');
+      } else {
+        setVercelResult(data);
+      }
+    } catch (err: any) {
+      setVercelError(err?.message || 'حدث خطأ في الاتصال أثناء النشر على Vercel');
+    } finally {
+      setIsDeployingVercel(false);
+    }
+  };
 
   const handlePushToGitHub = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,11 +185,6 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
         setGithubError(data.error || 'تعذر رفع الملفات إلى GitHub. تأكد من صلاحية الـ Token.');
       } else {
         setGithubResult(data);
-        try {
-          localStorage.setItem('khadam_github_push_result', JSON.stringify(data));
-        } catch {
-          // ignore storage errors
-        }
       }
     } catch (err: any) {
       setGithubError(err?.message || 'حدث خطأ في الاتصال أثناء نقل الملفات إلى GitHub');
@@ -196,10 +235,12 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
     return `${(bytes / 1024).toFixed(1)} KB`;
   };
 
+  const activeShareUrl =
+    vercelResult?.liveVercelUrl || githubResult?.livePagesUrl || publicUrl;
+
   const handleCopyPublicUrl = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const targetUrl = githubResult?.livePagesUrl || publicUrl;
-    navigator.clipboard?.writeText(targetUrl);
+    navigator.clipboard?.writeText(activeShareUrl);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2500);
   };
@@ -210,17 +251,28 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
     setTimeout(() => setCopiedPagesUrl(false), 2500);
   };
 
-  const activeShareUrl = githubResult?.livePagesUrl || publicUrl;
+  const handleCopyVercelUrl = (url: string) => {
+    navigator.clipboard?.writeText(url);
+    setCopiedVercelUrl(true);
+    setTimeout(() => setCopiedVercelUrl(false), 2500);
+  };
+
+  const targetRepoUrl = githubResult?.repoUrl || 'https://github.com/chifablida-create/dar-al-athath';
+  const vercelDirectImportHref = `https://vercel.com/new/import?s=${encodeURIComponent(targetRepoUrl)}`;
 
   const whatsappShareHref = `https://wa.me/?text=${encodeURIComponent(
-    `🇩🇿 تطبيق خدّام ديزاد (Khadam DZ) - المنصة الجزائرية للحرفيين والزبائن في 58 ولاية!\nافتح الرابط المباشر المفتوح للجميع:\n\n${activeShareUrl}\n`
+    `🇩🇿 تطبيق خدّام ديزاد (Khadam DZ) & دار الأثاث - المنصة الجزائرية في 58 ولاية!\nافتح الرابط المباشر المفتوح للجميع:\n\n${activeShareUrl}\n`
   )}`;
 
   const facebookShareHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(activeShareUrl)}`;
 
+  if (!showDetails && !showIOSModal) {
+    return null;
+  }
+
   return (
     <>
-      {/* Top Inline Live Broadcast & Real GitHub Sync Bar */}
+      {/* Top Inline Live Broadcast & Vercel + GitHub Sync Bar */}
       <div
         className={`px-2.5 py-1.5 flex items-center justify-between text-[11px] font-black border-b transition-colors ${
           isOnline
@@ -235,32 +287,32 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
           type="button"
           onClick={() => setShowDetails(true)}
           className="flex items-center gap-1.5 hover:opacity-90 focus:outline-none cursor-pointer shrink-0"
-          title="اضغط لفتح مركز نقل الملفات الحقيقية إلى GitHub والرابط العالمي"
+          title="اضغط لفتح مركز النشر الأونلاين على Vercel + GitHub"
         >
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-80"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-80"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
           </span>
 
           <span className="flex items-center gap-1">
-            <span className="text-red-600 dark:text-red-400 font-black">بث مباشر 24/7</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-black">أونلاين 24/7</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-black">
-              #{pulseCount}
+              Vercel + GitHub
             </span>
           </span>
         </button>
 
-        {/* Right side controls: GitHub Sync, Copy Public Link, Admin Button, Play Store */}
+        {/* Right side controls: Vercel Deploy, GitHub Sync, Copy Public Link, Admin Button, Play Store */}
         <div className="flex items-center gap-1 shrink-0">
-          {/* Open Real GitHub Sync Modal */}
+          {/* Open Vercel Online Deploy Modal */}
           <button
             type="button"
             onClick={() => setShowDetails(true)}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-gray-900 hover:bg-black text-white border border-gray-700 text-[10px] font-black shadow-xs transition active:scale-95 cursor-pointer"
-            title="نقل ملفات المشروع الحقيقية إلى GitHub وتفعيل الموقع الحقيقي"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-black hover:bg-gray-900 text-white border border-emerald-500/60 text-[10px] font-black shadow-xs transition active:scale-95 cursor-pointer"
+            title="وضع الموقع أونلاين مباشرة على Vercel"
           >
-            <FolderGit2 className="w-3 h-3 text-emerald-400 shrink-0" />
-            <span>نقل لـ GitHub</span>
+            <span className="text-emerald-400 text-[10px]">▲</span>
+            <span>نشر Vercel أونلاين</span>
           </button>
 
           {/* 1-Click Copy Global Link Button */}
@@ -332,7 +384,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
         </div>
       </div>
 
-      {/* GitHub Real File Transfer & Universal Public Link Control Center Modal */}
+      {/* Vercel Online Deployment + GitHub Real File Transfer Modal */}
       {showDetails && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto">
           <div
@@ -343,15 +395,15 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between border-b pb-3 border-gray-500/20">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-gray-900 border border-gray-700 text-emerald-400 flex items-center justify-center font-bold shadow-md">
-                  <FolderGit2 className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-2xl bg-black border border-emerald-500 text-white flex items-center justify-center font-black text-base shadow-md">
+                  ▲
                 </div>
                 <div>
                   <h3 className={`font-black text-sm ${isDark ? 'text-white' : 'text-black'}`}>
-                    نقل الملفات الحقيقية إلى GitHub + الموقع الحقيقي
+                    وضع أونلاين مع Vercel + GitHub
                   </h3>
                   <p className="text-[10px] font-black text-emerald-500">
-                    ملفات الكود المصدري الحقيقية 100% من السيرفر (بدون أي ملفات وهمية) ✓
+                    مهيأ بالكامل لـ Vercel (مع دعم زر BaridiMob الحقيقي والـ PWA) ✓
                   </p>
                 </div>
               </div>
@@ -366,7 +418,157 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
               </button>
             </div>
 
-            {/* 1. REAL GITHUB REPOSITORY TRANSFER & GITHUB PAGES LIVE SITE */}
+            {/* 1. VERCEL ONLINE DEPLOYMENT CENTER (1-CLICK IMPORT OR DIRECT API TOKEN) */}
+            <div
+              className={`p-3.5 rounded-2xl border-2 space-y-3 ${
+                isDark ? 'bg-black/90 border-emerald-500' : 'bg-gray-950 text-white border-emerald-500'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="font-black text-xs text-emerald-400 flex items-center gap-1.5">
+                  <span className="text-white text-sm">▲</span>
+                  <span>1️⃣ تشغيل الموقع أونلاين على Vercel (طريقتان فوريتان)</span>
+                </div>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500 text-black">
+                  vercel.json جاهز ✓
+                </span>
+              </div>
+
+              {/* Option A: 1-Click Import from User's GitHub Repository into Vercel */}
+              <div className="p-2.5 rounded-xl bg-white/5 border border-white/15 space-y-2">
+                <div className="text-[11px] font-black text-amber-300">
+                  ⚡ الطريقة الأولى (بدون Token — بنقرة واحدة عبر GitHub):
+                </div>
+                <p className="text-[10px] text-gray-300 font-bold leading-relaxed">
+                  اضغط الزر بالأسفل لفتح صفحة استيراد مستودعك (<code>{targetRepoUrl.replace('https://github.com/', '')}</code>) في Vercel مباشرة ثم اضغط <b>Deploy</b> ليصبح موقعك أونلاين خلال 30 ثانية:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  <a
+                    href={vercelDirectImportHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 px-3 rounded-xl bg-white hover:bg-gray-100 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    <span>▲</span>
+                    <span>استيراد ونشر على Vercel الآن</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <a
+                    href="https://vercel.com/new"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>فتح لوحة Vercel الجديدة</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Option B: Direct Instant Deployment via Vercel Token */}
+              <form onSubmit={handleDeployToVercel} className="p-2.5 rounded-xl bg-white/5 border border-white/15 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-emerald-400">
+                    🚀 الطريقة الثانية (رفع مباشر فوري عبر Vercel Token):
+                  </span>
+                  <a
+                    href="https://vercel.com/account/tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-black text-amber-400 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>استخراج Vercel Token</span>
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-300 mb-1">
+                      اسم المشروع على Vercel:
+                    </label>
+                    <input
+                      type="text"
+                      value={vercelProjectName}
+                      onChange={(e) => setVercelProjectName(e.target.value)}
+                      placeholder="khadam-dz"
+                      className="w-full px-2.5 py-1.5 rounded-xl border border-gray-700 bg-black text-white font-mono text-xs font-bold dir-ltr"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-300 mb-1">
+                      رمز Vercel (Access Token):
+                    </label>
+                    <input
+                      type="password"
+                      value={vercelToken}
+                      onChange={(e) => setVercelToken(e.target.value)}
+                      placeholder="أدخل Vercel Token هنا..."
+                      className="w-full px-2.5 py-1.5 rounded-xl border border-gray-700 bg-black text-white font-mono text-xs font-bold dir-ltr"
+                    />
+                  </div>
+                </div>
+
+                {vercelError && (
+                  <div className="p-2 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-[10px] font-black flex items-start gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{vercelError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isDeployingVercel}
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-60 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                >
+                  {isDeployingVercel ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>جاري بناء ورفع الموقع أونلاين على Vercel...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Rocket className="w-4 h-4" />
+                      <span>▲ رفع وتشغيل الموقع أونلاين على Vercel فوراً</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Live Vercel Deployment Result */}
+              {vercelResult && (
+                <div className="p-3 rounded-2xl bg-emerald-950/80 border-2 border-emerald-400 space-y-2">
+                  <div className="flex items-center gap-1.5 text-emerald-300 font-black text-xs">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>تم وضع موقعك أونلاين على Vercel بنجاح ({vercelResult.filesCount} ملف)!</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black border border-emerald-500/50 font-mono text-xs font-bold text-emerald-400 break-all dir-ltr select-all text-center">
+                    {vercelResult.liveVercelUrl}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyVercelUrl(vercelResult.liveVercelUrl)}
+                      className="py-2 px-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-[10px] flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      {copiedVercelUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedVercelUrl ? 'تم النسخ ✓' : 'نسخ رابط Vercel'}</span>
+                    </button>
+                    <a
+                      href={vercelResult.liveVercelUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2 px-2.5 rounded-xl bg-white hover:bg-gray-100 text-black font-black text-[10px] flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>فتح موقع Vercel الأونلاين</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. REAL GITHUB REPOSITORY TRANSFER & GITHUB PAGES LIVE SITE */}
             <div
               className={`p-3.5 rounded-2xl border-2 space-y-3 ${
                 isDark ? 'bg-gray-900/90 border-emerald-500/60' : 'bg-emerald-50/70 border-emerald-500'
@@ -374,16 +576,16 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
             >
               <div className="flex items-center justify-between">
                 <div className="font-black text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                  <Rocket className="w-4 h-4 shrink-0" />
-                  <span>1️⃣ رفع الملفات الحقيقية مباشرة إلى GitHub</span>
+                  <FolderGit2 className="w-4 h-4 shrink-0" />
+                  <span>2️⃣ تحديث ملفاتك في GitHub (متصل تلقائياً بـ Vercel)</span>
                 </div>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500 text-black">
-                  {realFiles.length > 0 ? `${realFiles.length} ملف حقيقي (${formatSize(totalBytes)})` : 'جاهز للنقل ✓'}
+                  {realFiles.length > 0 ? `${realFiles.length} ملف (${formatSize(totalBytes)})` : 'جاهز للنقل ✓'}
                 </span>
               </div>
 
               <p className={`text-[11px] font-bold leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                يقوم السيرفر بقراءة ملفات مشروعك الفعلية مباشرة من القرص (<code>src/*</code>، <code>server.ts</code>، <code>package.json</code>، <code>vite.config.ts</code>، <code>.github/workflows/deploy.yml</code>) ورفعها إلى مستودعك في <strong>GitHub</strong> وتفعيل رابط موقعك الحقيقي <strong>GitHub Pages</strong> تلقائياً:
+                عند رفع الملفات إلى مستودعك في <strong>GitHub</strong> (شاملة <code>vercel.json</code> و<code>public/baridimob-open.html</code>)، يقوم <strong>Vercel</strong> بتحديث موقعك الأونلاين تلقائياً:
               </p>
 
               {/* Toggleable Real File List Inspector */}
@@ -408,8 +610,8 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                       isDark ? 'bg-black/80 border-gray-800 text-gray-300' : 'bg-white border-gray-200 text-gray-800'
                     }`}
                   >
-                    {realFiles.map((f) => (
-                      <div key={f.path} className="flex items-center justify-between border-b border-gray-500/10 pb-0.5">
+                    {realFiles.map((f, idx) => (
+                      <div key={`${f.path}-${idx}`} className="flex items-center justify-between border-b border-gray-500/10 pb-0.5">
                         <span className="truncate text-emerald-500 font-bold">{f.path}</span>
                         <span className="text-gray-400 shrink-0 ml-2">{formatSize(f.size)}</span>
                       </div>
@@ -428,7 +630,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                     type="text"
                     value={repoName}
                     onChange={(e) => setRepoName(e.target.value)}
-                    placeholder="khadam-dz"
+                    placeholder="dar-al-athath"
                     className={`w-full px-3 py-2 rounded-xl border font-mono text-xs font-bold dir-ltr ${
                       isDark ? 'bg-black/60 border-gray-700 text-white' : 'bg-white border-gray-300 text-black'
                     }`}
@@ -441,7 +643,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                       رمز الوصول الشخصي (GitHub Personal Access Token):
                     </label>
                     <a
-                      href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Khadam-DZ-Official"
+                      href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=Khadam-DZ-Vercel"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-[10px] font-black text-emerald-500 hover:underline flex items-center gap-0.5"
@@ -476,12 +678,12 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                   {isPushingGitHub ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>جاري نقل الـ {realFiles.length || 38} ملف حقيقي وتفعيل الموقع...</span>
+                      <span>جاري نقل الـ {realFiles.length || 45} ملف حقيقي إلى GitHub...</span>
                     </>
                   ) : (
                     <>
                       <Rocket className="w-4 h-4" />
-                      <span>نقل ملفاتي الحقيقية إلى GitHub وتفعيل الرابط الآن</span>
+                      <span>نقل ملفاتي الحقيقية إلى GitHub وتفعيل Vercel</span>
                     </>
                   )}
                 </button>
@@ -519,7 +721,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                       className="py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 cursor-pointer"
                     >
                       {copiedPagesUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedPagesUrl ? 'تم النسخ ✓' : 'نسخ رابط الموقع الحقيقي'}</span>
+                      <span>{copiedPagesUrl ? 'تم النسخ ✓' : 'نسخ رابط الموقع'}</span>
                     </button>
 
                     <a
@@ -550,11 +752,9 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                       href={githubResult.vercelImportUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`py-1.5 px-2 rounded-xl border font-black text-[10px] flex items-center justify-center gap-1 cursor-pointer ${
-                        isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-black'
-                      }`}
+                      className="py-1.5 px-2 rounded-xl bg-black border border-emerald-500 text-white font-black text-[10px] flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <Rocket className="w-3 h-3 text-amber-400" />
+                      <span className="text-emerald-400">▲</span>
                       <span>نشر فوري على Vercel</span>
                     </a>
                   </div>
@@ -565,18 +765,18 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
               <div className="pt-1 border-t border-gray-500/20 flex items-center justify-between gap-2">
                 <a
                   href="/download/github-source.zip"
-                  download="khadam-dz-real-source.zip"
+                  download="khadam-dz-vercel-source.zip"
                   className={`w-full py-2 px-3 rounded-xl border font-black text-[11px] flex items-center justify-center gap-1.5 cursor-pointer ${
                     isDark ? 'bg-gray-800 border-gray-700 text-emerald-400 hover:bg-gray-700' : 'bg-white border-gray-300 text-emerald-700 hover:bg-gray-100'
                   }`}
                 >
                   <Download className="w-3.5 h-3.5 shrink-0" />
-                  <span>أو تحميل أرشيف الكود المصدري الحقيقي كاملاً (ZIP لـ GitHub)</span>
+                  <span>تحميل الكود المصدري الكامل مع إعدادات Vercel (ZIP)</span>
                 </a>
               </div>
             </div>
 
-            {/* 2. GLOBAL PUBLIC TUNNEL URL (WORKS RIGHT NOW) */}
+            {/* 3. GLOBAL PUBLIC TUNNEL URL (WORKS RIGHT NOW) */}
             <div
               className={`p-3.5 rounded-2xl border space-y-2.5 ${
                 isDark ? 'bg-emerald-950/30 border-emerald-500/40' : 'bg-emerald-50 border-emerald-300'
@@ -585,7 +785,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
               <div className="flex items-center justify-between">
                 <div className="font-black text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                   <Globe className="w-4 h-4 shrink-0" />
-                  <span>2️⃣ الرابط المباشر المفتوح حالياً (Cloudflare Live)</span>
+                  <span>3️⃣ الرابط المباشر المفتوح حالياً</span>
                 </div>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500 text-black">
                   يعمل الآن ✓
@@ -597,7 +797,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                   isDark ? 'bg-black/60 border-emerald-500/40 text-emerald-400' : 'bg-white border-emerald-300 text-emerald-700'
                 }`}
               >
-                {publicUrl}
+                {activeShareUrl}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -633,7 +833,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
                 </a>
 
                 <a
-                  href={publicUrl}
+                  href={activeShareUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`py-2 px-3 rounded-xl border font-black text-[11px] flex items-center justify-center gap-1.5 cursor-pointer ${
@@ -646,7 +846,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
               </div>
             </div>
 
-            {/* 3. LIVE STREAM ANTI-STOP ENGINE & INSTANT UPDATES */}
+            {/* 4. LIVE STREAM ANTI-STOP ENGINE & INSTANT UPDATES */}
             <div
               className={`p-3.5 rounded-2xl border space-y-2.5 ${
                 isDark ? 'bg-red-950/25 border-red-500/30' : 'bg-red-50/70 border-red-200'
@@ -655,7 +855,7 @@ export const OnlineKeepAliveStatus: React.FC<OnlineKeepAliveStatusProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-black text-xs text-red-600 dark:text-red-400">
                   <Radio className="w-4 h-4 animate-pulse" />
-                  <span>3️⃣ البث المباشر 24/7 وتحديث جميع الهواتف</span>
+                  <span>4️⃣ البث المباشر 24/7 وتحديث جميع الهواتف</span>
                 </div>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
                   {isLiveStreaming ? 'بث مستمر ✓' : 'نشط ✓'}

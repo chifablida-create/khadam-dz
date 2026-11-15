@@ -55,16 +55,6 @@ import {
 
 import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase } from "./supabase.js";
 const memoryStateStore = new Map<string, any>();
-const SEED_REQ_TIME_MAP = new Map<string, number>(INITIAL_REQUESTS.map((r) => [String(r.id), Number(r.createdAt)]));
-function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
-  if (!Array.isArray(list)) return [];
-  return [...list]
-    .map((item) => {
-      const seedTs = item && item.id ? SEED_REQ_TIME_MAP.get(String(item.id)) : undefined;
-      return seedTs !== undefined ? { ...item, createdAt: seedTs } : item;
-    })
-    .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
-}
 function getStoredJSON<T>(key: string, defaultValue: T): T {
   if (memoryStateStore.has(key)) return memoryStateStore.get(key) as T;
   return defaultValue;
@@ -79,7 +69,7 @@ function getStoredJSON<T>(key: string, defaultValue: T): T {
 
 function setStoredJSON<T>(key: string, value: T): void {
   memoryStateStore.set(key, value);
-  // Explicit saveDemandeToSupabase is called when creating or updating a request
+  if (key === STORAGE_KEYS.requests && Array.isArray(value) && value[0]) { saveDemandeToSupabase(value[0]).catch(() => {}); }
   if (key === STORAGE_KEYS.users && Array.isArray(value) && value[0]) { saveArtisanToSupabase(value[0]).catch(() => {}); }
   if (key === STORAGE_KEYS.points_balance && typeof value === "number") { savePointsToSupabase("global_points", value).catch(() => {}); }
   return;
@@ -117,7 +107,7 @@ export default function App() {
 
   // Requests feed
   const [requests, setRequests] = useState<RequestItem[]>(() => {
-    return sortRequestsDesc(getStoredJSON(STORAGE_KEYS.requests, INITIAL_REQUESTS));
+    return getStoredJSON(STORAGE_KEYS.requests, INITIAL_REQUESTS);
   });
 
   // Current logged in Craftsman Profile
@@ -213,10 +203,8 @@ export default function App() {
   } = useKeepAlive({
     onLiveRequest: (liveReq: RequestItem) => {
       setRequests((prev) => {
-        const next = prev.some((r) => r.id === liveReq.id)
-          ? prev.map((r) => (r.id === liveReq.id ? liveReq : r))
-          : [liveReq, ...prev];
-        return sortRequestsDesc(next);
+        if (prev.some((r) => r.id === liveReq.id)) return prev;
+        return [liveReq, ...prev];
       });
     },
     onFullStateSync: (state: any) => {
@@ -225,7 +213,7 @@ export default function App() {
           const byId = new Map<string, RequestItem>();
           for (const item of state.requests) { if (item && item.id) byId.set(String(item.id), item); }
           for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
-          return sortRequestsDesc(Array.from(byId.values()));
+          return Array.from(byId.values());
         });
       }
       if (Array.isArray(state?.craftsmen) && state.craftsmen.length > 0) {
@@ -345,7 +333,7 @@ export default function App() {
       const byId = new Map<string, RequestItem>();
       for (const item of d) { if (item && item.id) byId.set(String(item.id), item as RequestItem); }
       for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
-      return sortRequestsDesc(Array.from(byId.values()));
+      return Array.from(byId.values());
     }); }).catch(() => {});
     fetchArtisansFromSupabase().then((a) => { if (Array.isArray(a) && a.length > 0) setCraftsmen((prev) => {
       const byId = new Map<string, CraftsmanUser>();
@@ -361,7 +349,7 @@ export default function App() {
           const byId = new Map<string, RequestItem>();
           for (const item of detail.requests) { if (item && item.id) byId.set(String(item.id), item); }
           for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
-          return sortRequestsDesc(Array.from(byId.values()));
+          return Array.from(byId.values());
         });
       }
       if (Array.isArray(detail.craftsmen) && detail.craftsmen.length > 0) {
@@ -1119,27 +1107,7 @@ export default function App() {
         }`}
       >
         {/* 24/7 Online Keep-Alive & Live Broadcast Header with Wake Lock, Admin & PWA Install */}
-        <OnlineKeepAliveStatus
-          isOnline={isOnline}
-          isLiveStreaming={isLiveStreaming}
-          isWakeLockActive={isWakeLockActive}
-          isAntiSleepActive={isAntiSleepActive}
-          serverUptime={serverUptime}
-          pulseCount={pulseCount}
-          connectedClients={connectedClients}
-          lastHeartbeat={lastHeartbeat}
-          onManualPing={() => {
-            sendHeartbeat();
-            triggerSync('🔴 البث المباشر نشط ومتصل بدون توقف 24/7 ✓');
-          }}
-          onToggleAntiSleep={() => {
-            toggleAntiSleep();
-            triggerSync('🔒 تم تحديث وضع منع توقف البث المباشر في الخلفية ✓');
-          }}
-          onOpenPlayStore={() => setIsPlayStoreModalOpen(true)}
-          onOpenAdmin={() => setIsAdminDashboardOpen(true)}
-          isDark={isDark}
-        />
+        {/* Clean production UI: OnlineKeepAliveStatus hidden */}
 
         {/* Top Navbar with Bell Notifications, Low Points warning & Direct Admin Button */}
         <Navbar
@@ -1148,7 +1116,7 @@ export default function App() {
           points={points}
           isDark={isDark}
           toggleTheme={() => setIsDark(!isDark)}
-          onOpenAdminLogin={() => setIsAdminDashboardOpen(true)}
+          onOpenAdminLogin={() => { if (!isAdminDashboardOpen) setIsAdminLoginOpen(true); }}
           onNavigatePoints={() => setCurrentTab('points')}
           unreadCount={unreadNotificationsCount}
           onOpenNotifications={() => setIsNotificationsModalOpen(true)}
@@ -1175,29 +1143,6 @@ export default function App() {
           isMatchingDismissed={isMatchingDismissed}
           isDark={isDark}
         />
-
-        {/* Platform Philosophy Subtitle banner */}
-        <div
-          className={`px-3 py-1.5 border-b text-[10px] flex items-center justify-between font-bold ${
-            isDark
-              ? 'bg-[#151928] border-gray-800 text-white'
-              : 'bg-emerald-50 border-emerald-200 text-black'
-          }`}
-        >
-          <div className="flex items-center gap-1.5 truncate">
-            <span className="font-black text-emerald-600 dark:text-emerald-400">خدّام DZ:</span>
-            <span className="truncate">
-              البوت الذكي والإدارة في خدمة الحرفي 24/7 • كشف {settings.freeRevealPromo ? 'مجاني 0ن' : `${settings.revealCost ?? 25}ن`}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsAdminDashboardOpen(true)}
-            className="font-black text-emerald-600 dark:text-emerald-400 hover:underline shrink-0 cursor-pointer"
-          >
-            لوحة الإدارة 🤖
-          </button>
-        </div>
 
         {/* View Switcher based on currentTab */}
         <main className="flex-1">
@@ -1254,7 +1199,7 @@ export default function App() {
               points={points}
               revealedCount={revealedSet.size}
               onOpenAdminChat={() => setIsAdminChatOpen(true)}
-              onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
+              onOpenAdminDashboard={() => { if (!isAdminDashboardOpen) setIsAdminLoginOpen(true); }}
               userMode={userMode}
               setUserMode={setUserMode}
               onOpenPlayStore={() => setIsPlayStoreModalOpen(true)}
@@ -1265,44 +1210,6 @@ export default function App() {
             />
           )}
         </main>
-
-        {/* App Promo Ads, Admin & Bot Hub, and Play Store Interactive Banner */}
-        <div className={`p-2.5 border-t transition-colors ${
-          isDark ? 'border-gray-800 bg-[#0c0f1a]' : 'border-gray-200 bg-emerald-50/50'
-        }`}>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => setIsAdminDashboardOpen(true)}
-              className="py-2.5 px-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-600 hover:to-orange-600 text-black text-[11px] font-black shadow-md transition active:scale-98 flex items-center justify-center gap-1 border border-amber-300 cursor-pointer"
-            >
-              <ShieldCheck className="w-4 h-4 text-black shrink-0" />
-              <span className="truncate">إدارة التطبيق 🤖</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsPromoModalOpen(true)}
-              className="py-2.5 px-2 rounded-2xl bg-gradient-to-r from-emerald-700 via-teal-700 to-green-700 hover:from-emerald-800 hover:to-green-800 text-white text-[11px] font-black shadow-md transition active:scale-98 flex items-center justify-center gap-1 border border-emerald-400/40 cursor-pointer"
-            >
-              <Megaphone className="w-3.5 h-3.5 text-amber-300 animate-pulse shrink-0" />
-              <span className="truncate">الإشهار والرابط 📢</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsPlayStoreModalOpen(true)}
-              className="py-2.5 px-2 rounded-2xl bg-gradient-to-r from-gray-900 via-gray-950 to-black hover:bg-black text-white text-[11px] font-black shadow-md transition active:scale-98 flex items-center justify-center gap-1 border border-gray-700 cursor-pointer"
-            >
-              <div className="w-3.5 h-3.5 rounded-md bg-emerald-600 flex items-center justify-center text-white shrink-0">
-                <svg className="w-2 h-2 fill-current" viewBox="0 0 24 24">
-                  <path d="M3.609 1.814L13.792 12 3.61 22.186a2.03 2.03 0 0 1-.61-1.465V3.279c0-.573.228-1.096.61-1.465zm11.602 11.603l2.678 2.679-11.83 6.83 9.152-9.51zm2.678-2.834L5.059 3.073l12.83 7.51zm1.246 1.417l2.87 1.677c.806.471.806 1.238 0 1.709l-2.87 1.677-2.316-2.531 2.316-2.532z" />
-                </svg>
-              </div>
-              <span className="truncate">Google Play 📲</span>
-            </button>
-          </div>
-        </div>
 
         {/* Top Simulated Push Notification Toast */}
         <PushNotificationToast
@@ -1373,7 +1280,7 @@ export default function App() {
             setReceiptInitialPkg(null);
             setIsUploadReceiptOpen(true);
           }}
-          onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
+          onOpenAdminDashboard={() => { if (!isAdminDashboardOpen) setIsAdminLoginOpen(true); }}
           isDark={isDark}
         />
 

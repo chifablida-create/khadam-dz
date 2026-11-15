@@ -17,12 +17,14 @@ interface AppPromoBannerProps {
   onOpenPromoModal: () => void;
   onOpenPlayStore?: () => void;
   isDark: boolean;
+  isAdminView?: boolean;
 }
 
 export const AppPromoBanner: React.FC<AppPromoBannerProps> = ({
   onOpenPromoModal,
   onOpenPlayStore,
-  isDark
+  isDark,
+  isAdminView = false
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -89,6 +91,10 @@ export const AppPromoBanner: React.FC<AppPromoBannerProps> = ({
     return () => clearInterval(timer);
   }, [slides.length]);
 
+  if (!isAdminView) {
+    return null;
+  }
+
   if (isDismissed) {
     return (
       <div className="px-3 pt-2">
@@ -116,7 +122,14 @@ export const AppPromoBanner: React.FC<AppPromoBannerProps> = ({
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard?.writeText(appUrl);
+    const adWithLinks = `🇩🇿 منصة "خدّام ديزاد - Khadam DZ" لربط الحرفيين مع الزبائن في 58 ولاية! 🛠️🏠
+✅ للزبائن: انشر طلبك مجاناً 100% ويتصل بك الحرفيون القريبون منك فوراً!
+✅ للحرفيين: سجل حسابك اليوم واحصل على 50 نقطة هدية مجانية 🎁!
+📲 الرابط الرسمي المباشر:
+${appUrl}/
+📘 صفحتنا الرسمية على فيسبوك:
+https://www.facebook.com/share/1CCuf6aCuD/`;
+    navigator.clipboard?.writeText(adWithLinks);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -210,12 +223,12 @@ export const AppPromoBanner: React.FC<AppPromoBannerProps> = ({
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-white" />
-                  <span>تم نسخ الرابط العام ✓</span>
+                  <span>تم نسخ الإشهار والرابط ✓</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>نسخ الرابط العام</span>
+                  <span>📋 نسخ الإشهار والرابط العام</span>
                 </>
               )}
             </button>

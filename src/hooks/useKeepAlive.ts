@@ -288,47 +288,16 @@ function installCleanPublicUiShield() {
     const observer = new MutationObserver(() => scrubLeaks());
     observer.observe(document.body, { childList: true, subtree: true });
 
-    const showTapToast = (msg: string) => {
-      try {
-        let toast = document.getElementById('kdz-secret-tap-toast');
-        if (!toast) {
-          toast = document.createElement('div');
-          toast.id = 'kdz-secret-tap-toast';
-          toast.style.cssText =
-            'position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:99999;background:#065f46;color:#fff;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,0.3);pointer-events:none;transition:opacity 0.2s;border:1px solid #34d399;';
-          document.body.appendChild(toast);
-        }
-        toast.textContent = msg;
-        toast.style.opacity = '1';
-      } catch {
-        // ignore
-      }
-    };
-
-    const hideTapToast = () => {
-      const toast = document.getElementById('kdz-secret-tap-toast');
-      if (toast) toast.style.opacity = '0';
-    };
-
     const triggerAdminOpen = () => {
+      if (typeof window !== 'undefined' && typeof (window as any).__KDZ_OPEN_ADMIN_LOGIN__ === 'function') {
+        (window as any).__KDZ_OPEN_ADMIN_LOGIN__();
+        return;
+      }
       const hiddenAdminBtn = document.querySelector(
         'header button[title*="لوحة إدارة التطبيق"]'
       ) as HTMLButtonElement | null;
       if (hiddenAdminBtn) {
         hiddenAdminBtn.click();
-        return;
-      }
-      const allButtons = Array.from(document.querySelectorAll('button'));
-      for (const btn of allButtons) {
-        const t = (btn.getAttribute('title') || '') + ' ' + (btn.textContent || '');
-        if (
-          t.includes('لوحة إدارة التطبيق') ||
-          t.includes('لوحة الإدارة') ||
-          t.includes('إدارة التطبيق')
-        ) {
-          (btn as HTMLButtonElement).click();
-          return;
-        }
       }
     };
 
@@ -354,17 +323,11 @@ function installCleanPublicUiShield() {
 
         if (tapCount >= 5) {
           tapCount = 0;
-          showTapToast('🔓 فتح الإدارة...');
-          setTimeout(hideTapToast, 900);
           triggerAdminOpen();
         } else {
-          if (tapCount >= 2) {
-            showTapToast(`🔐 الإدارة: ${tapCount} / 5`);
-          }
           tapResetTimer = setTimeout(() => {
             tapCount = 0;
-            hideTapToast();
-          }, 4000);
+          }, 3500);
         }
       },
       true

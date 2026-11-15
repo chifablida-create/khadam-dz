@@ -135,32 +135,19 @@ export const AccountView: React.FC<AccountViewProps> = ({
           </div>
 
           {/* Welcome Bonus Notice */}
+
           {!currentUser && (
             <div
               className={`rounded-2xl border p-3 flex items-center gap-2.5 ${
                 isDark
-                  ? 'bg-emerald-950/60 border-emerald-500/40 text-white'
-                  : 'bg-emerald-50 border-emerald-300 text-black'
+                  ? "bg-emerald-950/60 border-emerald-500/40 text-white"
+                  : "bg-emerald-50 border-emerald-300 text-black"
               }`}
             >
               <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <div className="text-xs font-bold leading-relaxed">
                 <strong className="font-black text-emerald-700 dark:text-emerald-300">هدية التسجيل:</strong> رصيد مجاني 50 نقطة فور إنشاء الحساب، يتيح لك كشف أول رقمي زبائن مجاناً!
               </div>
-            </div>
-          )}
-
-          {!currentUser && (
-            <div className="flex items-center justify-between p-2.5 rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/5 text-xs font-bold">
-              <span>أو تفعيل حساب الحرفي التجريبي مباشرة:</span>
-              <button
-                type="button"
-                onClick={() => onRegisterCraftsman(INITIAL_CRAFTSMEN[0])}
-                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-xs transition active:scale-95 flex items-center gap-1"
-              >
-                <span>دخول كـ (أحمد - سباك)</span>
-                <Sparkles className="w-3 h-3" />
-              </button>
             </div>
           )}
 
@@ -484,16 +471,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
               </div>
             </div>
 
-            {onTriggerSimulatedMatch && (
-              <button
-                type="button"
-                onClick={onTriggerSimulatedMatch}
-                className="w-full py-2 px-3 rounded-xl border border-dashed border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-black transition flex items-center justify-center gap-1.5"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>تجربة وصول طلب جديد يطابق تخصص ({currentUser.craft})</span>
-              </button>
-            )}
+            
           </div>
 
           {/* Direct Support Chat Action Banner (Renamed from Admin Chat) */}
@@ -519,90 +497,6 @@ export const AccountView: React.FC<AccountViewProps> = ({
             >
               فتح المحادثة
             </button>
-          </div>
-
-          {/* App Advertising & Link Share Card */}
-          {onOpenPromoModal && (
-            <div
-              className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
-                isDark
-                  ? 'bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-gray-900 border-emerald-500/40 text-white'
-                  : 'bg-gradient-to-r from-emerald-50 via-teal-50 to-green-50 border-emerald-300 text-black shadow-xs'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-green-500 text-white flex items-center justify-center font-black shadow-xs shrink-0">
-                  <Megaphone className="w-5 h-5 text-white animate-pulse" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`font-black text-xs ${isDark ? 'text-white' : 'text-black'}`}>
-                      إشهارات التطبيق والرابط الرسمي
-                    </span>
-                    <span className="text-[9px] font-black bg-emerald-500 text-black px-1.5 py-0.5 rounded-full">
-                      شارك
-                    </span>
-                  </div>
-                  <div className={`text-[10px] font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    انسخ رابط التطبيق وبوستات الإعلانات الجاهزة للنشر
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={onOpenPromoModal}
-                className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition active:scale-95 shrink-0 shadow-xs cursor-pointer"
-              >
-                فتح المركز
-              </button>
-            </div>
-          )}
-
-          {/* Google Play Store Card */}
-          <div
-            className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-              isDark
-                ? 'bg-gradient-to-r from-emerald-950/40 via-teal-950/20 to-gray-900 border-emerald-500/30 text-white'
-                : 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 text-black shadow-xs'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-sky-500 text-white flex items-center justify-center font-black shadow-xs shrink-0">
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M3.609 1.814L13.792 12 3.61 22.186a2.03 2.03 0 0 1-.61-1.465V3.279c0-.573.228-1.096.61-1.465zm11.602 11.603l2.678 2.679-11.83 6.83 9.152-9.51zm2.678-2.834L5.059 3.073l12.83 7.51zm1.246 1.417l2.87 1.677c.806.471.806 1.238 0 1.709l-2.87 1.677-2.316-2.531 2.316-2.532z" />
-                </svg>
-              </div>
-              <div>
-                <div className={`font-black text-xs ${isDark ? 'text-white' : 'text-black'}`}>
-                  تطبيق متجر Google Play للأندرويد
-                </div>
-                <div className={`text-[10px] font-bold ${isDark ? 'text-gray-300' : 'text-gray-800'}`}>
-                  تثبيت فوري على شاشة الهاتف أو تنزيل ملف AAB للرفع
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-              <a
-                href="/download/aab"
-                download="khadam-dz-release.aab"
-                className="px-3 py-2 rounded-xl bg-gray-900 hover:bg-black text-white font-black text-xs transition active:scale-95 flex items-center gap-1.5 border border-gray-700 cursor-pointer shadow-xs"
-                title="تحميل ملف Android App Bundle"
-              >
-                <Download className="w-3.5 h-3.5 text-emerald-400" />
-                <span>تحميل AAB</span>
-              </a>
-              {onOpenPlayStore && (
-                <button
-                  type="button"
-                  onClick={onOpenPlayStore}
-                  className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition active:scale-95 shadow-xs cursor-pointer"
-                >
-                  فتح المتجر
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Quick Platform Note */}
