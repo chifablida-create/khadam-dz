@@ -37,6 +37,21 @@ const KDZ_META_END = '-->';
 
 import { INITIAL_REQUESTS, INITIAL_CRAFTSMEN } from './data/constants';
 
+// Fixed historical timestamps for static seed requests so they never override newer live requests
+const SEED_REQUEST_TIMESTAMPS = new Map();
+if (Array.isArray(INITIAL_REQUESTS)) {
+  for (const r of INITIAL_REQUESTS) {
+    if (r && r.id && typeof r.createdAt === 'number') {
+      SEED_REQUEST_TIMESTAMPS.set(String(r.id), Number(r.createdAt));
+    }
+  }
+}
+
+export function sortRequestsNewestFirst(list) {
+  if (!Array.isArray(list)) return [];
+  return [...list].sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
+}
+
 // In-memory 24/24 Guardian Bot store keyed strictly by id (Zero localStorage usage)
 const guardianDemandesById = new Map();
 const guardianArtisansById = new Map();
@@ -46,7 +61,7 @@ const pendingOutboundArtisans = new Map();
 const pendingOutboundPoints = new Map();
 
 if (Array.isArray(INITIAL_REQUESTS)) {
-  for (const r of INITIAL_REQUESTS) {
+  for (const r of sortRequestsNewestFirst(INITIAL_REQUESTS)) {
     if (r && r.id) {
       guardianDemandesById.set(String(r.id), r);
     }
@@ -97,11 +112,18 @@ export function mapDemandeRowToRequestItem(row) {
     row.id !== undefined && row.id !== null
       ? String(row.id)
       : meta.appId || `dem_${Date.now()}`;
-  const createdTs = row.created_at
-    ? new Date(row.created_at).getTime()
-    : typeof meta.createdAt === 'number'
-    ? meta.createdAt
-    : Date.now();
+
+  const seedTs = SEED_REQUEST_TIMESTAMPS.get(rawId);
+  const rowTs = row.created_at ? new Date(row.created_at).getTime() : 0;
+  const metaTs = typeof meta.createdAt === 'number' ? meta.createdAt : 0;
+  const createdTs =
+    typeof seedTs === 'number' && seedTs > 0
+      ? seedTs
+      : !Number.isNaN(rowTs) && rowTs > 0
+      ? rowTs
+      : !Number.isNaN(metaTs) && metaTs > 0
+      ? metaTs
+      : Date.now();
 
   const statusVal =
     row.status === 'in_progress' || row.status === 'completed' || row.status === 'open'
@@ -138,10 +160,16 @@ export function mapDemandeRowToRequestItem(row) {
 
 export function mapRequestItemToDemandePayload(req) {
   const reqId = String(req.id || `dem_${Date.now()}`).trim();
+  const seedTs = SEED_REQUEST_TIMESTAMPS.get(reqId);
+  const resolvedCreatedAt =
+    typeof seedTs === 'number' && seedTs > 0
+      ? seedTs
+      : Number(req.createdAt) || Date.now();
+
   const meta = {
     appId: reqId,
     priority: Boolean(req.priority),
-    createdAt: req.createdAt || Date.now(),
+    createdAt: resolvedCreatedAt,
     isCustomerOwn: Boolean(req.isCustomerOwn),
     revealedByCraftsmanName: req.revealedByCraftsmanName || '',
     agreedByCraftsmanName: req.agreedByCraftsmanName || '',
@@ -162,7 +190,7 @@ export function mapRequestItemToDemandePayload(req) {
   const craftStr = String(req.craft || 'سباك').trim();
   const statusStr = req.status === 'in_progress' || req.status === 'completed' ? req.status : 'open';
 
-  return {
+  const payload = {
     id: reqId,
     title: titleStr,
     desc: descStr,
@@ -177,6 +205,12 @@ export function mapRequestItemToDemandePayload(req) {
     metier: craftStr,
     message: packTextWithMeta(descStr, meta)
   };
+
+  if (typeof seedTs === 'number' && seedTs > 0) {
+    payload.created_at = new Date(seedTs).toISOString();
+  }
+
+  return payload;
 }
 
 export function mapArtisanRowToCraftsmanUser(row) {
@@ -254,11 +288,15 @@ export function mapCraftsmanUserToArtisanPayload(craftsman, revealedPhonesList) 
 function emitGuardianSyncToReact(detail) {
   if (typeof window === 'undefined') return;
   try {
+    const sortedRequests = sortRequestsNewestFirst(Array.from(guardianDemandesById.values()));
     window.dispatchEvent(
       new CustomEvent('khadam:supabase-sync', {
         detail: {
           ...detail,
-          requests: Array.from(guardianDemandesById.values()),
+          demandes: Array.isArray(detail?.demandes)
+            ? sortRequestsNewestFirst(detail.demandes)
+            : sortedRequests,
+          requests: sortedRequests,
           craftsmen: Array.from(guardianArtisansById.values()),
           pointsMap: Object.fromEntries(guardianPointsById.entries()),
           timestamp: Date.now()
@@ -344,10 +382,14 @@ export async function fetchDemandesFromSupabase() {
         .from('demandes')
         .select('*');
       if (fallback.error || !Array.isArray(fallback.data)) return null;
-      return fallback.data.map(mapDemandeRowToRequestItem).filter(Boolean);
+      return sortRequestsNewestFirst(
+        fallback.data.map(mapDemandeRowToRequestItem).filter(Boolean)
+      );
     }
     if (!Array.isArray(data)) return null;
-    return data.map(mapDemandeRowToRequestItem).filter(Boolean);
+    return sortRequestsNewestFirst(
+      data.map(mapDemandeRowToRequestItem).filter(Boolean)
+    );
   } catch {
     return null;
   }
@@ -357,8 +399,15 @@ export async function fetchDemandesFromSupabase() {
 export async function saveDemandeToSupabase(req) {
   if (!req) return null;
   const reqId = String(req.id || `dem_${Date.now()}`).trim();
-  guardianDemandesById.set(reqId, { ...req, id: reqId });
-  const payload = mapRequestItemToDemandePayload({ ...req, id: reqId });
+  const seedTs = SEED_REQUEST_TIMESTAMPS.get(reqId);
+  const resolvedCreatedAt =
+    typeof seedTs === 'number' && seedTs > 0
+      ? seedTs
+      : Number(req.createdAt) || Date.now();
+  const cleanReq = { ...req, id: reqId, createdAt: resolvedCreatedAt };
+
+  guardianDemandesById.set(reqId, cleanReq);
+  const payload = mapRequestItemToDemandePayload(cleanReq);
 
   try {
     const { data: upsertedRows, error: upErr } = await supabase
@@ -374,7 +423,7 @@ export async function saveDemandeToSupabase(req) {
       return mapped;
     }
 
-    // 2. Also check if a row with same appId in message or same client_name + wilaya + metier exists
+    // 2. Also check if a row with same client_name + wilaya + metier exists
     const { data: existingRows } = await supabase
       .from('demandes')
       .select('id')
@@ -412,9 +461,9 @@ export async function saveDemandeToSupabase(req) {
       return mapped;
     }
 
-    pendingOutboundDemandes.set(reqId, req);
+    pendingOutboundDemandes.set(reqId, cleanReq);
   } catch {
-    pendingOutboundDemandes.set(reqId, req);
+    pendingOutboundDemandes.set(reqId, cleanReq);
   }
   return null;
 }
@@ -576,8 +625,9 @@ export function subscribeToSupabaseRealtime(callbacks) {
         async () => {
           const list = await fetchDemandesFromSupabase();
           if (list) {
-            callbacks?.onDemandesSnapshot?.(list);
-            emitGuardianSyncToReact({ type: 'demandes_snapshot', demandes: list });
+            const sorted = sortRequestsNewestFirst(list);
+            callbacks?.onDemandesSnapshot?.(sorted);
+            emitGuardianSyncToReact({ type: 'demandes_snapshot', demandes: sorted });
           }
         }
       )
@@ -673,7 +723,7 @@ export const GUARDIAN_BOT_24_7_DUTY = {
   vercelProject: 'khadam-dz-adua',
   tables: ['demandes', 'artisans', 'points'],
   mode: '24/24_BIDIRECTIONAL_SYNC_NO_LOCALSTORAGE',
-  rules: 'UPSERT_BY_ID_ONLY_NEVER_DELETE'
+  rules: 'UPSERT_BY_ID_ONLY_NEVER_DELETE_NEWEST_FIRST'
 };
 
 let guardianCyclesCount = 0;
@@ -723,7 +773,7 @@ export function startSync() {
       if ((Array.isArray(demandes) && demandes.length > 0) || (Array.isArray(artisans) && artisans.length > 0)) {
         emitGuardianSyncToReact({
           type: 'guardian_cycle',
-          demandes: demandes || [],
+          demandes: sortRequestsNewestFirst(demandes || []),
           artisans: artisans || []
         });
       }
@@ -765,4 +815,3 @@ export function startSync() {
 }
 
 export default supabase;
-

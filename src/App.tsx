@@ -55,6 +55,16 @@ import {
 
 import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase } from "./supabase.js";
 const memoryStateStore = new Map<string, any>();
+const SEED_REQ_TIME_MAP = new Map<string, number>(INITIAL_REQUESTS.map((r) => [String(r.id), Number(r.createdAt)]));
+function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
+  if (!Array.isArray(list)) return [];
+  return [...list]
+    .map((item) => {
+      const seedTs = item && item.id ? SEED_REQ_TIME_MAP.get(String(item.id)) : undefined;
+      return seedTs !== undefined ? { ...item, createdAt: seedTs } : item;
+    })
+    .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
+}
 function getStoredJSON<T>(key: string, defaultValue: T): T {
   if (memoryStateStore.has(key)) return memoryStateStore.get(key) as T;
   return defaultValue;
@@ -69,7 +79,7 @@ function getStoredJSON<T>(key: string, defaultValue: T): T {
 
 function setStoredJSON<T>(key: string, value: T): void {
   memoryStateStore.set(key, value);
-  if (key === STORAGE_KEYS.requests && Array.isArray(value) && value[0]) { saveDemandeToSupabase(value[0]).catch(() => {}); }
+  // Explicit saveDemandeToSupabase is called when creating or updating a request
   if (key === STORAGE_KEYS.users && Array.isArray(value) && value[0]) { saveArtisanToSupabase(value[0]).catch(() => {}); }
   if (key === STORAGE_KEYS.points_balance && typeof value === "number") { savePointsToSupabase("global_points", value).catch(() => {}); }
   return;
@@ -107,7 +117,7 @@ export default function App() {
 
   // Requests feed
   const [requests, setRequests] = useState<RequestItem[]>(() => {
-    return getStoredJSON(STORAGE_KEYS.requests, INITIAL_REQUESTS);
+    return sortRequestsDesc(getStoredJSON(STORAGE_KEYS.requests, INITIAL_REQUESTS));
   });
 
   // Current logged in Craftsman Profile
@@ -203,8 +213,10 @@ export default function App() {
   } = useKeepAlive({
     onLiveRequest: (liveReq: RequestItem) => {
       setRequests((prev) => {
-        if (prev.some((r) => r.id === liveReq.id)) return prev;
-        return [liveReq, ...prev];
+        const next = prev.some((r) => r.id === liveReq.id)
+          ? prev.map((r) => (r.id === liveReq.id ? liveReq : r))
+          : [liveReq, ...prev];
+        return sortRequestsDesc(next);
       });
     },
     onFullStateSync: (state: any) => {
@@ -213,7 +225,7 @@ export default function App() {
           const byId = new Map<string, RequestItem>();
           for (const item of state.requests) { if (item && item.id) byId.set(String(item.id), item); }
           for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
-          return Array.from(byId.values());
+          return sortRequestsDesc(Array.from(byId.values()));
         });
       }
       if (Array.isArray(state?.craftsmen) && state.craftsmen.length > 0) {
@@ -333,7 +345,7 @@ export default function App() {
       const byId = new Map<string, RequestItem>();
       for (const item of d) { if (item && item.id) byId.set(String(item.id), item as RequestItem); }
       for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
-      return Array.from(byId.values());
+      return sortRequestsDesc(Array.from(byId.values()));
     }); }).catch(() => {});
     fetchArtisansFromSupabase().then((a) => { if (Array.isArray(a) && a.length > 0) setCraftsmen((prev) => {
       const byId = new Map<string, CraftsmanUser>();
@@ -349,7 +361,7 @@ export default function App() {
           const byId = new Map<string, RequestItem>();
           for (const item of detail.requests) { if (item && item.id) byId.set(String(item.id), item); }
           for (const item of prev) { if (item && item.id && !byId.has(String(item.id))) byId.set(String(item.id), item); }
-          return Array.from(byId.values());
+          return sortRequestsDesc(Array.from(byId.values()));
         });
       }
       if (Array.isArray(detail.craftsmen) && detail.craftsmen.length > 0) {

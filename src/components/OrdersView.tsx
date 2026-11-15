@@ -32,11 +32,13 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     ? requests.filter((r) => revealedSet.has(r.id))
     : requests.filter((r) => r.isCustomerOwn || r.id === 'r1' || r.id === 'r2');
 
-  const filteredOrders = userOrders.filter((order) => {
-    if (filterStatus === 'open') return order.status !== 'completed';
-    if (filterStatus === 'completed') return order.status === 'completed';
-    return true;
-  });
+  const filteredOrders = userOrders
+    .filter((order) => {
+      if (filterStatus === 'open') return order.status !== 'completed';
+      if (filterStatus === 'completed') return order.status === 'completed';
+      return true;
+    })
+    .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
   return (
     <div className={`p-3.5 space-y-4 pb-12 ${isDark ? 'text-white' : 'text-black'}`}>
