@@ -10,12 +10,19 @@ export type CraftsmanWithReveals = CraftsmanUser & {
 
 export declare function mapDemandeRowToRequestItem(row: Record<string, any>): RequestItem | null;
 export declare function mapRequestItemToDemandePayload(req: RequestItem): {
+  id: string;
+  title: string;
+  desc: string;
+  craft: string;
+  wilaya: string;
+  phone: string;
+  status: string;
+  priority: boolean;
+  is_customer_own: boolean;
   client_name: string;
   client_phone: string;
-  wilaya: string;
   metier: string;
   message: string;
-  status: string;
 };
 export declare function mapArtisanRowToCraftsmanUser(row: Record<string, any>): CraftsmanWithReveals | null;
 export declare function mapCraftsmanUserToArtisanPayload(

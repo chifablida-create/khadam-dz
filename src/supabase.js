@@ -112,15 +112,15 @@ export function mapDemandeRowToRequestItem(row) {
 
   const mapped = {
     id: rawId,
-    title: String(row.client_name || cleanDesc || 'طلب خدمة').trim(),
-    phone: String(row.client_phone || '0550000000').trim(),
+    title: String(row.title || row.client_name || cleanDesc || 'طلب خدمة').trim(),
+    phone: String(row.phone || row.client_phone || '0550000000').trim(),
     wilaya: String(row.wilaya || '16 الجزائر').trim(),
-    craft: String(row.metier || 'سباك').trim(),
-    desc: cleanDesc || String(row.client_name || ''),
+    craft: String(row.craft || row.metier || 'سباك').trim(),
+    desc: String(row.desc || cleanDesc || row.title || row.client_name || '').trim(),
     status: statusVal,
-    priority: meta.priority !== undefined ? Boolean(meta.priority) : true,
+    priority: row.priority !== undefined ? Boolean(row.priority) : meta.priority !== undefined ? Boolean(meta.priority) : true,
     createdAt: Number.isNaN(createdTs) ? Date.now() : createdTs,
-    isCustomerOwn: Boolean(meta.isCustomerOwn),
+    isCustomerOwn: row.is_customer_own !== undefined ? Boolean(row.is_customer_own) : Boolean(meta.isCustomerOwn),
     revealedByCraftsmanName: String(meta.revealedByCraftsmanName || '').trim(),
     agreedByCraftsmanName: String(meta.agreedByCraftsmanName || '').trim(),
     isAgreed: Boolean(meta.isAgreed || statusVal === 'in_progress' || statusVal === 'completed'),
@@ -137,8 +137,9 @@ export function mapDemandeRowToRequestItem(row) {
 }
 
 export function mapRequestItemToDemandePayload(req) {
+  const reqId = String(req.id || `dem_${Date.now()}`).trim();
   const meta = {
-    appId: req.id,
+    appId: reqId,
     priority: Boolean(req.priority),
     createdAt: req.createdAt || Date.now(),
     isCustomerOwn: Boolean(req.isCustomerOwn),
@@ -154,13 +155,27 @@ export function mapRequestItemToDemandePayload(req) {
     customerRatedAt: req.customerRatedAt || 0
   };
 
+  const titleStr = String(req.title || 'طلب خدمة').trim();
+  const descStr = String(req.desc || req.title || '').trim();
+  const phoneStr = String(req.phone || '0550000000').trim();
+  const wilayaStr = String(req.wilaya || '16 الجزائر').trim();
+  const craftStr = String(req.craft || 'سباك').trim();
+  const statusStr = req.status === 'in_progress' || req.status === 'completed' ? req.status : 'open';
+
   return {
-    client_name: String(req.title || 'زبون خدّام DZ').trim(),
-    client_phone: String(req.phone || '0550000000').trim(),
-    wilaya: String(req.wilaya || '16 الجزائر').trim(),
-    metier: String(req.craft || 'سباك').trim(),
-    message: packTextWithMeta(req.desc || req.title || '', meta),
-    status: req.status === 'in_progress' || req.status === 'completed' ? req.status : 'open'
+    id: reqId,
+    title: titleStr,
+    desc: descStr,
+    craft: craftStr,
+    wilaya: wilayaStr,
+    phone: phoneStr,
+    status: statusStr,
+    priority: Boolean(req.priority ?? true),
+    is_customer_own: Boolean(req.isCustomerOwn ?? true),
+    client_name: titleStr,
+    client_phone: phoneStr,
+    metier: craftStr,
+    message: packTextWithMeta(descStr, meta)
   };
 }
 
@@ -301,18 +316,12 @@ export async function savePointsToSupabase(idOrCraftsman, pointsValue) {
 
   try {
     // Upsert by id in points table (if id exists -> update, if not -> insert; never delete)
-    const { data: existingPts, error: selErr } = await supabase
+    const { error: upErr } = await supabase
       .from('points')
-      .select('id')
-      .eq('id', idStr)
-      .limit(1);
+      .upsert([{ id: idStr, points: cleanPts }], { onConflict: 'id' });
 
-    if (!selErr) {
-      if (Array.isArray(existingPts) && existingPts.length > 0) {
-        await supabase.from('points').update({ points: cleanPts }).eq('id', idStr);
-      } else {
-        await supabase.from('points').insert([{ id: idStr, points: cleanPts }]);
-      }
+    if (upErr) {
+      pendingOutboundPoints.set(idStr, cleanPts);
     }
   } catch {
     pendingOutboundPoints.set(idStr, cleanPts);
@@ -327,13 +336,13 @@ export async function fetchDemandesFromSupabase() {
   try {
     const { data, error } = await supabase
       .from('demandes')
-      .select('id, client_name, client_phone, wilaya, metier, message, status, created_at')
-      .order('id', { ascending: false });
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (error) {
       const fallback = await supabase
         .from('demandes')
-        .select('id, client_name, client_phone, wilaya, metier, message, status');
+        .select('*');
       if (fallback.error || !Array.isArray(fallback.data)) return null;
       return fallback.data.map(mapDemandeRowToRequestItem).filter(Boolean);
     }
@@ -347,37 +356,22 @@ export async function fetchDemandesFromSupabase() {
 // Upsert by id (if id exists -> update, if not -> insert. Never delete!)
 export async function saveDemandeToSupabase(req) {
   if (!req) return null;
-  const reqId = String(req.id || `dem_${Date.now()}`);
+  const reqId = String(req.id || `dem_${Date.now()}`).trim();
   guardianDemandesById.set(reqId, { ...req, id: reqId });
-  const payload = mapRequestItemToDemandePayload(req);
+  const payload = mapRequestItemToDemandePayload({ ...req, id: reqId });
 
   try {
-    // 1. Check if id exists directly in demandes
-    const numericId = Number(reqId);
-    const idFilterVal =
-      !Number.isNaN(numericId) && numericId > 0 && String(numericId) === reqId
-        ? numericId
-        : reqId;
-
-    const { data: byIdRows, error: byIdErr } = await supabase
+    const { data: upsertedRows, error: upErr } = await supabase
       .from('demandes')
-      .select('id')
-      .eq('id', idFilterVal)
-      .limit(1);
+      .upsert([payload], { onConflict: 'id' })
+      .select();
 
-    if (!byIdErr && Array.isArray(byIdRows) && byIdRows.length > 0 && byIdRows[0]?.id != null) {
-      const { data: updatedById, error: updIdErr } = await supabase
-        .from('demandes')
-        .update(payload)
-        .eq('id', byIdRows[0].id)
-        .select();
-      if (!updIdErr && Array.isArray(updatedById) && updatedById.length > 0) {
-        const mapped = mapDemandeRowToRequestItem(updatedById[0]);
-        pendingOutboundDemandes.delete(reqId);
-        broadcastRealtimeEvent('demande_updated', mapped);
-        emitGuardianSyncToReact({ type: 'demande_updated', demande: mapped });
-        return mapped;
-      }
+    if (!upErr && Array.isArray(upsertedRows) && upsertedRows.length > 0) {
+      const mapped = mapDemandeRowToRequestItem(upsertedRows[0]);
+      pendingOutboundDemandes.delete(reqId);
+      broadcastRealtimeEvent('demande_updated', mapped);
+      emitGuardianSyncToReact({ type: 'demande_updated', demande: mapped });
+      return mapped;
     }
 
     // 2. Also check if a row with same appId in message or same client_name + wilaya + metier exists
@@ -716,6 +710,15 @@ export function startSync() {
         fetchDemandesFromSupabase(),
         fetchArtisansFromSupabase()
       ]);
+
+      // If demandes table exists in Supabase and is currently empty (0 rows), seed INITIAL_REQUESTS into Supabase by id
+      if (Array.isArray(demandes) && demandes.length === 0 && Array.isArray(INITIAL_REQUESTS) && INITIAL_REQUESTS.length > 0) {
+        for (const seedReq of INITIAL_REQUESTS) {
+          if (seedReq && seedReq.id) {
+            pendingOutboundDemandes.set(String(seedReq.id), seedReq);
+          }
+        }
+      }
 
       if ((Array.isArray(demandes) && demandes.length > 0) || (Array.isArray(artisans) && artisans.length > 0)) {
         emitGuardianSyncToReact({
