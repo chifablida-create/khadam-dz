@@ -135,13 +135,12 @@ export const AccountView: React.FC<AccountViewProps> = ({
           </div>
 
           {/* Welcome Bonus Notice */}
-
           {!currentUser && (
             <div
               className={`rounded-2xl border p-3 flex items-center gap-2.5 ${
                 isDark
-                  ? "bg-emerald-950/60 border-emerald-500/40 text-white"
-                  : "bg-emerald-50 border-emerald-300 text-black"
+                  ? 'bg-emerald-950/60 border-emerald-500/40 text-white'
+                  : 'bg-emerald-50 border-emerald-300 text-black'
               }`}
             >
               <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -150,6 +149,8 @@ export const AccountView: React.FC<AccountViewProps> = ({
               </div>
             </div>
           )}
+
+          {null}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -471,7 +472,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
               </div>
             </div>
 
-            
+            {null}
           </div>
 
           {/* Direct Support Chat Action Banner (Renamed from Admin Chat) */}

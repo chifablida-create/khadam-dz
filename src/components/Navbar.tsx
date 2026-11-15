@@ -23,15 +23,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   userMode,
   setUserMode,
   points,
-  isRegisteredCraftsman = false,
+  isRegisteredCraftsman = true,
   isDark,
   toggleTheme,
   onOpenAdminLogin,
   onNavigatePoints,
   unreadCount = 0,
-  onOpenNotifications,
-  onOpenFacebookBot,
-  pendingAdminCount = 0
+  onOpenNotifications
 }) => {
   const displayPoints = isRegisteredCraftsman ? points : 0;
   const isLowPoints = isRegisteredCraftsman && displayPoints < 25;
@@ -74,29 +72,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         isDark ? 'bg-[#0f121d]/95 border-gray-800 text-white' : 'bg-white/95 border-gray-300 text-black shadow-xs'
       }`}
     >
-      <div className="max-w-md mx-auto w-full px-2 h-14 flex items-center justify-between gap-1">
+      <div className="max-w-md mx-auto w-full px-2.5 h-14 flex items-center justify-between gap-1">
         {/* Brand Logo (Tap 5 times to open password-protected Admin Login) */}
         <div
           onClick={handleLogoTap}
           className="flex items-center gap-1.5 min-w-0 select-none cursor-pointer"
         >
-          <img
-            src="/icon-512x512.png"
-            alt="خدّام ديزاد"
-            referrerPolicy="no-referrer"
-            className="w-8 h-8 rounded-xl border border-amber-400/70 shadow-sm shrink-0 object-contain bg-[#042f24]"
-          />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-lime-400 flex items-center justify-center text-white font-black text-base shadow-sm shrink-0">
+            DZ
+          </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1 leading-none">
-              <span className={`font-black text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-black'}`}>
+              <span className={`font-black text-[15px] tracking-tight truncate ${isDark ? 'text-white' : 'text-black'}`}>
                 خدّام
               </span>
-              <span className="text-[9px] font-black px-1 py-0.5 rounded-md bg-emerald-600 text-white shadow-xs shrink-0">
+              <span className="text-[10px] font-black px-1 py-0.5 rounded-md bg-emerald-600 text-white shadow-xs shrink-0">
                 ديزاد
               </span>
             </div>
             <span
-              className={`text-[8px] font-extrabold flex items-center gap-0.5 mt-0.5 truncate ${
+              className={`text-[9px] font-extrabold flex items-center gap-0.5 mt-0.5 truncate ${
                 isDark ? 'text-gray-300' : 'text-gray-800'
               }`}
             >

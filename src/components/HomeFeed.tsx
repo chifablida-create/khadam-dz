@@ -63,7 +63,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         }
       }
       return true;
-    });
+    }).sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
   }, [requests, selectedCraft, selectedWilaya, onlyPriority, searchQuery]);
 
   const handleCopyPhone = (id: string, phone: string, e: React.MouseEvent) => {
@@ -103,9 +103,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       </div>
 
       {/* Official Application Advertising & Promotion Banner */}
-      {onOpenPromoModal && (
-        {/* Clean production UI: AppPromoBanner hidden */}
-      )}
+      {null}
 
       {/* Craft Horizontal Filter Scroll */}
       <div className="px-3">
