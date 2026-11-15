@@ -9,6 +9,18 @@ interface HomeFeedProps {
   revealedSet: Set<string>;
   onRevealPhone: (request: RequestItem) => void;
   onSelectRequest: (request: RequestItem) => void;
+  onToggleAgreeRequest?: (request: RequestItem) => void;
+  onUpdateAgreementDetails?: (
+    request: RequestItem,
+    details: {
+      isAgreed: boolean;
+      agreementTimeNote?: string;
+      agreementScheduledAt?: number;
+      agreementReminderMinutes?: number;
+      cancellationReason?: string;
+    }
+  ) => void;
+  onTriggerAppointmentReminderNow?: (request: RequestItem) => void;
   onOpenCreateModal: () => void;
   onOpenPromoModal?: () => void;
   onOpenPlayStore?: () => void;
@@ -21,6 +33,8 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   revealedSet,
   onRevealPhone,
   onSelectRequest,
+  onToggleAgreeRequest,
+  onTriggerAppointmentReminderNow,
   onOpenCreateModal,
   onOpenPromoModal,
   onOpenPlayStore,
@@ -321,6 +335,64 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 }`}>
                   {req.desc}
                 </p>
+
+                {/* Agreement Appointment & 30-Minute In-App Reminder Banner */}
+                {(req.isAgreed || req.agreedByCraftsmanName || req.status === 'in_progress') && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className={`mb-2.5 px-2.5 py-1.5 rounded-xl border text-[10px] font-black flex items-center justify-between gap-1.5 flex-wrap ${
+                      isDark
+                        ? 'bg-amber-950/50 border-amber-500/40 text-amber-200'
+                        : 'bg-amber-50 border-amber-400 text-amber-950'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span>🤝 متفق معه{req.agreedByCraftsmanName ? ` (${req.agreedByCraftsmanName})` : ''}</span>
+                      {(req.agreementTimeNote || req.agreementScheduledAt) && (
+                        <span className="underline">
+                          • ⏰ {req.agreementTimeNote || formatScheduledAppointmentAr(req.agreementScheduledAt)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const schedTs =
+                          req.agreementScheduledAt ||
+                          resolveAgreementScheduledTimestamp(req.agreementTimeNote || '');
+                        const cInfo = getAppointmentCountdownInfo(
+                          schedTs,
+                          req.agreementReminderMinutes || 30
+                        );
+                        return cInfo ? (
+                          <span
+                            className={`px-1.5 py-0.5 rounded-md text-[9px] font-black ${
+                              cInfo.isApproaching
+                                ? 'bg-red-600 text-white animate-pulse'
+                                : isDark
+                                ? 'bg-gray-800 text-amber-300'
+                                : 'bg-white text-amber-900 border border-amber-300'
+                            }`}
+                          >
+                            {cInfo.badgeText}
+                          </span>
+                        ) : null;
+                      })()}
+                      {onTriggerAppointmentReminderNow && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTriggerAppointmentReminderNow(req);
+                          }}
+                          className="px-2 py-0.5 rounded-md bg-amber-500 hover:bg-amber-400 text-black text-[9px] font-black cursor-pointer"
+                          title="إظهار إشعار (تذكير موعد) داخل التطبيق"
+                        >
+                          🔔 تذكير موعد
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Bottom Row: Phone Number & Action */}
                 <div

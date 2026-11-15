@@ -9,6 +9,16 @@ export interface RequestItem {
   priority?: boolean;
   status?: 'open' | 'in_progress' | 'completed';
   isCustomerOwn?: boolean;
+  revealedByCraftsmanName?: string;
+  agreedByCraftsmanName?: string;
+  isAgreed?: boolean;
+  agreementTimeNote?: string;
+  agreementScheduledAt?: number;
+  agreementReminderMinutes?: number;
+  cancellationReason?: string;
+  customerRatingStars?: number;
+  customerRatingComment?: string;
+  customerRatedAt?: number;
 }
 
 export interface CraftsmanUser {
@@ -31,12 +41,16 @@ export interface CraftsmanUser {
 export interface RatingItem {
   id: string;
   requestId: string;
+  craftsmanId?: string;
   craft: string;
+  wilaya?: string;
   stars: number;
   comment: string;
   createdAt: number;
   customerPhone: string;
+  customerName?: string;
   craftsmanName: string;
+  requestTitle?: string;
 }
 
 export interface ComplaintItem {
@@ -111,6 +125,10 @@ export interface PlatformSettings {
   adminPhone: string;
   adminPass: string;
   adminCode: string;
+  officialRip?: string;
+  officialHolder?: string;
+  officialCcp?: string;
+  officialCle?: string;
   botAutoApproveReceipts?: boolean;
   botAutoReplyChat?: boolean;
   botAutoVerifyRequests?: boolean;
@@ -134,13 +152,14 @@ export interface BroadcastNotification {
 
 export interface AppNotification {
   id: string;
-  type: 'low_points' | 'matching_request' | 'broadcast' | 'system';
+  type: 'low_points' | 'matching_request' | 'appointment_reminder' | 'broadcast' | 'system';
   title: string;
   message: string;
   createdAt: number;
   read: boolean;
   relatedRequestId?: string;
   relatedCraft?: string;
+  scheduledAt?: number;
   points?: number;
 }
 

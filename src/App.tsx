@@ -54,6 +54,14 @@ import {
 } from './data/constants';
 
 import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase, runLiveSupabaseBotReply } from "./supabase.js";
+import { playCraftsmanAlertSound } from "./utils/craftsmanNotifications";
+import {
+  resolveAgreementScheduledTimestamp,
+  formatScheduledAppointmentAr,
+  getAppointmentCountdownInfo,
+  buildGoogleCalendarUrl,
+  downloadAppointmentIcsFile
+} from "./utils/appointmentScheduler";
 const memoryStateStore = new Map<string, any>();
 const SEED_REQ_TIME_MAP = new Map<string, number>(INITIAL_REQUESTS.map((r) => [String(r.id), Number(r.createdAt)]));
 function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
@@ -558,6 +566,231 @@ export default function App() {
       )
     );
     triggerSync('تم تحديث حالة الطلب ✓');
+  };
+
+  const syncSingleRequestToSupabase = (updatedReq: RequestItem) => {
+    setRequests((prev) => prev.map((r) => (r.id === updatedReq.id ? updatedReq : r)));
+    setSelectedRequest((prev) => (prev && prev.id === updatedReq.id ? updatedReq : prev));
+    saveDemandeToSupabase(updatedReq).catch(() => {});
+  };
+
+  const remindedAppointmentKeysRef = useRef<Set<string>>(new Set());
+
+  const triggerInAppAppointmentReminder = (req: RequestItem, isManual = false) => {
+    const reminderMins = Number(req.agreementReminderMinutes) || 30;
+    const resolvedTs =
+      resolveAgreementScheduledTimestamp(req.agreementTimeNote || '', req.agreementScheduledAt) ||
+      Date.now() + reminderMins * 60 * 1000;
+    const formattedTime = formatScheduledAppointmentAr(resolvedTs);
+    const countdown = getAppointmentCountdownInfo(resolvedTs, reminderMins);
+    const badgeLabel = countdown ? countdown.badgeText : `🔔 تذكير موعد (قبل ${reminderMins} د)`;
+    const craftsmanLabel =
+      req.agreedByCraftsmanName || currentUser?.name || req.revealedByCraftsmanName || `حرفي ${req.craft}`;
+
+    playCraftsmanAlertSound();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([220, 100, 220]);
+      }
+    } catch {
+      // ignore
+    }
+
+    const notifTitle = `⏰ تذكير موعد (${req.craft} - ${req.wilaya}) — قبل ${reminderMins} دقيقة من موعد الإتفاق`;
+    const notifMsg = `${badgeLabel} • الزبون: "${req.title}"${
+      req.agreementTimeNote ? ` — الموعد: ${req.agreementTimeNote}` : ''
+    } (${formattedTime}) • الحرفي: ${craftsmanLabel}`;
+
+    const newAppNotif: AppNotification = {
+      id: `notif_appt_${req.id}_${Date.now()}`,
+      type: 'appointment_reminder',
+      title: notifTitle,
+      message: notifMsg,
+      createdAt: Date.now(),
+      read: false,
+      relatedRequestId: req.id,
+      relatedCraft: req.craft,
+      scheduledAt: resolvedTs
+    };
+
+    setNotifications((prev) => [newAppNotif, ...prev]);
+    setActivePushNotification({
+      id: newAppNotif.id,
+      title: notifTitle,
+      message: notifMsg,
+      type: 'appointment_reminder',
+      relatedRequestId: req.id,
+      calendarUrl: buildGoogleCalendarUrl(req, {
+        canShowPhone: revealedSet.has(req.id)
+      })
+    });
+
+    if (isManual) {
+      triggerSync('🔔 تم إظهار إشعار (تذكير موعد) داخل التطبيق وإضافته لمركز الإشعارات!');
+    }
+  };
+
+  // Automatic 30-minute pre-appointment in-app notification watcher
+  useEffect(() => {
+    const checkApproachingAppointments = () => {
+      for (const req of requests) {
+        const isReqAgreed = Boolean(
+          req.isAgreed || req.agreedByCraftsmanName || req.status === 'in_progress'
+        );
+        if (!isReqAgreed || req.status === 'completed') continue;
+        if (!req.agreementScheduledAt && !req.agreementTimeNote) continue;
+
+        const scheduledTs = resolveAgreementScheduledTimestamp(
+          req.agreementTimeNote || '',
+          req.agreementScheduledAt
+        );
+        if (!scheduledTs) continue;
+
+        const reminderMins = Number(req.agreementReminderMinutes) || 30;
+        const info = getAppointmentCountdownInfo(scheduledTs, reminderMins);
+        const reminderKey = `${req.id}_${scheduledTs}_${reminderMins}`;
+
+        if (
+          info &&
+          (info.isApproaching || info.isDueNow) &&
+          !remindedAppointmentKeysRef.current.has(reminderKey)
+        ) {
+          remindedAppointmentKeysRef.current.add(reminderKey);
+          triggerInAppAppointmentReminder(req, false);
+          break;
+        }
+      }
+    };
+
+    checkApproachingAppointments();
+    const timer = setInterval(checkApproachingAppointments, 10000);
+    return () => clearInterval(timer);
+  }, [requests, currentUser]);
+
+  const handleToggleAgreeRequest = (req: RequestItem) => {
+    const currentlyAgreed = Boolean(
+      req.isAgreed || req.agreedByCraftsmanName || req.status === 'in_progress'
+    );
+    const activeCraftsmanName = (
+      currentUser?.name ||
+      req.agreedByCraftsmanName ||
+      req.revealedByCraftsmanName ||
+      `حرفي ${req.craft}`
+    ).trim();
+    const nextAgreed = !currentlyAgreed;
+    const defaultScheduledAt = nextAgreed
+      ? req.agreementScheduledAt && req.agreementScheduledAt > 1000000000000
+        ? req.agreementScheduledAt
+        : resolveAgreementScheduledTimestamp(req.agreementTimeNote || '')
+      : undefined;
+    const defaultReminderMinutes = Number(req.agreementReminderMinutes) || 30;
+    const updatedReq: RequestItem = {
+      ...req,
+      isAgreed: nextAgreed,
+      revealedByCraftsmanName: req.revealedByCraftsmanName || activeCraftsmanName,
+      agreedByCraftsmanName: nextAgreed ? activeCraftsmanName : '',
+      agreementScheduledAt: defaultScheduledAt,
+      agreementReminderMinutes: defaultReminderMinutes,
+      cancellationReason: nextAgreed ? '' : req.cancellationReason || '',
+      status: nextAgreed
+        ? req.status === 'completed'
+          ? 'completed'
+          : 'in_progress'
+        : 'open'
+    };
+    syncSingleRequestToSupabase(updatedReq);
+    triggerSync(
+      nextAgreed
+        ? `🤝 تم تسجيل الإتفاق مع الزبون باسم (${activeCraftsmanName}) وتفعيل (تذكير موعد) قبل ${defaultReminderMinutes} دقيقة!`
+        : '✓ تم إلغاء حالة الإتفاق وإعادة الطلب كمفتوح'
+    );
+  };
+
+  const handleUpdateAgreementDetails = (
+    req: RequestItem,
+    details: {
+      isAgreed: boolean;
+      agreementTimeNote?: string;
+      cancellationReason?: string;
+      agreementScheduledAt?: number;
+      agreementReminderMinutes?: number;
+    }
+  ) => {
+    const activeCraftsmanName = (
+      currentUser?.name ||
+      req.agreedByCraftsmanName ||
+      req.revealedByCraftsmanName ||
+      `حرفي ${req.craft}`
+    ).trim();
+    const nextAgreed = Boolean(details.isAgreed);
+    const cleanTimeNote = String(
+      details.agreementTimeNote !== undefined
+        ? details.agreementTimeNote
+        : req.agreementTimeNote || ''
+    )
+      .trim()
+      .slice(0, 200);
+    const cleanCancelReason = String(
+      details.cancellationReason !== undefined
+        ? details.cancellationReason
+        : req.cancellationReason || ''
+    )
+      .trim()
+      .slice(0, 200);
+
+    const resolvedScheduledAt = nextAgreed
+      ? resolveAgreementScheduledTimestamp(
+          cleanTimeNote,
+          details.agreementScheduledAt !== undefined
+            ? details.agreementScheduledAt
+            : req.agreementScheduledAt
+        ) || undefined
+      : undefined;
+
+    const resolvedReminderMinutes =
+      typeof details.agreementReminderMinutes === 'number' && details.agreementReminderMinutes > 0
+        ? details.agreementReminderMinutes
+        : req.agreementReminderMinutes || 30;
+
+    const updatedReq: RequestItem = {
+      ...req,
+      isAgreed: nextAgreed,
+      revealedByCraftsmanName: req.revealedByCraftsmanName || activeCraftsmanName,
+      agreedByCraftsmanName: nextAgreed ? activeCraftsmanName : '',
+      agreementTimeNote: cleanTimeNote,
+      agreementScheduledAt: resolvedScheduledAt,
+      agreementReminderMinutes: resolvedReminderMinutes,
+      cancellationReason: nextAgreed ? '' : cleanCancelReason,
+      status: nextAgreed
+        ? req.status === 'completed'
+          ? 'completed'
+          : 'in_progress'
+        : 'open'
+    };
+    syncSingleRequestToSupabase(updatedReq);
+
+    if (nextAgreed && resolvedScheduledAt) {
+      const reminderKey = `${updatedReq.id}_${resolvedScheduledAt}_${resolvedReminderMinutes}`;
+      remindedAppointmentKeysRef.current.delete(reminderKey);
+      const countdown = getAppointmentCountdownInfo(resolvedScheduledAt, resolvedReminderMinutes);
+      if (countdown && (countdown.isApproaching || countdown.isDueNow)) {
+        remindedAppointmentKeysRef.current.add(reminderKey);
+        setTimeout(() => triggerInAppAppointmentReminder(updatedReq, false), 350);
+      }
+    }
+
+    if (nextAgreed && (cleanTimeNote || resolvedScheduledAt)) {
+      const displayTime = cleanTimeNote || (resolvedScheduledAt ? formatScheduledAppointmentAr(resolvedScheduledAt) : '');
+      triggerSync(
+        `⏰ تم حفظ موعد الإتفاق (${displayTime}) وتفعيل (تذكير موعد) داخل التطبيق قبل ${resolvedReminderMinutes} دقيقة!`
+      );
+    } else if (!nextAgreed && cleanCancelReason) {
+      triggerSync(`⚠️ تم إلغاء الإتفاق وحفظ السبب (${cleanCancelReason})`);
+    } else if (nextAgreed) {
+      triggerSync(`🤝 تم تأكيد الإتفاق مع الزبون باسم (${activeCraftsmanName})!`);
+    } else {
+      triggerSync('✓ تم تحديث حالة الإتفاق بنجاح');
+    }
   };
 
   // Handle craftsman registration
@@ -1263,6 +1496,9 @@ export default function App() {
               revealedSet={revealedSet}
               onRevealPhone={handleRevealPhone}
               onSelectRequest={(req) => setSelectedRequest(req)}
+              onToggleAgreeRequest={handleToggleAgreeRequest}
+              onUpdateAgreementDetails={handleUpdateAgreementDetails}
+              onTriggerAppointmentReminderNow={(req) => triggerInAppAppointmentReminder(req, true)}
               onOpenCreateModal={() => setIsCreateModalOpen(true)}
               onOpenPromoModal={() => setIsPromoModalOpen(true)}
               onOpenPlayStore={() => setIsPlayStoreModalOpen(true)}
@@ -1333,7 +1569,7 @@ export default function App() {
                 setCurrentTab('points');
                 setReceiptInitialPkg({ amount: 2000, pts: 210 });
                 setIsUploadReceiptOpen(true);
-              } else if (notifType === 'matching_request' && (activePushNotification as any).relatedRequestId) {
+              } else if ((notifType === 'matching_request' || notifType === 'appointment_reminder') && (activePushNotification as any).relatedRequestId) {
                 const targetReq = requests.find((r) => r.id === (activePushNotification as any).relatedRequestId);
                 if (targetReq) {
                   setSelectedRequest(targetReq);
@@ -1345,6 +1581,16 @@ export default function App() {
               }
             }
             setActivePushNotification(null);
+          }}
+          onAddToCalendarClick={() => {
+            const targetReqId = (activePushNotification as any)?.relatedRequestId;
+            if (targetReqId) {
+              const found = requests.find((r) => r.id === targetReqId);
+              if (found) {
+                downloadAppointmentIcsFile(found);
+                triggerSync('📅 تم تحميل ملف الموعد (.ics) لإضافته إلى تقويم الهاتف!');
+              }
+            }
           }}
           isDark={isDark}
         />
@@ -1377,7 +1623,12 @@ export default function App() {
           request={selectedRequest}
           onClose={() => setSelectedRequest(null)}
           isRevealed={selectedRequest ? revealedSet.has(selectedRequest.id) : false}
+          isRegisteredCraftsman={Boolean(currentUser)}
+          craftsmanName={currentUser?.name || ''}
           onRevealPhone={(req) => handleRevealPhone(req)}
+          onToggleAgreeRequest={handleToggleAgreeRequest}
+          onUpdateAgreementDetails={handleUpdateAgreementDetails}
+          onTriggerAppointmentReminderNow={(req) => triggerInAppAppointmentReminder(req, true)}
           isDark={isDark}
         />
 
@@ -1502,7 +1753,7 @@ export default function App() {
           onClearAll={() => setNotifications([])}
           onSelectNotification={(notif) => {
             setNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n)));
-            if (notif.type === 'matching_request' && notif.relatedRequestId) {
+            if ((notif.type === 'matching_request' || notif.type === 'appointment_reminder') && notif.relatedRequestId) {
               const found = requests.find((r) => r.id === notif.relatedRequestId);
               if (found) {
                 setSelectedRequest(found);
@@ -1515,6 +1766,15 @@ export default function App() {
               setIsUploadReceiptOpen(true);
             }
             setIsNotificationsModalOpen(false);
+          }}
+          onAddAppointmentToCalendar={(notif) => {
+            if (notif.relatedRequestId) {
+              const found = requests.find((r) => r.id === notif.relatedRequestId);
+              if (found) {
+                downloadAppointmentIcsFile(found);
+                triggerSync('📅 تم تحميل ملف الموعد (.ics) لإضافته إلى تقويم الهاتف!');
+              }
+            }
           }}
           onOpenRecharge={() => {
             setReceiptInitialPkg({ amount: 2000, pts: 200 });
