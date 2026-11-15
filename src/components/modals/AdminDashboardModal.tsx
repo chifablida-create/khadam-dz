@@ -46,6 +46,7 @@ import {
   BroadcastNotification
 } from '../../types';
 import { CRAFTS_LIST, WILAYAS_DZ } from '../../data/constants';
+import { saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase } from '../../supabase.js';
 
 const FIRESTORE_ADMIN_REST_URL =
   'https://firestore.googleapis.com/v1/projects/charismatic-castle-z6shk/databases/ai-studio-khadamdz-e03a2bd4-f7fc-4cb5-9f70-63f2c22b676a/documents';
@@ -53,6 +54,7 @@ const FIRESTORE_ADMIN_API_KEY = 'AIzaSyDIEs9pw-I8tLu31RIOza2PYu5VZ_ulGp0';
 
 async function saveRequestDirectToFirestoreRest(req: RequestItem): Promise<void> {
   if (!req || !req.id) return;
+  try { await saveDemandeToSupabase(req).catch(() => {}); } catch {}
   try {
     const docId = encodeURIComponent(String(req.id).replace(/[^a-zA-Z0-9_-]/g, '_'));
     await fetch(`${FIRESTORE_ADMIN_REST_URL}/requests/${docId}?key=${FIRESTORE_ADMIN_API_KEY}`, {
@@ -79,6 +81,10 @@ async function saveRequestDirectToFirestoreRest(req: RequestItem): Promise<void>
 
 async function saveCraftsmanDirectToFirestoreRest(c: CraftsmanUser): Promise<void> {
   if (!c || !c.id) return;
+  try {
+    await saveArtisanToSupabase(c).catch(() => {});
+    await savePointsToSupabase(c.id, Math.max(0, Math.floor(Number(c.points ?? 50)))).catch(() => {});
+  } catch {}
   try {
     const docId = encodeURIComponent(String(c.id).replace(/[^a-zA-Z0-9_-]/g, '_'));
     await fetch(`${FIRESTORE_ADMIN_REST_URL}/craftsmen/${docId}?key=${FIRESTORE_ADMIN_API_KEY}`, {

@@ -53,7 +53,7 @@ import {
   STORAGE_KEYS
 } from './data/constants';
 
-import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase } from "./supabase.js";
+import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase, runLiveSupabaseBotReply } from "./supabase.js";
 const memoryStateStore = new Map<string, any>();
 const SEED_REQ_TIME_MAP = new Map<string, number>(INITIAL_REQUESTS.map((r) => [String(r.id), Number(r.createdAt)]));
 function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
@@ -669,8 +669,18 @@ export default function App() {
 
   // Handle successful electronic payment via Chargily Pay
   const handleChargilySuccess = (amount: number, pts: number, txnId: string, notes: string) => {
-    // Credit points immediately
-    setPoints((prev) => prev + pts);
+    // Credit points immediately and persist to Supabase
+    setPoints((prev) => {
+      const nextPts = prev + pts;
+      const targetId = currentUser?.id || "cp1";
+      savePointsToSupabase(targetId, nextPts).catch(() => {});
+      if (currentUser) {
+        const updatedCr = { ...currentUser, points: nextPts };
+        setCurrentUser(updatedCr);
+        saveArtisanToSupabase(updatedCr).catch(() => {});
+      }
+      return nextPts;
+    });
 
     const approvedRecharge: PendingRecharge = {
       id: `rec_chg_${Date.now()}`,
@@ -726,7 +736,17 @@ export default function App() {
 
   // Direct Admin Points Grant or Deduct
   const handleAdminAdjustPoints = (delta: number, reason: string) => {
-    setPoints((prev) => Math.max(0, prev + delta));
+    setPoints((prev) => {
+      const nextPts = Math.max(0, prev + delta);
+      const targetId = currentUser?.id || "cp1";
+      savePointsToSupabase(targetId, nextPts).catch(() => {});
+      if (currentUser) {
+        const updatedCr = { ...currentUser, points: nextPts };
+        setCurrentUser(updatedCr);
+        saveArtisanToSupabase(updatedCr).catch(() => {});
+      }
+      return nextPts;
+    });
     const newLog: PointLog = {
       id: `log_adm_${Date.now()}`,
       type: delta >= 0 ? 'bonus' : 'reveal',
@@ -747,8 +767,18 @@ export default function App() {
       prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p))
     );
 
-    // Credit points
-    setPoints((prev) => prev + target.pts);
+    // Credit points and persist to Supabase
+    setPoints((prev) => {
+      const nextPts = prev + target.pts;
+      const targetId = currentUser?.id || "cp1";
+      savePointsToSupabase(targetId, nextPts).catch(() => {});
+      if (currentUser) {
+        const updatedCr = { ...currentUser, points: nextPts };
+        setCurrentUser(updatedCr);
+        saveArtisanToSupabase(updatedCr).catch(() => {});
+      }
+      return nextPts;
+    });
 
     // Add to points log
     const newLog: PointLog = {
@@ -763,6 +793,43 @@ export default function App() {
     triggerSync(`تم اعتماد الوصل وشحن +${target.pts} نقطة بنجاح ✓`);
   };
 
+  // Continuous 24/7 Auto-Approve Receipt Bot Watcher
+  useEffect(() => {
+    if (settings.botAutoApproveReceipts === false) return;
+    const autoBotInterval = setInterval(() => {
+      setPendingRecharges((prev) => {
+        const verifiedPending = prev.filter(
+          (r) =>
+            r.status === pending &&
+            r.analysis?.isValidReceipt &&
+            (r.analysis?.confidence ?? 0) >= 0.85 &&
+            r.analysis?.transactionId
+        );
+        if (verifiedPending.length === 0) return prev;
+        const addedPts = verifiedPending.reduce((acc, r) => acc + (r.pts || 0), 0);
+        if (addedPts > 0) {
+          setPoints((curPts) => {
+            const nextPts = curPts + addedPts;
+            const targetId = currentUser?.id || cp1;
+            savePointsToSupabase(targetId, nextPts).catch(() => {});
+            if (currentUser) {
+              const updatedCr = { ...currentUser, points: nextPts };
+              setCurrentUser(updatedCr);
+              saveArtisanToSupabase(updatedCr).catch(() => {});
+            }
+            return nextPts;
+          });
+        }
+        return prev.map((r) =>
+          verifiedPending.some((vp) => vp.id === r.id)
+            ? { ...r, status: approved, autoApproved: true }
+            : r
+        );
+      });
+    }, 8000);
+    return () => clearInterval(autoBotInterval);
+  }, [settings.botAutoApproveReceipts, currentUser]);
+
   // Approve all pending recharges via Bot / Admin
   const handleApproveAllRecharges = () => {
     const pendingList = pendingRecharges.filter((p) => p.status === 'pending');
@@ -774,7 +841,17 @@ export default function App() {
     setPendingRecharges((prev) =>
       prev.map((p) => (p.status === 'pending' ? { ...p, status: 'approved', autoApproved: true } : p))
     );
-    setPoints((prev) => prev + totalPts);
+    setPoints((prev) => {
+      const nextPts = prev + totalPts;
+      const targetId = currentUser?.id || "cp1";
+      savePointsToSupabase(targetId, nextPts).catch(() => {});
+      if (currentUser) {
+        const updatedCr = { ...currentUser, points: nextPts };
+        setCurrentUser(updatedCr);
+        saveArtisanToSupabase(updatedCr).catch(() => {});
+      }
+      return nextPts;
+    });
     const newLog: PointLog = {
       id: `log_rec_all_${Date.now()}`,
       type: 'recharge',
@@ -827,33 +904,36 @@ export default function App() {
       }
 
       try {
-        const res = await fetch('/api/bot/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            craftsmanName: currentUser?.name || chatThreads[0]?.craftsmanName || 'حرفي خدام',
-            craft: craftsmanCraft,
-            points,
-            pendingCount,
-            openRequestsCount: requests.filter((r) => r.status !== 'completed').length,
-            revealCost: settings.freeRevealPromo ? 0 : (settings.revealCost ?? 25)
-          })
+        const liveBotRes = await runLiveSupabaseBotReply({
+          message: text,
+          craftsmanId: currentUser?.id || 'cp1',
+          craftsmanName: currentUser?.name || chatThreads[0]?.craftsmanName || 'حرفي خدام',
+          craftsmanCraft,
+          craftsmanWilaya: currentUser?.wilaya || '09 البليدة',
+          currentPoints: points,
+          pendingRecharges
         });
-        const data = await res.json();
-        if (data?.reply) {
-          const botMsg: ChatMessage = {
-            id: `m_bot_${Date.now()}`,
-            sender: 'bot',
-            text: data.reply,
-            ts: Date.now()
-          };
-          setChatThreads((prev) =>
-            prev.map((t) =>
-              t.id === threadId ? { ...t, messages: [...t.messages, botMsg] } : t
+        if (liveBotRes.pointsAwarded > 0) {
+          setPendingRecharges((prev) =>
+            prev.map((r) =>
+              liveBotRes.approvedRechargeIds.includes(r.id)
+                ? { ...r, status: 'approved', autoApproved: true }
+                : r
             )
           );
+          setPoints(liveBotRes.newBalance);
         }
+        const botMsg: ChatMessage = {
+          id: `m_bot_${Date.now()}`,
+          sender: 'bot',
+          text: liveBotRes.reply,
+          ts: Date.now()
+        };
+        setChatThreads((prev) =>
+          prev.map((t) =>
+            t.id === threadId ? { ...t, messages: [...t.messages, botMsg] } : t
+          )
+        );
       } catch {
         const fallbackBotMsg: ChatMessage = {
           id: `m_bot_${Date.now()}`,
@@ -963,13 +1043,27 @@ export default function App() {
   // Admin / Bot Request Controls
   const handleToggleRequestPriority = (id: string) => {
     setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, priority: !r.priority } : r))
+      prev.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, priority: !r.priority };
+          saveDemandeToSupabase(updated).catch(() => {});
+          return updated;
+        }
+        return r;
+      })
     );
   };
 
   const handleChangeRequestStatus = (id: string, status: 'open' | 'in_progress' | 'completed') => {
     setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
+      prev.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, status };
+          saveDemandeToSupabase(updated).catch(() => {});
+          return updated;
+        }
+        return r;
+      })
     );
   };
 
@@ -986,7 +1080,7 @@ export default function App() {
     const now = Date.now();
     const generated: RequestItem[] = [
       {
-        id: `req_bot_1_${now}`,
+        id: `req_dz_1_${now}`,
         craft: craftsmanCraft,
         wilaya: '16 الجزائر',
         title: `طلب عاجل موثق بالبوت في تخصص ${craftsmanCraft}`,
@@ -997,7 +1091,7 @@ export default function App() {
         status: 'open'
       },
       {
-        id: `req_bot_2_${now}`,
+        id: `req_dz_2_${now}`,
         craft: 'كهربائي',
         wilaya: '31 وهران',
         title: 'تركيب لوحة قواطع كهربائية وإضاءة LED لفيلا جديدة',
@@ -1008,7 +1102,7 @@ export default function App() {
         status: 'open'
       },
       {
-        id: `req_bot_3_${now}`,
+        id: `req_dz_3_${now}`,
         craft: 'تبريد',
         wilaya: '25 قسنطينة',
         title: 'صيانة وشحن غاز مكيف هواء 18000 BTU',
@@ -1020,12 +1114,17 @@ export default function App() {
       }
     ];
     setRequests((prev) => [...generated, ...prev]);
-    triggerSync('🎯 قام البوت الذكي بتوليد ونشر 3 طلبات زبائن موثقة!');
+    generated.forEach((reqItem) => { saveDemandeToSupabase(reqItem).catch(() => {}); });
+    triggerSync('🎯 قام البوت الذكي بنشر 3 طلبات زبائن موثقة وحفظها في Supabase!');
   };
 
   // Admin Craftsmen Controls
   const handleUpdateCraftsman = (updated: CraftsmanUser) => {
     setCraftsmen((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    saveArtisanToSupabase(updated).catch(() => {});
+    if (typeof updated.points === 'number') {
+      savePointsToSupabase(updated.id, updated.points).catch(() => {});
+    }
     if (currentUser && currentUser.id === updated.id) {
       setCurrentUser(updated);
     }

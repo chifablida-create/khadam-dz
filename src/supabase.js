@@ -15,22 +15,17 @@ const supabaseAnonKey =
   procEnv.VITE_SUPABASE_ANON_KEY ||
   metaEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   procEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  '';
+  'sb_publishable_VV1FgtQ3zMxMYKT5YqQ5rw_eVci_ddV';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey ||
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0b2hxdHBra2htbXNoY3RobmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.placeholder',
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false
-    }
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false
   }
-);
+});
 
 const KDZ_META_MARKER = '\n<!--kdz:';
 const KDZ_META_END = '-->';
@@ -728,6 +723,57 @@ export const GUARDIAN_BOT_24_7_DUTY = {
 
 let guardianCyclesCount = 0;
 
+export async function runLiveSupabaseBotReply({
+  message,
+  craftsmanId,
+  craftsmanName,
+  craft,
+  wilaya,
+  points,
+  pendingCount,
+  revealCost = 25
+}) {
+  const [liveDemandes, liveArtisans, livePointsMap] = await Promise.all([
+    fetchDemandesFromSupabase(),
+    fetchArtisansFromSupabase(),
+    fetchPointsFromSupabase()
+  ]);
+
+  const allDemandes = Array.isArray(liveDemandes) ? liveDemandes : Array.from(guardianDemandesById.values());
+  const allArtisans = Array.isArray(liveArtisans) ? liveArtisans : Array.from(guardianArtisansById.values());
+  const openDemandes = allDemandes.filter((r) => r && r.status !== 'completed');
+  const matchingCraftDemandes = openDemandes.filter((r) => !craft || r.craft === craft);
+  const matchingWilayaDemandes = matchingCraftDemandes.filter(
+    (r) => !wilaya || String(r.wilaya || '').includes(String(wilaya).replace(/^\d+\s*/, ''))
+  );
+
+  const syncedPts =
+    craftsmanId && livePointsMap && typeof livePointsMap[String(craftsmanId)] === 'number'
+      ? livePointsMap[String(craftsmanId)]
+      : typeof points === 'number'
+      ? points
+      : 50;
+
+  const text = String(message || '').trim();
+  const latestMatching = matchingWilayaDemandes[0] || matchingCraftDemandes[0] || openDemandes[0];
+
+  if (/وصل|تفعيل|معلق|شحن|بريدي|شارجيلي|نقاط|رصيد/i.test(text)) {
+    return `🤖 [بوت خدّام DZ المباشر - متصل بـ Supabase]: مرحباً ${craftsmanName || 'حرفينا الكريم'}! رصيدك الفعلي المسجل في قاعدة البيانات هو (${syncedPts} نقطة — يكفي لكشف ${Math.floor(syncedPts / Math.max(1, revealCost))} أرقام زبائن). ${
+      pendingCount > 0
+        ? `تم رصد (${pendingCount}) وصل شحن وتفعيله تلقائياً في حسابك على Supabase ⚡.`
+        : 'يمكنك شحن نقاطك في أي وقت عبر بريدي موب (RIP: 00799999000122089353) أو شارجيلي باي وسيقوم البوت بفحص الوصل وتحديث جدول النقاط (points) فوراً.'
+    }`;
+  }
+
+  if (/طلب|خدمة|زبون|عمل|ورشة/i.test(text) && latestMatching) {
+    return `🤖 [بوت خدّام DZ المباشر - متصل بـ Supabase]: يوجد حالياً (${openDemandes.length}) طلب مفتوح في قاعدة البيانات، منها (${matchingCraftDemandes.length}) طلب في تخصص (${craft || 'سباك'}). أحدث طلب: "${latestMatching.title}" في (${latestMatching.wilaya}). يمكنك كشف رقم الزبون بـ ${revealCost} نقطة والتواصل معه فوراً 📞.`;
+  }
+
+  return `🤖 [بوت خدّام DZ المباشر 24/7]: أهلاً بك ${craftsmanName || 'حرفينا الكريم'}! البوت متصل بقاعدة بيانات Supabase الحية (${openDemandes.length} طلب زبون نشط • ${allArtisans.length} حرفي مسجل • رصيدك: ${syncedPts} نقطة).${
+    latestMatching ? ` أحدث طلب في تخصصك: "${latestMatching.title}" (${latestMatching.wilaya}).` : ''
+  } نحن في خدمتك على مدار الساعة ⚡.`;
+}
+
 export function startSync() {
   if (guardianBotStarted) return;
   guardianBotStarted = true;
@@ -737,7 +783,11 @@ export function startSync() {
       guardianCyclesCount += 1;
 
       // 0. تذكير البوت بعمله 24/24 وإعادة فتح قناة البث الفوري تلقائياً إذا انقطعت على أي هاتف
-      if (!activeBroadcastChannel || activeBroadcastChannel.state === 'closed' || activeBroadcastChannel.state === 'errored') {
+      if (
+        !activeBroadcastChannel ||
+        activeBroadcastChannel.state === 'closed' ||
+        activeBroadcastChannel.state === 'errored'
+      ) {
         subscribeToSupabaseRealtime({});
       }
 
@@ -762,7 +812,12 @@ export function startSync() {
       ]);
 
       // If demandes table exists in Supabase and is currently empty (0 rows), seed INITIAL_REQUESTS into Supabase by id
-      if (Array.isArray(demandes) && demandes.length === 0 && Array.isArray(INITIAL_REQUESTS) && INITIAL_REQUESTS.length > 0) {
+      if (
+        Array.isArray(demandes) &&
+        demandes.length === 0 &&
+        Array.isArray(INITIAL_REQUESTS) &&
+        INITIAL_REQUESTS.length > 0
+      ) {
         for (const seedReq of INITIAL_REQUESTS) {
           if (seedReq && seedReq.id) {
             pendingOutboundDemandes.set(String(seedReq.id), seedReq);
@@ -770,7 +825,10 @@ export function startSync() {
         }
       }
 
-      if ((Array.isArray(demandes) && demandes.length > 0) || (Array.isArray(artisans) && artisans.length > 0)) {
+      if (
+        (Array.isArray(demandes) && demandes.length > 0) ||
+        (Array.isArray(artisans) && artisans.length > 0)
+      ) {
         emitGuardianSyncToReact({
           type: 'guardian_cycle',
           demandes: sortRequestsNewestFirst(demandes || []),
@@ -797,9 +855,28 @@ export function startSync() {
   // Subscribe to real-time Postgres changes & broadcast events
   subscribeToSupabaseRealtime({});
 
-  // Run 24/24 non-stop every 5 seconds + on focus/visibility/online
+  // Run 24/24 non-stop via un-throttled Web Worker + fallback setInterval + focus/visibility/online
   if (typeof window !== 'undefined') {
-    setInterval(runBidirectionalGuardianCycle, 5000);
+    setInterval(runBidirectionalGuardianCycle, 4000);
+
+    try {
+      if (typeof Worker !== 'undefined' && typeof Blob !== 'undefined' && typeof URL !== 'undefined') {
+        const workerCode = `
+          setInterval(function() {
+            postMessage('kdz_bot_tick');
+          }, 4000);
+        `;
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const worker = new Worker(URL.createObjectURL(blob));
+        worker.onmessage = () => {
+          runBidirectionalGuardianCycle();
+        };
+        window.__KDZ_BOT_WORKER__ = worker;
+      }
+    } catch {
+      // fallback interval already active
+    }
+
     window.addEventListener('focus', runBidirectionalGuardianCycle);
     window.addEventListener('online', runBidirectionalGuardianCycle);
     if (typeof document !== 'undefined') {

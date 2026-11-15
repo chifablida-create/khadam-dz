@@ -8,6 +8,7 @@ export type CraftsmanWithReveals = CraftsmanUser & {
   revealedPhones?: string[];
 };
 
+export declare function sortRequestsNewestFirst(list: RequestItem[]): RequestItem[];
 export declare function mapDemandeRowToRequestItem(row: Record<string, any>): RequestItem | null;
 export declare function mapRequestItemToDemandePayload(req: RequestItem): {
   id: string;
@@ -23,6 +24,7 @@ export declare function mapRequestItemToDemandePayload(req: RequestItem): {
   client_phone: string;
   metier: string;
   message: string;
+  created_at?: string;
 };
 export declare function mapArtisanRowToCraftsmanUser(row: Record<string, any>): CraftsmanWithReveals | null;
 export declare function mapCraftsmanUserToArtisanPayload(
@@ -78,6 +80,21 @@ export declare const GUARDIAN_BOT_24_7_DUTY: {
 };
 
 export declare function startSync(): void;
+
+export declare function runLiveSupabaseBotReply(params?: {
+  message?: string;
+  craftsmanId?: string;
+  craftsmanName?: string;
+  craftsmanCraft?: string;
+  craftsmanWilaya?: string;
+  currentPoints?: number;
+  pendingRecharges?: any[];
+}): Promise<{
+  reply: string;
+  approvedRechargeIds: string[];
+  pointsAwarded: number;
+  newBalance: number;
+}>;
 
 export default supabase;
 
