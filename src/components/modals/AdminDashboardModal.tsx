@@ -904,6 +904,18 @@ https://www.facebook.com/share/1CCuf6aCuD/
           <div className="flex items-center gap-1 shrink-0 flex-wrap">
             <button
               type="button"
+              onClick={() => setActiveTab('settings')}
+              className={`h-7 px-2.5 rounded-lg font-black text-[10px] flex items-center gap-1 cursor-pointer shadow-xs border ${
+                activeTab === 'settings'
+                  ? 'bg-amber-400 text-black border-amber-300'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white border-white/25'
+              }`}
+              title="فتح الإعدادات والـ CCP وكلمة السر"
+            >
+              <span>⚙️ الإعدادات</span>
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 if (onOpenFacebookBot) {
                   onOpenFacebookBot();
@@ -1028,9 +1040,24 @@ https://www.facebook.com/share/1CCuf6aCuD/
         </div>
 
         {/* Tab Navigation */}
-        <div className={`p-2 border-b flex items-center gap-1 overflow-x-auto no-scrollbar shrink-0 ${
+        <div className={`p-2 border-b flex flex-wrap items-center gap-1 shrink-0 ${
           isDark ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300'
         }`}>
+          <button
+            type="button"
+            onClick={() => setActiveTab('settings')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'settings'
+                ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-amber-400'
+                : isDark
+                ? 'bg-gray-800 text-amber-300 border border-amber-500/40 hover:bg-gray-700'
+                : 'bg-white text-black border border-emerald-400 hover:bg-emerald-50'
+            }`}
+          >
+            <Bell className="w-3.5 h-3.5" />
+            <span>⚙️ الإعدادات</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('bot')}
