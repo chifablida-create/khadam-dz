@@ -855,32 +855,98 @@ export default function App() {
     }
   };
 
-  // Handle craftsman registration
+  // Handle craftsman registration (Strictly ONE account per craftsman / device / phone)
   const handleRegisterCraftsman = (user: CraftsmanUser) => {
-    setCurrentUser(user);
-    setCraftsmen((prev) => {
-      const exists = prev.find((c) => c.id === user.id);
-      if (exists) {
-        return prev.map((c) => (c.id === user.id ? user : c));
-      }
-      return [user, ...prev];
-    });
+    const normPhone = (raw: string) =>
+      String(raw || '')
+        .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+        .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+        .replace(/\D/g, '')
+        .replace(/^(213|00213)/, '0')
+        .trim();
 
-    // Ensure there is a chat thread with admin
+    let boundOnDevice: CraftsmanUser | null = null;
+    try {
+      const rawBound = localStorage.getItem('kdz_bound_single_craftsman_v1');
+      if (rawBound) {
+        const parsed = JSON.parse(rawBound);
+        if (parsed && parsed.phone && parsed.id && parsed.id !== 'cp1') {
+          boundOnDevice = parsed;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    const cleanPhone = normPhone(user.phone);
+    if (boundOnDevice) {
+      const boundDigits = normPhone(boundOnDevice.phone);
+      if (boundDigits.length >= 8 && cleanPhone !== boundDigits) {
+        triggerSync(`⚠️ لا يمكن التسجيل بأكثر من حساب واحد! لديك حساب مسجل برقم (${boundOnDevice.phone}).`);
+        return;
+      }
+    }
+
+    const existingByPhone = craftsmen.find(
+      (c) => c.id !== 'cp1' && cleanPhone.length >= 8 && normPhone(c.phone) === cleanPhone
+    );
+
+    const singleId = existingByPhone
+      ? existingByPhone.id
+      : boundOnDevice
+      ? boundOnDevice.id
+      : cleanPhone.length >= 8
+      ? `cr_${cleanPhone}`
+      : user.id;
+
+    const existingPoints =
+      typeof existingByPhone?.points === 'number'
+        ? existingByPhone.points
+        : typeof boundOnDevice?.points === 'number'
+        ? boundOnDevice.points
+        : points || 50;
+
+    const unifiedUser: CraftsmanUser = {
+      ...(boundOnDevice || {}),
+      ...(existingByPhone || {}),
+      ...user,
+      id: singleId,
+      phone: existingByPhone?.phone || boundOnDevice?.phone || user.phone,
+      points: existingPoints,
+      isVerified: true,
+      status: user.status || 'active'
+    };
+
+    try {
+      localStorage.setItem('kdz_bound_single_craftsman_v1', JSON.stringify(unifiedUser));
+    } catch {
+      // ignore storage errors
+    }
+
+    setCurrentUser(unifiedUser);
+    setCraftsmen((prev) => {
+      const filtered = prev.filter(
+        (c) => c.id !== unifiedUser.id && !(cleanPhone.length >= 8 && normPhone(c.phone) === cleanPhone)
+      );
+      return [unifiedUser, ...filtered];
+    });
+    saveArtisanToSupabase(unifiedUser).catch(() => {});
+
+    // Ensure there is a single chat thread with admin
     setChatThreads((prev) => {
-      const exists = prev.find((t) => t.craftsmanId === user.id);
+      const exists = prev.find((t) => t.craftsmanId === unifiedUser.id);
       if (exists) return prev;
       const newThread: ChatThread = {
-        id: `adm_${user.id}`,
-        craftsmanId: user.id,
-        craftsmanName: user.name,
-        craft: user.craft,
-        phone: user.phone,
+        id: `adm_${unifiedUser.id}`,
+        craftsmanId: unifiedUser.id,
+        craftsmanName: unifiedUser.name,
+        craft: unifiedUser.craft,
+        phone: unifiedUser.phone,
         messages: [
           {
-            id: `m0_${user.id}`,
+            id: `m0_${unifiedUser.id}`,
             sender: 'admin',
-            text: `أهلاً بك يا ${user.name}! مرحباً بك في عائلة خدّام DZ. شات الدعم المباشر بينك وبين الإدارة جاهز دائماً لأي استفسار.`,
+            text: `أهلاً بك يا ${unifiedUser.name}! مرحباً بك في عائلة خدّام DZ. شات الدعم المباشر بينك وبين الإدارة جاهز دائماً لأي استفسار.`,
             ts: Date.now()
           }
         ]
@@ -888,13 +954,13 @@ export default function App() {
       return [newThread, ...prev];
     });
 
-    triggerSync('تم تسجيل حسابك بنجاح وحفظه محلياً ✓');
+    triggerSync('تم حفظ وتثبيت حسابك الوحيد بنجاح (حساب واحد لكل حرفي) ✓');
   };
 
   // Handle craftsman logout without blocking window.confirm
   const handleLogout = () => {
     setCurrentUser(null);
-    triggerSync('تم تسجيل الخروج من حساب الحرفي ✓');
+    triggerSync('تم تسجيل الخروج. حسابك الوحيد محفوظ ومرتبط برقم هاتفك ✓');
   };
 
   // Handle submitting receipt with AI Bot auto-credit

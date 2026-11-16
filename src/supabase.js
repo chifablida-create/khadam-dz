@@ -208,13 +208,60 @@ export function mapRequestItemToDemandePayload(req) {
   return payload;
 }
 
+export function normalizeDzCraftsmanPhone(raw) {
+  return String(raw || '')
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/\D/g, '')
+    .replace(/^(213|00213)/, '0')
+    .trim();
+}
+
+export function deduplicateCraftsmenByPhone(list) {
+  if (!Array.isArray(list)) return [];
+  const seenPhones = new Map();
+  const result = [];
+  for (const c of list) {
+    if (!c) continue;
+    const normPhone = normalizeDzCraftsmanPhone(c.phone);
+    if (normPhone.length >= 8) {
+      if (seenPhones.has(normPhone)) {
+        const existingIdx = seenPhones.get(normPhone);
+        const prev = result[existingIdx];
+        result[existingIdx] = {
+          ...prev,
+          ...c,
+          id: prev.id,
+          points: typeof prev.points === 'number' ? prev.points : c.points
+        };
+        continue;
+      }
+      seenPhones.set(normPhone, result.length);
+    }
+    result.push(c);
+  }
+  return result;
+}
+
 export function mapArtisanRowToCraftsmanUser(row) {
   if (!row) return null;
   const { text: cleanBio, meta } = unpackTextAndMeta(row.description || '');
+  const normPhone = normalizeDzCraftsmanPhone(row.phone || '');
+  // Check if an artisan with this phone number already exists in guardianArtisansById
+  let existingByPhoneId = null;
+  if (normPhone.length >= 8) {
+    for (const [k, v] of guardianArtisansById.entries()) {
+      if (v && normalizeDzCraftsmanPhone(v.phone) === normPhone) {
+        existingByPhoneId = k;
+        break;
+      }
+    }
+  }
   const rawId =
-    row.id !== undefined && row.id !== null
+    existingByPhoneId ||
+    (row.id !== undefined && row.id !== null
       ? String(row.id)
-      : meta.appId || `art_${Date.now()}`;
+      : meta.appId || (normPhone.length >= 8 ? `cr_${normPhone}` : `art_${Date.now()}`));
   const pointsFromTable = guardianPointsById.get(rawId);
   const pointsVal =
     typeof pointsFromTable === 'number'
@@ -284,6 +331,7 @@ function emitGuardianSyncToReact(detail) {
   if (typeof window === 'undefined') return;
   try {
     const sortedRequests = sortRequestsNewestFirst(Array.from(guardianDemandesById.values()));
+    const uniqueCraftsmen = deduplicateCraftsmenByPhone(Array.from(guardianArtisansById.values()));
     window.dispatchEvent(
       new CustomEvent('khadam:supabase-sync', {
         detail: {
@@ -292,7 +340,7 @@ function emitGuardianSyncToReact(detail) {
             ? sortRequestsNewestFirst(detail.demandes)
             : sortedRequests,
           requests: sortedRequests,
-          craftsmen: Array.from(guardianArtisansById.values()),
+          craftsmen: uniqueCraftsmen,
           pointsMap: Object.fromEntries(guardianPointsById.entries()),
           timestamp: Date.now()
         }

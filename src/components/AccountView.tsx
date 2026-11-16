@@ -56,35 +56,97 @@ export const AccountView: React.FC<AccountViewProps> = ({
   onTriggerSimulatedMatch,
   isDark
 }) => {
-  const [name, setName] = useState('');
-  const [craft, setCraft] = useState('سباك');
-  const [wilaya, setWilaya] = useState('16 الجزائر');
-  const [phone, setPhone] = useState('');
-  const [experience, setExperience] = useState('3 سنوات');
-  const [bio, setBio] = useState('');
+  const SINGLE_CRAFTSMAN_STORAGE_KEY = 'kdz_bound_single_craftsman_v1';
+
+  const normalizeDzPhone = (raw: string): string => {
+    return (raw || '')
+      .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+      .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+      .replace(/\D/g, '')
+      .replace(/^(213|00213)/, '0')
+      .trim();
+  };
+
+  const getBoundSingleCraftsman = (): CraftsmanUser | null => {
+    try {
+      const raw = localStorage.getItem(SINGLE_CRAFTSMAN_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.phone && parsed.id && parsed.id !== 'cp1') {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    if (currentUser && currentUser.id !== 'cp1' && currentUser.name !== 'أحمد - سباك محترف') {
+      return currentUser;
+    }
+    return null;
+  };
+
+  const boundSingleAccount = getBoundSingleCraftsman();
+
+  const [name, setName] = useState(() => boundSingleAccount?.name || '');
+  const [craft, setCraft] = useState(() => boundSingleAccount?.craft || 'سباك');
+  const [wilaya, setWilaya] = useState(() => boundSingleAccount?.wilaya || '16 الجزائر');
+  const [phone, setPhone] = useState(() => boundSingleAccount?.phone || '');
+  const [experience, setExperience] = useState(() => boundSingleAccount?.experience || '3 سنوات');
+  const [bio, setBio] = useState(() => boundSingleAccount?.bio || '');
   const [isEditing, setIsEditing] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) {
+    const effectivePhone = (boundSingleAccount ? boundSingleAccount.phone : phone).trim();
+    if (!name.trim() || !effectivePhone) {
       setFormError('يرجى كتابة الاسم ورقم الهاتف على الأقل');
       return;
     }
+
+    const cleanDigits = normalizeDzPhone(effectivePhone);
+    if (cleanDigits.length < 9) {
+      setFormError('يرجى إدخال رقم هاتف جزائري صحيح (10 أرقام)');
+      return;
+    }
+
+    const existingBound = getBoundSingleCraftsman();
+    if (existingBound) {
+      const boundDigits = normalizeDzPhone(existingBound.phone);
+      if (boundDigits.length >= 8 && cleanDigits !== boundDigits) {
+        setFormError(
+          `⚠️ لا يمكن التسجيل بأكثر من حساب واحد! لديك حساب مسجل بالفعل برقم الهاتف (${existingBound.phone}). يُسمح لكل حرفي بحساب واحد فقط.`
+        );
+        setPhone(existingBound.phone);
+        return;
+      }
+    }
+
     setFormError(null);
 
+    const uniqueId =
+      existingBound && existingBound.id && existingBound.id !== 'cp1'
+        ? existingBound.id
+        : `cr_${cleanDigits}`;
+
     const newUser: CraftsmanUser = {
-      id: currentUser ? currentUser.id : `cp_${Date.now()}`,
+      id: uniqueId,
       name: name.trim(),
       craft,
       wilaya,
-      phone: phone.trim(),
+      phone: existingBound?.phone || effectivePhone,
       experience,
       bio: bio.trim() || 'حرفي معتمد في منصة خدّام ديزاد',
-      baseAvg: currentUser?.baseAvg || 5.0,
-      baseCount: currentUser?.baseCount || 1,
-      complaints: currentUser?.complaints || 0
+      baseAvg: currentUser?.baseAvg || existingBound?.baseAvg || 5.0,
+      baseCount: currentUser?.baseCount || existingBound?.baseCount || 1,
+      complaints: currentUser?.complaints || existingBound?.complaints || 0
     };
+
+    try {
+      localStorage.setItem(SINGLE_CRAFTSMAN_STORAGE_KEY, JSON.stringify(newUser));
+    } catch {
+      // ignore
+    }
 
     onRegisterCraftsman(newUser);
     setIsEditing(false);
@@ -124,7 +186,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
             </div>
             <div>
               <h2 className={`text-base font-black ${isDark ? 'text-white' : 'text-black'}`}>
-                {isEditing ? 'تعديل بيانات الحساب' : 'تسجيل حساب الحرفي'}
+                {isEditing ? 'تعديل بيانات حسابك الوحيد' : boundSingleAccount ? 'الدخول إلى حسابك الوحيد المسجل' : 'تسجيل حساب الحرفي (حساب واحد فقط)'}
               </h2>
               <p className={`text-xs font-bold ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
                 {isEditing
@@ -145,7 +207,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
             >
               <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <div className="text-xs font-bold leading-relaxed">
-                <strong className="font-black text-emerald-700 dark:text-emerald-300">هدية التسجيل:</strong> رصيد مجاني 50 نقطة فور إنشاء الحساب، يتيح لك كشف أول رقمي زبائن مجاناً!
+                <strong className="font-black text-emerald-700 dark:text-emerald-300">حساب واحد لكل حرفي (هدية 50 نقطة لمرة واحدة):</strong> يُسمح لكل حرفي بالتسجيل بحساب واحد فقط مرتبط برقم هاتفه، ولا يمكن إنشاء حسابات متعددة.
               </div>
             </div>
           )}
@@ -224,8 +286,9 @@ export const AccountView: React.FC<AccountViewProps> = ({
                 <input
                   type="tel"
                   required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  readOnly={Boolean(boundSingleAccount)}
+                  value={boundSingleAccount ? boundSingleAccount.phone : phone}
+                  onChange={(e) => { if (!boundSingleAccount) setPhone(e.target.value); }}
                   placeholder="0550 12 34 56"
                   className={`w-full h-11 px-3.5 rounded-xl border text-xs font-mono font-black outline-none dir-ltr transition ${
                     isDark
