@@ -17,18 +17,6 @@ const FIRESTORE_API_KEY = 'AIzaSyDIEs9pw-I8tLu31RIOza2PYu5VZ_ulGp0';
 
 let firestoreRestCooldownUntil = 0;
 
-// Immediately redirect any old github.io subdomain to Vercel while keeping both Vercel domains active
-if (typeof window !== 'undefined') {
-  try {
-    const h = window.location.hostname || '';
-    if (h.includes('github.io')) {
-      window.location.replace(PERMANENT_VERCEL_URL);
-    }
-  } catch {
-    // ignore
-  }
-}
-
 const FAKE_DEMO_TITLES = new Set([
   'تسريب مياه في المطبخ يحتاج إصلاح فوري',
   'انقطاع كهرباء في غرفة واحدة',
@@ -224,7 +212,9 @@ export function cleanAndDeduplicateRequests(list: any[]): any[] {
 
 let isUiShieldInstalled = false;
 function installCleanPublicUiShield() {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || isUiShieldInstalled) return;
+  isUiShieldInstalled = true;
+
   if (!document.getElementById('kdz-clean-public-ui-style')) {
     const style = document.createElement('style');
     style.id = 'kdz-clean-public-ui-style';
@@ -257,82 +247,50 @@ function installCleanPublicUiShield() {
     document.head.appendChild(style);
   }
 
-  const scrubLeaks = () => {
-    try {
-      const anchors = document.querySelectorAll('a[href]');
-      anchors.forEach((a) => {
-        const href = a.getAttribute('href') || '';
-        if (href.includes('github.io/khadam-dz')) {
-          a.setAttribute('href', PERMANENT_VERCEL_URL);
-        }
-      });
-
-      const textElements = document.querySelectorAll('h3, p');
-      textElements.forEach((el) => {
-        const rawText = el.textContent || '';
-        if (!rawText || rawText.includes('هاتف الزبون:') || rawText.includes('0550 00')) return;
-        const masked = maskPhoneNumbersInText(rawText, el.tagName === 'H3');
-        if (masked !== rawText) {
-          el.textContent = masked;
-        }
-      });
-    } catch {
-      // ignore DOM scrub errors
+  const triggerAdminOpen = () => {
+    if (typeof window !== 'undefined' && typeof (window as any).__KDZ_OPEN_ADMIN_LOGIN__ === 'function') {
+      (window as any).__KDZ_OPEN_ADMIN_LOGIN__();
+      return;
+    }
+    const hiddenAdminBtn = document.querySelector(
+      'header button[title*="لوحة إدارة التطبيق"]'
+    ) as HTMLButtonElement | null;
+    if (hiddenAdminBtn) {
+      hiddenAdminBtn.click();
     }
   };
 
-  scrubLeaks();
+  let tapCount = 0;
+  let tapResetTimer: any = null;
+  document.addEventListener(
+    'click',
+    (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const inHeaderBrand = Boolean(
+        target.closest('header > div > div:first-child') ||
+          (target.closest('header') && !target.closest('button'))
+      );
+      const inDzBadge = Boolean(
+        target.closest('span')?.textContent?.includes('موثق DZ') ||
+          target.closest('span')?.textContent?.includes('ديزاد')
+      );
+      if (!inHeaderBrand && !inDzBadge) return;
 
-  if (!isUiShieldInstalled) {
-    isUiShieldInstalled = true;
-    const observer = new MutationObserver(() => scrubLeaks());
-    observer.observe(document.body, { childList: true, subtree: true });
+      tapCount += 1;
+      if (tapResetTimer) clearTimeout(tapResetTimer);
 
-    const triggerAdminOpen = () => {
-      if (typeof window !== 'undefined' && typeof (window as any).__KDZ_OPEN_ADMIN_LOGIN__ === 'function') {
-        (window as any).__KDZ_OPEN_ADMIN_LOGIN__();
-        return;
-      }
-      const hiddenAdminBtn = document.querySelector(
-        'header button[title*="لوحة إدارة التطبيق"]'
-      ) as HTMLButtonElement | null;
-      if (hiddenAdminBtn) {
-        hiddenAdminBtn.click();
-      }
-    };
-
-    let tapCount = 0;
-    let tapResetTimer: any = null;
-    document.addEventListener(
-      'click',
-      (e) => {
-        const target = e.target as HTMLElement | null;
-        if (!target) return;
-        const inHeaderBrand = Boolean(
-          target.closest('header > div > div:first-child') ||
-            (target.closest('header') && !target.closest('button'))
-        );
-        const inDzBadge = Boolean(
-          target.closest('span')?.textContent?.includes('موثق DZ') ||
-            target.closest('span')?.textContent?.includes('ديزاد')
-        );
-        if (!inHeaderBrand && !inDzBadge) return;
-
-        tapCount += 1;
-        if (tapResetTimer) clearTimeout(tapResetTimer);
-
-        if (tapCount >= 5) {
+      if (tapCount >= 5) {
+        tapCount = 0;
+        triggerAdminOpen();
+      } else {
+        tapResetTimer = setTimeout(() => {
           tapCount = 0;
-          triggerAdminOpen();
-        } else {
-          tapResetTimer = setTimeout(() => {
-            tapCount = 0;
-          }, 3500);
-        }
-      },
-      true
-    );
-  }
+        }, 3500);
+      }
+    },
+    true
+  );
 }
 
 export async function pushRequestToFirestoreRest(req: any): Promise<void> {

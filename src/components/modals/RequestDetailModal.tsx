@@ -56,6 +56,7 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
   const [scheduledDatetimeInput, setScheduledDatetimeInput] = React.useState('');
   const [reminderMinutesInput, setReminderMinutesInput] = React.useState<number>(30);
   const [cancellationReasonInput, setCancellationReasonInput] = React.useState('');
+  const [cancelError, setCancelError] = React.useState('');
   const [calendarSavedBanner, setCalendarSavedBanner] = React.useState(false);
 
   React.useEffect(() => {
@@ -68,6 +69,7 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
       setScheduledDatetimeInput(timestampToDatetimeLocalValue(initialTs));
       setReminderMinutesInput(Number(request.agreementReminderMinutes) || 30);
       setCancellationReasonInput(request.cancellationReason || '');
+      setCancelError('');
       setCalendarSavedBanner(false);
     }
   }, [request]);
@@ -185,11 +187,13 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span>
-                  🤝 تم الإتفاق مع هذا الزبون
-                  {activeCraftsmanLabel ? ` — الحرفي: ${activeCraftsmanLabel}` : ''}
+                  🤝 تم التفاهم والإتفاق مع الزبون — الحرفي:{' '}
+                  <span className="underline">
+                    {activeCraftsmanLabel || `حرفي ${request.craft}`}
+                  </span>
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-lg bg-amber-500 text-black font-black">
-                  متفق معه ✓
+                  ساري إلى غاية الإلغاء بسبب مكتوب ✓
                 </span>
               </div>
 
@@ -634,35 +638,74 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
 
                 <div className="space-y-1.5">
                   <label className="block text-[11px] font-black text-red-600 dark:text-red-400">
-                    ✕ أو كتابة سبب إلغاء الإتفاق:
+                    ✕ إلغاء الإتفاق من أحد الطرفين (يشترط كتابة سبب الإلغاء):
                   </label>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {['الزبون أجّل الموعد', 'اختلفنا في السعر', 'الزبون لم يرد', 'اعتذر الحرفي عن الموعد'].map(
+                      (presetReason) => (
+                        <button
+                          key={presetReason}
+                          type="button"
+                          onClick={() => {
+                            setCancellationReasonInput(presetReason);
+                            setCancelError('');
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-black border cursor-pointer ${
+                            cancellationReasonInput === presetReason
+                              ? 'bg-red-600 text-white border-red-600'
+                              : isDark
+                              ? 'bg-gray-800 border-gray-700 text-gray-200'
+                              : 'bg-white border-gray-300 text-gray-800'
+                          }`}
+                        >
+                          {presetReason}
+                        </button>
+                      )
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
                       value={cancellationReasonInput}
-                      onChange={(e) => setCancellationReasonInput(e.target.value)}
-                      placeholder="مثال: الزبون أجّل الموعد / اختلفنا في السعر..."
+                      onChange={(e) => {
+                        setCancellationReasonInput(e.target.value);
+                        if (cancelError) setCancelError('');
+                      }}
+                      placeholder="اكتب سبب إلغاء الإتفاق هنا (إجباري لإلغاء الإتفاق)..."
                       className={`flex-1 h-9 px-2.5 rounded-xl border text-xs font-bold outline-none ${
-                        isDark
+                        cancelError
+                          ? 'border-red-500 ring-2 ring-red-500/30'
+                          : isDark
                           ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
                           : 'bg-white border-gray-300 text-black placeholder-gray-500'
                       }`}
                     />
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const cleanReason = cancellationReasonInput.trim();
+                        if (!cleanReason) {
+                          setCancelError('⚠️ يجب كتابة سبب الإلغاء أولاً لإلغاء الإتفاق وإزالة إسم الحرفي من بطاقة الزبون!');
+                          return;
+                        }
+                        setCancelError('');
                         onUpdateAgreementDetails(request, {
                           isAgreed: false,
                           agreementTimeNote: '',
                           agreementScheduledAt: 0,
-                          cancellationReason: cancellationReasonInput.trim() || 'تم إلغاء الإتفاق'
-                        })
-                      }
+                          cancellationReason: cleanReason
+                        });
+                      }}
                       className="h-9 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-black shrink-0 cursor-pointer"
                     >
-                      إلغاء الإتفاق
+                      إلغاء بسبب مكتوب
                     </button>
                   </div>
+                  {cancelError && (
+                    <div className="p-2 rounded-xl bg-red-600/15 border border-red-500/40 text-red-600 dark:text-red-300 text-[10px] font-black">
+                      {cancelError}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

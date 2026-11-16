@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, Search, MapPin, Clock, Phone, MessageSquare, Flame, Check, Unlock, Sparkles, Filter } from 'lucide-react';
 import { RequestItem } from '../types';
 import { CRAFTS_LIST, WILAYAS_DZ, getCraftIcon, formatRelativeTime } from '../data/constants';
+import { formatScheduledAppointmentAr, resolveAgreementScheduledTimestamp, getAppointmentCountdownInfo } from '../utils/appointmentScheduler';
 import { AppPromoBanner } from './AppPromoBanner';
 
 interface HomeFeedProps {
@@ -34,6 +35,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   onRevealPhone,
   onSelectRequest,
   onToggleAgreeRequest,
+  onUpdateAgreementDetails,
   onTriggerAppointmentReminderNow,
   onOpenCreateModal,
   onOpenPromoModal,
@@ -46,6 +48,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [onlyPriority, setOnlyPriority] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [cancellingCardId, setCancellingCardId] = useState<string | null>(null);
+  const [cardCancelReason, setCardCancelReason] = useState<string>('');
+  const [cardCancelError, setCardCancelError] = useState<string>('');
 
   // Popular crafts to display first in quick pills
   const quickCrafts = ['الكل', 'سباك', 'كهربائي', 'نجار', 'دهان', 'بناء', 'حداد', 'زجاج', 'تبريد', 'خياط', 'ميكانيكي', 'إصلاح هواتف', 'نقل أثاث'];
@@ -347,7 +352,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span>🤝 متفق معه{req.agreedByCraftsmanName ? ` (${req.agreedByCraftsmanName})` : ''}</span>
+                      <span>🤝 تم التفاهم مع الزبون — الحرفي: <strong className="underline font-black">{req.agreedByCraftsmanName || req.confirmedByCraftsman || 'حرفي معتمد'}</strong></span>
                       {(req.agreementTimeNote || req.agreementScheduledAt) && (
                         <span className="underline">
                           • ⏰ {req.agreementTimeNote || formatScheduledAppointmentAr(req.agreementScheduledAt)}
@@ -390,7 +395,81 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                           🔔 تذكير موعد
                         </button>
                       )}
+                      {onUpdateAgreementDetails && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCancellingCardId(cancellingCardId === req.id ? null : req.id);
+                            setCardCancelReason("");
+                            setCardCancelError("");
+                          }}
+                          className="px-2 py-0.5 rounded-md bg-red-600 hover:bg-red-500 text-white text-[9px] font-black cursor-pointer"
+                          title="إلغاء التفاهم بسبب مكتوب"
+                        >
+                          ✕ إلغاء التفاهم
+                        </button>
+                      )}
                     </div>
+                    {cancellingCardId === req.id && onUpdateAgreementDetails && (
+                      <div className="w-full mt-2 pt-2 border-t border-red-400/40 space-y-1.5">
+                        <div className="text-[10px] font-black text-red-600 dark:text-red-300">
+                          ⚠️ أكتب سبب إلغاء التفاهم (إجباري لإعلام الحرفيين والزبون):
+                        </div>
+                        <input
+                          type="text"
+                          value={cardCancelReason}
+                          onChange={(e) => {
+                            setCardCancelReason(e.target.value);
+                            if (cardCancelError) setCardCancelError("");
+                          }}
+                          placeholder="مثال: تعذر الموعد أو تغير السعر..."
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-red-400 bg-white text-black text-[11px] font-bold"
+                        />
+                        {cardCancelError && (
+                          <div className="text-[10px] font-black text-red-600">{cardCancelError}</div>
+                        )}
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!cardCancelReason.trim()) {
+                                setCardCancelError("⚠️ يرجى كتابة سبب الإلغاء أولاً");
+                                return;
+                              }
+                              onUpdateAgreementDetails(req, {
+                                isAgreed: false,
+                                cancellationReason: cardCancelReason.trim(),
+                              });
+                              setCancellingCardId(null);
+                              setCardCancelReason("");
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-[10px] font-black"
+                          >
+                            تأكيد الإلغاء بسبب مكتوب
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCancellingCardId(null);
+                            }}
+                            className="px-2 py-1 rounded-lg bg-gray-200 text-black text-[10px] font-black"
+                          >
+                            تراجع
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {!req.isAgreed && req.cancellationReason && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="mb-2.5 px-2.5 py-1.5 rounded-xl border border-red-500/40 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200 text-[10px] font-black"
+                  >
+                    ⚠️ ألغي الإتفاق السابق ({req.cancelledByRole === "customer" ? "من طرف الزبون" : "من طرف الحرفي"}) — السبب: {req.cancellationReason}
                   </div>
                 )}
 
