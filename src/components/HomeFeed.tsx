@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Search, MapPin, Clock, Phone, MessageSquare, Flame, Check, Unlock, Sparkles, Filter } from 'lucide-react';
 import { RequestItem } from '../types';
+import { isCraftsmanAdInCustomerFeed } from '../supabase.js';
 import { CRAFTS_LIST, WILAYAS_DZ, getCraftIcon, formatRelativeTime } from '../data/constants';
 import { formatScheduledAppointmentAr, resolveAgreementScheduledTimestamp, getAppointmentCountdownInfo } from '../utils/appointmentScheduler';
 import { AppPromoBanner } from './AppPromoBanner';
@@ -58,6 +59,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   // Filter requests
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
+      if (!req || isCraftsmanAdInCustomerFeed(req)) return false;
       // Craft filter
       if (selectedCraft !== 'الكل' && req.craft !== selectedCraft) {
         return false;
@@ -242,10 +244,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
       <div className={`px-3 flex items-center justify-between text-xs font-black ${
         isDark ? 'text-white' : 'text-black'
       }`}>
-        <span>الطلبات المتاحة ({filteredRequests.length})</span>
-        {userMode === 'craftsman' && (
+        <span>الطلبات المتاحة — طلبات الزبائن فقط ({filteredRequests.length})</span>
+        {userMode === 'craftsman' ? (
           <span className="text-[11px] font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-xs">
-            كشف الرقم = 25 نقطة
+            كشف رقم الزبون = 25 نقطة
+          </span>
+        ) : (
+          <span className="text-[11px] font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-xs">
+            صفحة الزبون فقط
           </span>
         )}
       </div>
@@ -532,8 +538,33 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                         </button>
                       </div>
                     </div>
+                  ) : userMode === 'customer' ? (
+                    /* Customer Page Mode: Customer cannot reveal phones; Craftsman must not be revealed */
+                    <div className="flex-1 flex items-center justify-between gap-2">
+                      <div className={`text-xs font-mono font-black flex items-center gap-1.5 ${
+                        isDark ? 'text-gray-400' : 'text-gray-800'
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${isDark ? 'bg-emerald-400' : 'bg-emerald-600'}`}></span>
+                        <span className="dir-ltr font-black">
+                          {req.isCustomerOwn ? req.phone : '05•• ••• •••'}
+                        </span>
+                      </div>
+                      <span
+                        className={`min-h-8 py-1 px-3 rounded-xl font-black text-[11px] flex items-center gap-1.5 border ${
+                          isDark
+                            ? 'bg-gray-800/90 border-gray-700 text-emerald-300'
+                            : 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                        }`}
+                      >
+                        <span>
+                          {req.isCustomerOwn
+                            ? '✓ طلبك منشور للحرفيين'
+                            : '🔒 خاص بطلبات الزبون (يظهر للحرفيين المسجلين)'}
+                        </span>
+                      </span>
+                    </div>
                   ) : (
-                    /* Hidden State: 05XX XX XX •• & Reveal Button */
+                    /* Hidden State for Craftsman Mode: 05XX XX XX •• & Reveal Customer Phone Button */
                     <div className="flex-1 flex items-center justify-between gap-2">
                       <div className={`text-xs font-mono font-black flex items-center gap-1.5 ${
                         isDark ? 'text-gray-400' : 'text-gray-800'
@@ -552,7 +583,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                         }`}
                       >
                         <Unlock className="w-3.5 h-3.5 text-[#D6FF4D]" />
-                        <span>كشف الهاتف</span>
+                        <span>كشف هاتف الزبون</span>
                         <span className="text-[10px] text-[#D6FF4D] font-mono">
                           (25ن)
                         </span>

@@ -100,13 +100,63 @@ function unpackTextAndMeta(rawText) {
   }
 }
 
+const CRAFTSMAN_AD_DEMANDE_IDS = new Set([
+  'r_1794865802107',
+  'r_1794843332786',
+  'req_cr_cp1',
+  'req_cr_cp2',
+  'req_cr_cp3',
+  'req_cr_cp4',
+  'req_cr_cp5',
+  'req_cr_cp6'
+]);
+
+export function isCraftsmanAdInCustomerFeed(item) {
+  if (!item) return true;
+  const idStr = String(item.id || '').trim();
+  if (CRAFTSMAN_AD_DEMANDE_IDS.has(idStr)) return true;
+  if (String(item.status || '') === 'craftsman_ad_hidden') return true;
+
+  const titleStr = String(item.title || item.client_name || '').trim();
+  const descStr = String(item.desc || item.message || '').trim();
+  const combined = `${titleStr} ${descStr}`;
+
+  if (
+    /صباغ بنتار|حداة عامة|حدادة عامة|حرفي معتمد متاح|متوفر حالياً لتنفيذ أشغال|أحمد - سباك محترف/i.test(
+      combined
+    )
+  ) {
+    return true;
+  }
+
+  // If title/desc is purely a craftsman greeting/self-promotion without any customer request intent
+  const hasCustomerRequestIntent =
+    /طلب|مطلوب|أحتاج|احتاج|أبحث|ابحث|خصني|يوجد تسرب|عطل|تصليح|إصلاح|تركيب|تنظيف|صيانة|راني فالطريق|أومبان|en panne/i.test(
+      combined
+    );
+  const looksLikeCraftsmanSelfPromo =
+    /مرحبا بالجميع|في خدمتكم|لخدماتكم|خبرة في مجال|نقدم لكم خدمات|اتصلوا بي|جميع أنواع الحدادة|جميع أنواع الصباغة/i.test(
+      combined
+    );
+  if (looksLikeCraftsmanSelfPromo && !hasCustomerRequestIntent) {
+    return true;
+  }
+
+  return false;
+}
+
 export function mapDemandeRowToRequestItem(row) {
   if (!row) return null;
+  if (String(row.status || '') === 'craftsman_ad_hidden') return null;
   const { text: cleanDesc, meta } = unpackTextAndMeta(row.message || '');
   const rawId =
     row.id !== undefined && row.id !== null
       ? String(row.id)
       : meta.appId || `dem_${Date.now()}`;
+
+  if (CRAFTSMAN_AD_DEMANDE_IDS.has(rawId) || Boolean(meta.isCraftsmanAd)) {
+    return null;
+  }
 
   const seedTs = SEED_REQUEST_TIMESTAMPS.get(rawId);
   const rowTs = row.created_at ? new Date(row.created_at).getTime() : 0;
@@ -149,6 +199,10 @@ export function mapDemandeRowToRequestItem(row) {
     customerRatingComment: String(meta.customerRatingComment || '').trim(),
     customerRatedAt: Number(meta.customerRatedAt || 0)
   };
+  if (isCraftsmanAdInCustomerFeed(mapped)) {
+    guardianDemandesById.delete(String(mapped.id));
+    return null;
+  }
   guardianDemandesById.set(String(mapped.id), mapped);
   return mapped;
 }
@@ -533,26 +587,36 @@ export async function fetchArtisansFromSupabase() {
     const { data, error } = await supabase
       .from('artisans')
       .select('id, full_name, phone, wilaya, commune, metier, description, price, is_active')
+      .neq('phone', '0551234567')
       .order('id', { ascending: false });
 
     if (error) {
       const fallback = await supabase
         .from('artisans')
-        .select('full_name, phone, wilaya, commune, metier, description, price, is_active');
+        .select('full_name, phone, wilaya, commune, metier, description, price, is_active')
+        .neq('phone', '0551234567');
       if (fallback.error || !Array.isArray(fallback.data)) return null;
-      return fallback.data.map(mapArtisanRowToCraftsmanUser).filter(Boolean);
+      return deduplicateCraftsmenByPhone(
+        fallback.data.map(mapArtisanRowToCraftsmanUser).filter(Boolean)
+      );
     }
     if (!Array.isArray(data)) return null;
-    return data.map(mapArtisanRowToCraftsmanUser).filter(Boolean);
+    return deduplicateCraftsmenByPhone(
+      data.map(mapArtisanRowToCraftsmanUser).filter(Boolean)
+    );
   } catch {
     return null;
   }
 }
 
-// Upsert by id (if id exists -> update, if not -> insert. Never delete!)
+// Upsert by id / phone (if exists -> update, if not -> insert. Never duplicate!)
 export async function saveArtisanToSupabase(craftsman, revealedPhonesList) {
   if (!craftsman) return null;
   const crId = String(craftsman.id || `art_${Date.now()}`);
+  const normPhone = normalizeDzCraftsmanPhone(craftsman.phone);
+  if (['cp1', 'cp2', 'cp3', 'cp4', 'cp5', 'cp6'].includes(crId) || normPhone === '0551234567') {
+    return null;
+  }
   guardianArtisansById.set(crId, { ...craftsman, id: crId });
   const payload = mapCraftsmanUserToArtisanPayload(craftsman, revealedPhonesList);
 
@@ -560,39 +624,36 @@ export async function saveArtisanToSupabase(craftsman, revealedPhonesList) {
   savePointsToSupabase(crId, payload.price).catch(() => {});
 
   try {
-    const numericId = Number(crId);
-    const idFilterVal =
-      !Number.isNaN(numericId) && numericId > 0 && String(numericId) === crId
-        ? numericId
-        : crId;
-
-    const { data: byIdRows, error: byIdErr } = await supabase
-      .from('artisans')
-      .select('id')
-      .eq('id', idFilterVal)
-      .limit(1);
-
-    if (!byIdErr && Array.isArray(byIdRows) && byIdRows.length > 0 && byIdRows[0]?.id != null) {
-      const { data, error } = await supabase
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(crId);
+    if (isUuid) {
+      const { data: byIdRows, error: byIdErr } = await supabase
         .from('artisans')
-        .update(payload)
-        .eq('id', byIdRows[0].id)
-        .select();
-      if (!error && Array.isArray(data) && data.length > 0) {
-        const mapped = mapArtisanRowToCraftsmanUser(data[0]);
-        pendingOutboundArtisans.delete(crId);
-        broadcastRealtimeEvent('artisan_updated', mapped);
-        emitGuardianSyncToReact({ type: 'artisan_updated', artisan: mapped });
-        return mapped;
+        .select('id')
+        .eq('id', crId)
+        .limit(1);
+
+      if (!byIdErr && Array.isArray(byIdRows) && byIdRows.length > 0 && byIdRows[0]?.id != null) {
+        const { data, error } = await supabase
+          .from('artisans')
+          .update(payload)
+          .eq('id', byIdRows[0].id)
+          .select();
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const mapped = mapArtisanRowToCraftsmanUser(data[0]);
+          pendingOutboundArtisans.delete(crId);
+          broadcastRealtimeEvent('artisan_updated', mapped);
+          emitGuardianSyncToReact({ type: 'artisan_updated', artisan: mapped });
+          return mapped;
+        }
       }
     }
 
-    // Check by phone so same craftsman keeps same id and points across all phones
+    // Check by phone (both exact and normalized digits) so same craftsman keeps 1 single account
     const cleanPhone = payload.phone;
     const { data: existingByPhone } = await supabase
       .from('artisans')
       .select('id, full_name, phone, wilaya, commune, metier, description, price, is_active')
-      .eq('phone', cleanPhone)
+      .or(`phone.eq.${cleanPhone},phone.eq.${normPhone}`)
       .limit(1);
 
     if (Array.isArray(existingByPhone) && existingByPhone.length > 0 && existingByPhone[0]?.id != null) {

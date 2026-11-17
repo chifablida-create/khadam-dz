@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, PlusCircle, Flame, Check } from 'lucide-react';
 import { RequestItem } from '../../types';
 import { CRAFTS_LIST, WILAYAS_DZ, getCraftIcon } from '../../data/constants';
+import { isCraftsmanAdInCustomerFeed } from '../../supabase.js';
 
 interface CreateRequestModalProps {
   isOpen: boolean;
@@ -22,13 +23,30 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
   const [desc, setDesc] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [priority, setPriority] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !desc.trim() || !phone.trim()) {
-      alert('يرجى ملء جميع الحقول المطلوبة ورقم الهاتف.');
+    setErrorMsg(null);
+    const normalizedPhone = phone
+      .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+      .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+      .trim();
+    const cleanPhone = normalizedPhone.replace(/\s+/g, '');
+    if (!title.trim() || !desc.trim() || !cleanPhone) {
+      setErrorMsg('يرجى ملء جميع الحقول المطلوبة ورقم الهاتف.');
+      return;
+    }
+    if (!/^0[567]\d{8}$/.test(cleanPhone) && cleanPhone.replace(/\D/g, '').length < 8) {
+      setErrorMsg('يرجى إدخال رقم هاتف جزائري صحيح (مثال: 0550123456).');
+      return;
+    }
+    if (isCraftsmanAdInCustomerFeed({ title: title.trim(), desc: desc.trim() })) {
+      setErrorMsg(
+        '⚠️ هذه الصفحة خاصة بطلبات الزبائن فقط! الحرفي لا يجب أن يُنشر هنا ولا يُكشف بالنقاط. إذا كنت حرفياً يرجى التسجيل في قسم (حسابي).'
+      );
       return;
     }
 
@@ -38,7 +56,7 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
       wilaya,
       title: title.trim(),
       desc: desc.trim(),
-      phone: phone.trim(),
+      phone: normalizedPhone,
       createdAt: Date.now(),
       priority,
       status: 'open',
@@ -50,6 +68,7 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
     setDesc('');
     setPhone('');
     setPriority(false);
+    setErrorMsg(null);
     onClose();
   };
 
@@ -70,10 +89,10 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
             </div>
             <div>
               <h3 className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-black'}`}>
-                إضافة طلب جديد (Ajoute Demande)
+                إضافة طلب زبون جديد (خاص بالزبائن فقط)
               </h3>
               <p className={`text-[11px] font-bold ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
-                مجاناً وبدون أي وسيط، حرفيو منطقتك سيتصلون بك
+                مجاناً للزبون فقط لطلب حرفي • يمنع نشر إعلانات الحرفيين هنا
               </p>
             </div>
           </div>
@@ -90,6 +109,15 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-3.5 flex-1">
+          <div
+            className={`p-2.5 rounded-xl border text-[11px] font-black leading-relaxed ${
+              isDark
+                ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-950'
+            }`}
+          >
+            📌 هذه الاستمارة خاصة بالزبائن فقط لطلب خدمة أو تصليح. الحرفي لا يُنشر هنا ولا يُكشف بالنقاط (لتسجيل حسابك كحرفي انتقل إلى تبويب &quot;حسابي&quot;).
+          </div>
           {/* Craft & Wilaya */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
@@ -212,11 +240,17 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
             </div>
           </div>
 
+          {errorMsg && (
+            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/40 text-red-600 dark:text-red-400 text-xs font-black">
+              {errorMsg}
+            </div>
+          )}
+
           {/* Submit button */}
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white font-black text-xs shadow-md hover:from-emerald-700 hover:to-green-700 transition"
+              className="w-full h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 text-white font-black text-xs shadow-md hover:from-emerald-700 hover:to-green-700 transition cursor-pointer"
             >
               نشر الطلب الآن مجاناً ✓
             </button>

@@ -52,7 +52,7 @@ import {
   STORAGE_KEYS
 } from './data/constants';
 
-import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase, runLiveSupabaseBotReply } from "./supabase.js";
+import { fetchDemandesFromSupabase, fetchArtisansFromSupabase, saveDemandeToSupabase, saveArtisanToSupabase, savePointsToSupabase, runLiveSupabaseBotReply, isCraftsmanAdInCustomerFeed } from "./supabase.js";
 import { playCraftsmanAlertSound } from "./utils/craftsmanNotifications";
 import {
   resolveAgreementScheduledTimestamp,
@@ -124,6 +124,7 @@ const SEED_REQ_TIME_MAP = new Map<string, number>(INITIAL_REQUESTS.map((r) => [S
 function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
   if (!Array.isArray(list)) return [];
   return [...list]
+    .filter((item) => item && !isCraftsmanAdInCustomerFeed(item))
     .map((item) => {
       const seedTs = item && item.id ? SEED_REQ_TIME_MAP.get(String(item.id)) : undefined;
       return seedTs !== undefined ? { ...item, createdAt: seedTs } : item;
@@ -454,8 +455,28 @@ export default function App() {
   // Craftsman specialty craft
   const craftsmanCraft = currentUser?.craft || 'سباك';
 
-  // Handle phone reveal (respects dynamic revealCost and freeRevealPromo)
+  const effectivePoints = currentUser ? points : 0;
+  const effectiveRevealedSet = currentUser ? revealedSet : new Set<string>();
+
+  // Handle phone reveal (strictly for logged-in single-account craftsman on customer requests only)
   const handleRevealPhone = (req: RequestItem) => {
+    if (userMode === 'customer') {
+      triggerSync('⚠️ هذه صفحة الزبون فقط — كشف أرقام الزبائن مخصص للحرفيين المسجلين فقط');
+      return;
+    }
+
+    if (isCraftsmanAdInCustomerFeed(req)) {
+      triggerSync('⚠️ هذه بطاقة حرفي وليست طلب زبون — الحرفي لا يجب أن يُكشف بالنقاط');
+      return;
+    }
+
+    if (!currentUser) {
+      setSelectedRequest(null);
+      setCurrentTab('account');
+      triggerSync('🔒 يرجى تسجيل حسابك الواحد كحرفي في قسم (حسابي) أولاً لكشف رقم الزبون!');
+      return;
+    }
+
     if (revealedSet.has(req.id)) {
       return;
     }
@@ -477,6 +498,12 @@ export default function App() {
     newRevealed.add(req.id);
     setRevealedSet(newRevealed);
 
+    const updatedUser: CraftsmanUser = { ...currentUser, points: newPoints };
+    setCurrentUser(updatedUser);
+    setCraftsmen((prev) => prev.map((c) => (c.id === updatedUser.id ? updatedUser : c)));
+    savePointsToSupabase(updatedUser.id, newPoints).catch(() => {});
+    saveArtisanToSupabase(updatedUser, Array.from(newRevealed)).catch(() => {});
+
     const newLog: PointLog = {
       id: `log_${Date.now()}`,
       type: 'reveal',
@@ -484,15 +511,15 @@ export default function App() {
       description:
         activeRevealCost === 0
           ? `كشف مجاني ترويجي لرقم زبون (${req.craft} - ${req.wilaya})`
-          : `كشف رقم هاتف طلب (${req.craft} - ${req.wilaya})`,
+          : `كشف رقم هاتف طلب زبون (${req.craft} - ${req.wilaya})`,
       createdAt: Date.now()
     };
     setPointLogs((prev) => [newLog, ...prev]);
 
     triggerSync(
       activeRevealCost === 0
-        ? '🎉 تم كشف رقم الهاتف مجاناً (عرض ترويجي من الإدارة) ✓'
-        : `تم كشف رقم الهاتف وخصم ${activeRevealCost} نقطة ✓`
+        ? '🎉 تم كشف رقم الزبون مجاناً (عرض ترويجي من الإدارة) ✓'
+        : `تم كشف رقم هاتف الزبون وخصم ${activeRevealCost} نقطة ✓`
     );
 
     // Alert user when points balance falls below reveal cost
@@ -1585,7 +1612,8 @@ export default function App() {
         <Navbar
           userMode={userMode}
           setUserMode={setUserMode}
-          points={points}
+          points={effectivePoints}
+          isRegisteredCraftsman={Boolean(currentUser)}
           isDark={isDark}
           toggleTheme={() => setIsDark(!isDark)}
           onOpenAdminLogin={() => { if (!isAdminDashboardOpen) setIsAdminLoginOpen(true); }}
@@ -1601,7 +1629,7 @@ export default function App() {
 
         {/* Top Alert Banner for Low Points (<25) and Matching Craft Requests */}
         <TopAlertBanner
-          points={points}
+          points={effectivePoints}
           craftsmanCraft={craftsmanCraft}
           matchingRequest={latestMatchingUnrevealedRequest}
           onOpenRecharge={() => {
@@ -1621,9 +1649,15 @@ export default function App() {
           {currentTab === 'home' && (
             <HomeFeed
               requests={requests}
-              revealedSet={revealedSet}
+              revealedSet={effectiveRevealedSet}
               onRevealPhone={handleRevealPhone}
-              onSelectRequest={(req) => setSelectedRequest(req)}
+              onSelectRequest={(req) => {
+                if (userMode === 'customer' && !req.isCustomerOwn) {
+                  triggerSync('📌 هذه صفحة الزبون فقط — يمكنك إضافة طلبك مجاناً بالضغط على (أضف طلبك الآن)');
+                  return;
+                }
+                setSelectedRequest(req);
+              }}
               onToggleAgreeRequest={handleToggleAgreeRequest}
               onUpdateAgreementDetails={handleUpdateAgreementDetails}
               onTriggerAppointmentReminderNow={(req) => triggerInAppAppointmentReminder(req, true)}
@@ -1639,7 +1673,7 @@ export default function App() {
             <OrdersView
               userMode={userMode}
               requests={requests}
-              revealedSet={revealedSet}
+              revealedSet={effectiveRevealedSet}
               ratings={ratings}
               onOpenCreateModal={() => setIsCreateModalOpen(true)}
               onOpenRatingModal={(req) => setRatingTargetRequest(req)}
@@ -1651,7 +1685,7 @@ export default function App() {
 
           {currentTab === 'points' && (
             <PointsView
-              points={points}
+              points={effectivePoints}
               pendingRecharges={pendingRecharges}
               pointLogs={pointLogs}
               onOpenUploadReceipt={(pkg) => {
@@ -1671,8 +1705,8 @@ export default function App() {
               currentUser={currentUser}
               onRegisterCraftsman={handleRegisterCraftsman}
               onLogout={handleLogout}
-              points={points}
-              revealedCount={revealedSet.size}
+              points={effectivePoints}
+              revealedCount={effectiveRevealedSet.size}
               onOpenAdminChat={() => setIsAdminChatOpen(true)}
               onOpenAdminDashboard={() => { if (!isAdminDashboardOpen) setIsAdminLoginOpen(true); }}
               userMode={userMode}
@@ -1735,8 +1769,8 @@ export default function App() {
           currentTab={currentTab}
           setCurrentTab={setCurrentTab}
           isDark={isDark}
-          ordersBadgeCount={userMode === 'craftsman' ? revealedSet.size : requests.filter((r) => r.isCustomerOwn).length}
-          points={points}
+          ordersBadgeCount={userMode === 'craftsman' ? effectiveRevealedSet.size : requests.filter((r) => r.isCustomerOwn).length}
+          points={effectivePoints}
         />
 
         {/* Modals */}
@@ -1750,7 +1784,7 @@ export default function App() {
         <RequestDetailModal
           request={selectedRequest}
           onClose={() => setSelectedRequest(null)}
-          isRevealed={selectedRequest ? revealedSet.has(selectedRequest.id) : false}
+          isRevealed={selectedRequest ? effectiveRevealedSet.has(selectedRequest.id) : false}
           isRegisteredCraftsman={Boolean(currentUser)}
           craftsmanName={currentUser?.name || ''}
           onRevealPhone={(req) => handleRevealPhone(req)}
