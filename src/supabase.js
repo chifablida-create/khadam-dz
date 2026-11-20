@@ -103,6 +103,11 @@ function unpackTextAndMeta(rawText) {
 const CRAFTSMAN_AD_DEMANDE_IDS = new Set([
   'r_1794865802107',
   'r_1794843332786',
+  'r_test_check_1',
+  'req_fb_live_1793136505389',
+  'req_fb_adm_1793126302923',
+  'req_fb_live_1793123330146',
+  'req_social_1793119632873_ntj',
   'req_cr_cp1',
   'req_cr_cp2',
   'req_cr_cp3',
@@ -110,6 +115,23 @@ const CRAFTSMAN_AD_DEMANDE_IDS = new Set([
   'req_cr_cp5',
   'req_cr_cp6'
 ]);
+
+export function resolveCanonicalRequestTimestamp(rawId, fallbackTs) {
+  const idStr = String(rawId || '').trim();
+  const seedTs = SEED_REQUEST_TIMESTAMPS.get(idStr);
+  if (typeof seedTs === 'number' && seedTs > 0) {
+    return seedTs;
+  }
+  const idMatch = idStr.match(/^r_(\d{13})$/);
+  if (idMatch) {
+    const parsedIdTs = Number(idMatch[1]);
+    if (!Number.isNaN(parsedIdTs) && parsedIdTs > 0) {
+      return parsedIdTs;
+    }
+  }
+  const fb = Number(fallbackTs || 0);
+  return !Number.isNaN(fb) && fb > 0 ? fb : Date.now();
+}
 
 export function isCraftsmanAdInCustomerFeed(item) {
   if (!item) return true;
@@ -158,17 +180,10 @@ export function mapDemandeRowToRequestItem(row) {
     return null;
   }
 
-  const seedTs = SEED_REQUEST_TIMESTAMPS.get(rawId);
   const rowTs = row.created_at ? new Date(row.created_at).getTime() : 0;
   const metaTs = typeof meta.createdAt === 'number' ? meta.createdAt : 0;
-  const createdTs =
-    typeof seedTs === 'number' && seedTs > 0
-      ? seedTs
-      : !Number.isNaN(rowTs) && rowTs > 0
-      ? rowTs
-      : !Number.isNaN(metaTs) && metaTs > 0
-      ? metaTs
-      : Date.now();
+  const fallbackTs = !Number.isNaN(metaTs) && metaTs > 0 ? metaTs : !Number.isNaN(rowTs) && rowTs > 0 ? rowTs : Date.now();
+  const createdTs = resolveCanonicalRequestTimestamp(rawId, fallbackTs);
 
   const statusVal =
     row.status === 'in_progress' || row.status === 'completed' || row.status === 'open'
@@ -209,11 +224,7 @@ export function mapDemandeRowToRequestItem(row) {
 
 export function mapRequestItemToDemandePayload(req) {
   const reqId = String(req.id || `dem_${Date.now()}`).trim();
-  const seedTs = SEED_REQUEST_TIMESTAMPS.get(reqId);
-  const resolvedCreatedAt =
-    typeof seedTs === 'number' && seedTs > 0
-      ? seedTs
-      : Number(req.createdAt) || Date.now();
+  const resolvedCreatedAt = resolveCanonicalRequestTimestamp(reqId, req.createdAt);
 
   const meta = {
     appId: reqId,
@@ -252,12 +263,9 @@ export function mapRequestItemToDemandePayload(req) {
     client_name: titleStr,
     client_phone: phoneStr,
     metier: craftStr,
-    message: packTextWithMeta(descStr, meta)
+    message: packTextWithMeta(descStr, meta),
+    created_at: new Date(resolvedCreatedAt).toISOString()
   };
-
-  if (typeof seedTs === 'number' && seedTs > 0) {
-    payload.created_at = new Date(seedTs).toISOString();
-  }
 
   return payload;
 }
@@ -496,11 +504,7 @@ export async function fetchDemandesFromSupabase() {
 export async function saveDemandeToSupabase(req) {
   if (!req) return null;
   const reqId = String(req.id || `dem_${Date.now()}`).trim();
-  const seedTs = SEED_REQUEST_TIMESTAMPS.get(reqId);
-  const resolvedCreatedAt =
-    typeof seedTs === 'number' && seedTs > 0
-      ? seedTs
-      : Number(req.createdAt) || Date.now();
+  const resolvedCreatedAt = resolveCanonicalRequestTimestamp(reqId, req.createdAt);
   const cleanReq = { ...req, id: reqId, createdAt: resolvedCreatedAt };
 
   guardianDemandesById.set(reqId, cleanReq);

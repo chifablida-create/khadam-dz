@@ -192,66 +192,6 @@ export function formatExactPostedTime(timestamp: number): string {
 
 export const INITIAL_REQUESTS: RequestItem[] = [
   {
-    id: 'r_test_check_1',
-    craft: 'سباك',
-    wilaya: '09 البليدة',
-    title: 'تصليح تسريب ماء',
-    desc: 'حي أولاد يعيش',
-    phone: '0550123456',
-    createdAt: 1794507550563,
-    priority: true,
-    status: 'open',
-    isCustomerOwn: true
-  },
-  {
-    id: 'req_cust_live_dz_901',
-    craft: 'سباك',
-    wilaya: '09 البليدة',
-    title: 'طلب سباك مستعجل لإصلاح تسرب مياه وتغيير خلاط الحمام',
-    desc: 'يوجد تسرب مياه تحت المغسلة وفي أنبوب السخان بحي أولاد يعيش، أبحث عن سباك للتدخل السريع اليوم.',
-    phone: '0554821943',
-    createdAt: 1794478340229,
-    priority: true,
-    status: 'open',
-    isCustomerOwn: true
-  },
-  {
-    id: 'req_cust_live_dz_902',
-    craft: 'كهربائي',
-    wilaya: '16 الجزائر',
-    title: 'مطلوب كهربائي لتركيب طابلو قواطع كهربائية وإنارة LED لشقة',
-    desc: 'شقة جديدة جاهزة وتحتاج تركيب لوحة القواطع الكهربائية مع تثبيت سبوت لايت ومآخذ الغرف والصالون.',
-    phone: '0662481920',
-    createdAt: 1794478339229,
-    priority: true,
-    status: 'open',
-    isCustomerOwn: true
-  },
-  {
-    id: 'req_cust_live_dz_903',
-    craft: 'تبريد',
-    wilaya: '31 وهران',
-    title: 'طلب تقني تبريد لصيانة وتعمير غاز مكيف هوائي 12000 BTU',
-    desc: 'المكيف يشتغل لكن التبريد ضعيف جداً، أحتاج تقني تبريد لفحص أنابيب النحاس وشحن غاز الفريون.',
-    phone: '0771839204',
-    createdAt: 1794478338229,
-    priority: true,
-    status: 'open',
-    isCustomerOwn: true
-  },
-  {
-    id: 'req_live_01',
-    craft: 'سباك',
-    wilaya: '09 البليدة',
-    title: 'إصلاح تسرب مياه وتركيب سخان',
-    desc: 'أحتاج حرفي سباك مستعجل في البليدة لإصلاح تسرب أنبوب',
-    phone: '0550112233',
-    createdAt: 1793435076072,
-    priority: true,
-    status: 'open',
-    isCustomerOwn: true
-  },
-  {
     id: 'r_1793081276403',
     craft: 'ميكانيكي سيارات',
     wilaya: '15 تيزي وزو',
@@ -276,6 +216,54 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     isCustomerOwn: true
   },
   {
+    id: 'req_cust_live_dz_901',
+    craft: 'سباك',
+    wilaya: '09 البليدة',
+    title: 'طلب سباك مستعجل لإصلاح تسرب مياه وتغيير خلاط الحمام',
+    desc: 'يوجد تسرب مياه تحت المغسلة وفي أنبوب السخان بحي أولاد يعيش، أبحث عن سباك للتدخل السريع اليوم.',
+    phone: '0554821943',
+    createdAt: 1793195000000,
+    priority: true,
+    status: 'open',
+    isCustomerOwn: true
+  },
+  {
+    id: 'req_cust_live_dz_902',
+    craft: 'كهربائي',
+    wilaya: '16 الجزائر',
+    title: 'مطلوب كهربائي لتركيب طابلو قواطع كهربائية وإنارة LED لشقة',
+    desc: 'شقة جديدة جاهزة وتحتاج تركيب لوحة القواطع الكهربائية مع تثبيت سبوت لايت ومآخذ الغرف والصالون.',
+    phone: '0662481920',
+    createdAt: 1793194000000,
+    priority: true,
+    status: 'open',
+    isCustomerOwn: true
+  },
+  {
+    id: 'req_cust_live_dz_903',
+    craft: 'تبريد',
+    wilaya: '31 وهران',
+    title: 'طلب تقني تبريد لصيانة وتعمير غاز مكيف هوائي 12000 BTU',
+    desc: 'المكيف يشتغل لكن التبريد ضعيف جداً، أحتاج تقني تبريد لفحص أنابيب النحاس وشحن غاز الفريون.',
+    phone: '0771839204',
+    createdAt: 1793193000000,
+    priority: true,
+    status: 'open',
+    isCustomerOwn: true
+  },
+  {
+    id: 'req_live_01',
+    craft: 'سباك',
+    wilaya: '09 البليدة',
+    title: 'إصلاح تسرب مياه وتركيب سخان',
+    desc: 'أحتاج حرفي سباك مستعجل في البليدة لإصلاح تسرب أنبوب',
+    phone: '0550112233',
+    createdAt: 1793190000000,
+    priority: true,
+    status: 'open',
+    isCustomerOwn: true
+  },
+  {
     id: 'req_cr_c_fb_adm_1793182336382',
     craft: 'سباك',
     wilaya: '09 البليدة',
@@ -283,17 +271,6 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     desc: 'زبون في البليدة يطلب كشف وإصلاح تسرب مياه داخلي في الحمام.',
     phone: '0554 82 19 43',
     createdAt: 1793182300000,
-    priority: true,
-    status: 'open'
-  },
-  {
-    id: 'req_fb_live_1793136505389',
-    craft: 'سباك',
-    wilaya: '09 البليدة',
-    title: 'طلب سباك مستعجل في 09 البليدة (عبر منشور شفاء البليدة (Chifa Blida))',
-    desc: 'طلب زبون حقيقي تم جلبه عبر إشهار فيسبوك بإسم (شفاء البليدة (Chifa Blida)) في 09 البليدة وحفظه في قاعدة بيانات Firestore.',
-    phone: '0554 82 19 43',
-    createdAt: 1793136505389,
     priority: true,
     status: 'open'
   },
@@ -320,17 +297,6 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     status: 'open'
   },
   {
-    id: 'req_fb_adm_1793126302923',
-    craft: 'سباك',
-    wilaya: '09 البليدة',
-    title: 'طلب سباك في 09 البليدة (عبر بوت فيسبوك)',
-    desc: 'طلب زبون حقيقي تم جلبه عبر إشهار فيسبوك بإسم (شفاء البليدة (Chifa Blida)) وحفظه في Firestore.',
-    phone: '0554 82 19 43',
-    createdAt: 1793126302923,
-    priority: true,
-    status: 'open'
-  },
-  {
     id: 'req_cr_c_fb_adm_1793126302934',
     craft: 'سباك',
     wilaya: '09 البليدة',
@@ -342,17 +308,6 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     status: 'open'
   },
   {
-    id: 'req_fb_live_1793123330146',
-    craft: 'منظف',
-    wilaya: '09 البليدة',
-    title: 'طلب منظف مستعجل في 09 البليدة (عبر منشور شفاء البليدة (Chifa Blida))',
-    desc: 'طلب زبون حقيقي تم جلبه عبر إشهار فيسبوك بإسم (شفاء البليدة (Chifa Blida)) في 09 البليدة وحفظه في قاعدة بيانات Firestore.',
-    phone: '0554 82 19 43',
-    createdAt: 1793123330146,
-    priority: true,
-    status: 'open'
-  },
-  {
     id: 'req_cr_c_fb_live_1793123330150',
     craft: 'منظف',
     wilaya: '09 البليدة',
@@ -360,17 +315,6 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     desc: 'مطلوب خدمة تنظيف شامل لشقة F4 في البليدة بعد انتهاء أشغال الترميم والدهان.',
     phone: '0554 82 19 43',
     createdAt: 1793123300000,
-    priority: true,
-    status: 'open'
-  },
-  {
-    id: 'req_social_1793119632873_ntj',
-    craft: 'سباك',
-    wilaya: '35 بومرداس',
-    title: 'مطلوب سباك لتركيب شوديار وإصلاح تسرب مياه (عبر فيسبوك)',
-    desc: 'طلب مجلوب آلياً بواسطة بوت الفيسبوك من الصفحة الرسمية (1CCuf6aCuD): تركيب شوديار وإصلاح تسرب مياه مستعجل.',
-    phone: '0554 82 19 43',
-    createdAt: 1793119632873,
     priority: true,
     status: 'open'
   },
@@ -403,7 +347,7 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     title: 'تركيب بلاط أرضية المطبخ والرواق (أستر وداراج)',
     desc: 'مساحة حوالي 28 متر مربع، السلعة متوفرة في عين المكان وأحتاج بناء مختص في الداراج والفايونس.',
     phone: '0773519082',
-    createdAt: 1700000106000,
+    createdAt: 1793090006000,
     priority: true,
     status: 'open'
   },
@@ -414,7 +358,7 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     title: 'تركيب 4 أبواب غرف داخلية خشبية مع المقابض والأقفال',
     desc: 'الأبواب جاهزة في المنزل بحي بومرشي، أحتاج نجار متقن لتركيب الإطارات والأبواب وضبط الإغلاق.',
     phone: '0661904382',
-    createdAt: 1700000105000,
+    createdAt: 1793090005000,
     priority: false,
     status: 'open'
   },
@@ -425,7 +369,7 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     title: 'طلاء غرفتين وصالون مع لوندوي وتصليح الشقوق',
     desc: 'العمل في المقاطعة الإدارية علي منجلي، الجدران تحتاج طبقة لوندوي وصباغة عصرية نظيفة.',
     phone: '0558391045',
-    createdAt: 1700000104000,
+    createdAt: 1793090004000,
     priority: false,
     status: 'open'
   },
@@ -436,7 +380,7 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     title: 'تركيب مكيف هوائي جديد 12000 مع تمديد الأنابيب النحاسية',
     desc: 'اشتريت مكيف جديد وأبحث عن تقني تبريد في بئر الجير لتثبيت الوحدة الداخلية والخارجية وتشغيله.',
     phone: '0771839204',
-    createdAt: 1700000103000,
+    createdAt: 1793090003000,
     priority: false,
     status: 'open'
   },
@@ -447,7 +391,7 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     title: 'تركيب لوحة قواطع كهربائية جديدة مع مصابيح السقف',
     desc: 'شقة جديدة في باب الزوار تحتاج تركيب طابلو كهرباء كامل مع تثبيت الإنارة ومآخذ الغرف.',
     phone: '0662481920',
-    createdAt: 1700000102000,
+    createdAt: 1793090002000,
     priority: true,
     status: 'open'
   },
@@ -458,7 +402,7 @@ export const INITIAL_REQUESTS: RequestItem[] = [
     title: 'إصلاح تسرب ماء في أنبوب الحمام وتركيب حنفية خلاط',
     desc: 'يوجد تسرب تحت المغسلة في الطابق الأول بحي أولاد يعيش، أحتاج سباك محترف اليوم لإصلاح الأنبوب وتغيير الخلاط.',
     phone: '0554128934',
-    createdAt: 1700000101000,
+    createdAt: 1793090001000,
     priority: true,
     status: 'open'
   }

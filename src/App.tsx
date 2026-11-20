@@ -126,8 +126,16 @@ function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
   return [...list]
     .filter((item) => item && !isCraftsmanAdInCustomerFeed(item))
     .map((item) => {
-      const seedTs = item && item.id ? SEED_REQ_TIME_MAP.get(String(item.id)) : undefined;
-      return seedTs !== undefined ? { ...item, createdAt: seedTs } : item;
+      const idStr = String(item.id || '').trim();
+      const seedTs = SEED_REQ_TIME_MAP.get(idStr);
+      if (seedTs !== undefined) {
+        return { ...item, createdAt: seedTs };
+      }
+      const idMatch = idStr.match(/^r_(\d{13})$/);
+      if (idMatch) {
+        return { ...item, createdAt: Number(idMatch[1]) };
+      }
+      return item;
     })
     .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
 }
