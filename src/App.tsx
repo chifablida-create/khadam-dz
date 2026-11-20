@@ -128,14 +128,21 @@ function sortRequestsDesc(list: RequestItem[]): RequestItem[] {
     .map((item) => {
       const idStr = String(item.id || '').trim();
       const seedTs = SEED_REQ_TIME_MAP.get(idStr);
-      if (seedTs !== undefined) {
-        return { ...item, createdAt: seedTs };
-      }
       const idMatch = idStr.match(/^r_(\d{13})$/);
-      if (idMatch) {
-        return { ...item, createdAt: Number(idMatch[1]) };
-      }
-      return item;
+      const canonicalTs =
+        seedTs !== undefined
+          ? seedTs
+          : idMatch
+          ? Number(idMatch[1])
+          : item.createdAt;
+      const cleanCraft = !item.craft || item.craft === 'سباك' ? 'بلومبي' : item.craft;
+      return {
+        ...item,
+        craft: cleanCraft,
+        title: String(item.title || '').replace(/سباك/g, 'بلومبي'),
+        desc: String(item.desc || '').replace(/سباك/g, 'بلومبي'),
+        createdAt: canonicalTs
+      };
     })
     .sort((a, b) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0));
 }
@@ -461,7 +468,8 @@ export default function App() {
   }, [points]);
 
   // Craftsman specialty craft
-  const craftsmanCraft = currentUser?.craft || 'سباك';
+  const craftsmanCraft =
+    !currentUser?.craft || currentUser.craft === 'سباك' ? 'بلومبي' : currentUser.craft;
 
   const effectivePoints = currentUser ? points : 0;
   const effectiveRevealedSet = currentUser ? revealedSet : new Set<string>();
@@ -585,7 +593,7 @@ export default function App() {
     const randomWilaya = wilayas[Math.floor(Math.random() * wilayas.length)];
 
     const titlesByCraft: Record<string, string[]> = {
-      'سباك': [
+      'بلومبي': [
         'تسريب مياه ساخنة في الحمام يحتاج إصلاح فوري',
         'تركيب سخان ماء جديد وشبكة أنابيب نحاسية',
         'انسداد في مجرى المطبخ يحتاج تسليك عاجل'

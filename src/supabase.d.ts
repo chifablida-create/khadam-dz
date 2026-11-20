@@ -10,6 +10,7 @@ export type CraftsmanWithReveals = CraftsmanUser & {
 
 export declare function sortRequestsNewestFirst(list: RequestItem[]): RequestItem[];
 export declare function resolveCanonicalRequestTimestamp(rawId: string, fallbackTs?: number): number;
+export declare function normalizeCraftLabel(rawCraft?: string | null): string;
 export declare function isCraftsmanAdInCustomerFeed(item: Record<string, any> | null | undefined): boolean;
 export declare function normalizeDzCraftsmanPhone(raw?: string | null): string;
 export declare function deduplicateCraftsmenByPhone(list: CraftsmanWithReveals[]): CraftsmanWithReveals[];

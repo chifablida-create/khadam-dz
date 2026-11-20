@@ -63,7 +63,7 @@ async function saveRequestDirectToFirestoreRest(req: RequestItem): Promise<void>
       body: JSON.stringify({
         fields: {
           id: { stringValue: String(req.id) },
-          craft: { stringValue: String(req.craft || 'سباك') },
+          craft: { stringValue: String(req.craft || 'بلومبي') },
           wilaya: { stringValue: String(req.wilaya || '09 البليدة') },
           title: { stringValue: String(req.title || '') },
           desc: { stringValue: String(req.desc || '') },
@@ -94,7 +94,7 @@ async function saveCraftsmanDirectToFirestoreRest(c: CraftsmanUser): Promise<voi
         fields: {
           id: { stringValue: String(c.id) },
           name: { stringValue: String(c.name || '') },
-          craft: { stringValue: String(c.craft || 'سباك') },
+          craft: { stringValue: String(c.craft || 'بلومبي') },
           wilaya: { stringValue: String(c.wilaya || '09 البليدة') },
           phone: { stringValue: String(c.phone || '') },
           baseAvg: { doubleValue: Number(c.baseAvg || 5.0) },
@@ -232,7 +232,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [activeTab, setActiveTab] = useState<'bot' | 'fb_bot' | 'recharges' | 'craftsmen' | 'chats' | 'requests' | 'complaints' | 'settings'>('bot');
   const [fbPublisherName, setFbPublisherName] = useState<string>('شفاء البليدة (Chifa Blida)');
   const [fbTargetWilaya, setFbTargetWilaya] = useState<string>('09 البليدة');
-  const [fbTargetCraft, setFbTargetCraft] = useState<string>('سباك');
+  const [fbTargetCraft, setFbTargetCraft] = useState<string>('بلومبي');
   const [fbCommentInput, setFbCommentInput] = useState<string>('');
   const [fbPageIdInput, setFbPageIdInput] = useState<string>('1CCuf6aCuD');
   const [fbPageTokenInput, setFbPageTokenInput] = useState<string>('');
@@ -308,7 +308,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // New Request creation by Admin
   const [showNewReqForm, setShowNewReqForm] = useState(false);
   const [newReqTitle, setNewReqTitle] = useState('');
-  const [newReqCraft, setNewReqCraft] = useState('سباك');
+  const [newReqCraft, setNewReqCraft] = useState('بلومبي');
   const [newReqWilaya, setNewReqWilaya] = useState('16 الجزائر');
   const [newReqPhone, setNewReqPhone] = useState('0550 88 77 66');
   const [newReqDesc, setNewReqDesc] = useState('');
@@ -316,7 +316,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // New Craftsman creation by Admin
   const [showNewCraftsmanForm, setShowNewCraftsmanForm] = useState(false);
   const [newCName, setNewCName] = useState('');
-  const [newCCraft, setNewCCraft] = useState('سباك');
+  const [newCCraft, setNewCCraft] = useState('بلومبي');
   const [newCWilaya, setNewCWilaya] = useState('16 الجزائر');
   const [newCPhone, setNewCPhone] = useState('0661 22 33 44');
 
@@ -425,7 +425,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       const newCraftsman: CraftsmanUser = {
         id: `c_phone_${Date.now()}`,
         name: `حرفي موثق (${rawPhone})`,
-        craft: currentUser?.craft || 'سباك',
+        craft: currentUser?.craft || 'بلومبي',
         wilaya: currentUser?.wilaya || '16 الجزائر',
         phone: rawPhone,
         baseAvg: 5.0,
@@ -803,7 +803,7 @@ https://www.facebook.com/share/1CCuf6aCuD/
     const matchedCraft =
       CRAFTS_LIST.find((c) => raw.includes(c)) ||
       (raw.includes('بلومبي') || raw.includes('مرصص')
-        ? 'سباك'
+        ? 'بلومبي'
         : raw.includes('تريسيتي') || raw.includes('كهربا')
           ? 'كهربائي'
           : raw.includes('صباغ') || raw.includes('دهان')

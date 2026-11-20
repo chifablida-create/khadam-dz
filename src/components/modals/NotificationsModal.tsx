@@ -40,7 +40,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   onSelectNotification,
   onAddAppointmentToCalendar,
   onOpenRecharge,
-  userCraft = 'سباك',
+  userCraft = 'بلومبي',
   points,
   isDark
 }) => {

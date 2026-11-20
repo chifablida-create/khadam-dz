@@ -17,7 +17,7 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
   onCreateRequest,
   isDark
 }) => {
-  const [craft, setCraft] = useState<string>('سباك');
+  const [craft, setCraft] = useState<string>('بلومبي');
   const [wilaya, setWilaya] = useState<string>('16 الجزائر');
   const [title, setTitle] = useState<string>('');
   const [desc, setDesc] = useState<string>('');

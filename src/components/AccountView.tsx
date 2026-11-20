@@ -88,7 +88,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
   const boundSingleAccount = getBoundSingleCraftsman();
 
   const [name, setName] = useState(() => boundSingleAccount?.name || '');
-  const [craft, setCraft] = useState(() => boundSingleAccount?.craft || 'سباك');
+  const [craft, setCraft] = useState(() => boundSingleAccount?.craft || 'بلومبي');
   const [wilaya, setWilaya] = useState(() => boundSingleAccount?.wilaya || '16 الجزائر');
   const [phone, setPhone] = useState(() => boundSingleAccount?.phone || '');
   const [experience, setExperience] = useState(() => boundSingleAccount?.experience || '3 سنوات');

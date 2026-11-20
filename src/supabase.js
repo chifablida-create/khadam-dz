@@ -133,6 +133,12 @@ export function resolveCanonicalRequestTimestamp(rawId, fallbackTs) {
   return !Number.isNaN(fb) && fb > 0 ? fb : Date.now();
 }
 
+export function normalizeCraftLabel(rawCraft) {
+  const c = String(rawCraft || '').trim();
+  if (!c || c === 'سباك') return 'بلومبي';
+  return c;
+}
+
 export function isCraftsmanAdInCustomerFeed(item) {
   if (!item) return true;
   const idStr = String(item.id || '').trim();
@@ -144,7 +150,7 @@ export function isCraftsmanAdInCustomerFeed(item) {
   const combined = `${titleStr} ${descStr}`;
 
   if (
-    /صباغ بنتار|حداة عامة|حدادة عامة|حرفي معتمد متاح|متوفر حالياً لتنفيذ أشغال|أحمد - سباك محترف/i.test(
+    /صباغ بنتار|حداة عامة|حدادة عامة|حرفي معتمد متاح|متوفر حالياً لتنفيذ أشغال|أحمد - سباك محترف|أحمد - بلومبي محترف/i.test(
       combined
     )
   ) {
@@ -194,11 +200,11 @@ export function mapDemandeRowToRequestItem(row) {
 
   const mapped = {
     id: rawId,
-    title: String(row.title || row.client_name || cleanDesc || 'طلب خدمة').trim(),
+    title: String(row.title || row.client_name || cleanDesc || 'طلب خدمة').replace(/سباك/g, 'بلومبي').trim(),
     phone: String(row.phone || row.client_phone || '0550000000').trim(),
     wilaya: String(row.wilaya || '16 الجزائر').trim(),
-    craft: String(row.craft || row.metier || 'سباك').trim(),
-    desc: String(row.desc || cleanDesc || row.title || row.client_name || '').trim(),
+    craft: normalizeCraftLabel(row.craft || row.metier),
+    desc: String(row.desc || cleanDesc || row.title || row.client_name || '').replace(/سباك/g, 'بلومبي').trim(),
     status: statusVal,
     priority: row.priority !== undefined ? Boolean(row.priority) : meta.priority !== undefined ? Boolean(meta.priority) : true,
     createdAt: Number.isNaN(createdTs) ? Date.now() : createdTs,
@@ -247,7 +253,7 @@ export function mapRequestItemToDemandePayload(req) {
   const descStr = String(req.desc || req.title || '').trim();
   const phoneStr = String(req.phone || '0550000000').trim();
   const wilayaStr = String(req.wilaya || '16 الجزائر').trim();
-  const craftStr = String(req.craft || 'سباك').trim();
+  const craftStr = normalizeCraftLabel(req.craft);
   const statusStr = req.status === 'in_progress' || req.status === 'completed' ? req.status : 'open';
 
   const payload = {
@@ -340,8 +346,8 @@ export function mapArtisanRowToCraftsmanUser(row) {
     phone: String(row.phone || '0550000000').trim(),
     wilaya: String(row.wilaya || '16 الجزائر').trim(),
     experience: String(row.commune || meta.experience || '5 سنوات').trim(),
-    craft: String(row.metier || 'سباك').trim(),
-    bio: cleanBio || 'حرفي معتمد في منصة خدّام ديزاد',
+    craft: normalizeCraftLabel(row.metier),
+    bio: (cleanBio || 'حرفي معتمد في منصة خدّام ديزاد').replace(/سباك/g, 'بلومبي'),
     points: Number.isNaN(pointsVal) ? 50 : Math.max(0, pointsVal),
     status: row.is_active === false ? 'suspended' : 'active',
     isVerified: true,
@@ -382,7 +388,7 @@ export function mapCraftsmanUserToArtisanPayload(craftsman, revealedPhonesList) 
     phone: String(craftsman.phone || '0550000000').trim(),
     wilaya: String(craftsman.wilaya || '16 الجزائر').trim(),
     commune: String(craftsman.experience || 'الجزائر').trim(),
-    metier: String(craftsman.craft || 'سباك').trim(),
+    metier: normalizeCraftLabel(craftsman.craft),
     description: packTextWithMeta(craftsman.bio || 'حرفي معتمد في منصة خدّام ديزاد', meta),
     price: pointsVal,
     is_active: craftsman.status !== 'suspended'
@@ -879,7 +885,7 @@ export async function runLiveSupabaseBotReply({
   }
 
   if (/طلب|خدمة|زبون|عمل|ورشة/i.test(text) && latestMatching) {
-    return `🤖 [بوت خدّام DZ المباشر - متصل بـ Supabase]: يوجد حالياً (${openDemandes.length}) طلب مفتوح في قاعدة البيانات، منها (${matchingCraftDemandes.length}) طلب في تخصص (${craft || 'سباك'}). أحدث طلب: "${latestMatching.title}" في (${latestMatching.wilaya}). يمكنك كشف رقم الزبون بـ ${revealCost} نقطة والتواصل معه فوراً 📞.`;
+    return `🤖 [بوت خدّام DZ المباشر - متصل بـ Supabase]: يوجد حالياً (${openDemandes.length}) طلب مفتوح في قاعدة البيانات، منها (${matchingCraftDemandes.length}) طلب في تخصص (${normalizeCraftLabel(craft)}). أحدث طلب: "${latestMatching.title}" في (${latestMatching.wilaya}). يمكنك كشف رقم الزبون بـ ${revealCost} نقطة والتواصل معه فوراً 📞.`;
   }
 
   return `🤖 [بوت خدّام DZ المباشر 24/7]: أهلاً بك ${craftsmanName || 'حرفينا الكريم'}! البوت متصل بقاعدة بيانات Supabase الحية (${openDemandes.length} طلب زبون نشط • ${allArtisans.length} حرفي مسجل • رصيدك: ${syncedPts} نقطة).${

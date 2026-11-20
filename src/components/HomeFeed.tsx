@@ -54,7 +54,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
   const [cardCancelError, setCardCancelError] = useState<string>('');
 
   // Popular crafts to display first in quick pills
-  const quickCrafts = ['الكل', 'سباك', 'كهربائي', 'نجار', 'دهان', 'بناء', 'حداد', 'زجاج', 'تبريد', 'خياط', 'ميكانيكي', 'إصلاح هواتف', 'نقل أثاث'];
+  const quickCrafts = ['الكل', 'بلومبي', 'كهربائي', 'نجار', 'دهان', 'بناء', 'حداد', 'زجاج', 'تبريد', 'خياط', 'ميكانيكي', 'إصلاح هواتف', 'نقل أثاث'];
 
   // Filter requests
   const filteredRequests = useMemo(() => {
@@ -115,7 +115,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                 </span>
               </div>
               <div className="text-xs text-white mt-0.5 font-bold">
-                سباك، كهربائي، دهان... حرفيو 58 ولاية بانتظارك
+                بلومبي، كهربائي، دهان... حرفيو 58 ولاية بانتظارك
               </div>
             </div>
           </div>
