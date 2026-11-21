@@ -63,7 +63,7 @@ export const AppPromoBanner: React.FC<AppPromoBannerProps> = ({
       id: 'recharge',
       badge: 'شحن فوري بالذكاء الاصطناعي ⚡',
       badgeColor: 'bg-blue-500 text-white',
-      title: 'شحن الرصيد 24/7 ببريدي موب وشارجيلي',
+      title: 'شحن الرصيد 24/7 ببريدي موب و CCP',
       desc: 'ارفع صورة أو PDF الوصل، والبوت الذكي يفحص المعاملة ويشحن نقاطك تلقائياً.',
       icon: Zap,
       bgGradient: 'from-blue-950/80 via-indigo-950/50 to-gray-900 border-blue-500/40',

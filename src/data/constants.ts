@@ -100,12 +100,6 @@ export const PAYMENT_METHODS = {
     accountHolder: "KHADAM DZ PLATFORM",
     note: "يرجى نسخ الـ RIP وإرسال المبلغ مع التقاط صورة الوصل"
   },
-  chargily: {
-    title: "شارجيلي باي - Chargily Pay (البطاقة الذهبية / CIB)",
-    merchant: "خدّام ديزاد - Khadam DZ Services",
-    note: "الدفع الإلكتروني الفوري والآمن بالبطاقة الذهبية أو بطاقة CIB البنكية",
-    appUrl: "https://pay.chargily.net"
-  },
   ccp: {
     title: "الحساب البريدي الجاري - CCP",
     ccpNumber: "1220893",

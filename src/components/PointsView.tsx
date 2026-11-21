@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Send,
   Smartphone,
-  CreditCard,
   ExternalLink
 } from 'lucide-react';
 import { RECHARGE_PACKAGES, PAYMENT_METHODS } from '../data/constants';
@@ -53,7 +52,6 @@ interface PointsViewProps {
   pendingRecharges: PendingRecharge[];
   pointLogs: PointLog[];
   onOpenUploadReceipt: (selectedPkg?: { amount: number; pts: number }) => void;
-  onOpenChargilyCheckout?: (selectedPkg?: { amount: number; pts: number }) => void;
   onOpenAdminChat?: () => void;
   onOpenGithubVercel?: () => void;
   officialRip?: string;
@@ -68,7 +66,6 @@ export const PointsView: React.FC<PointsViewProps> = ({
   pendingRecharges,
   pointLogs,
   onOpenUploadReceipt,
-  onOpenChargilyCheckout,
   isDark
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -317,68 +314,7 @@ export const PointsView: React.FC<PointsViewProps> = ({
           </div>
         </div>
 
-        {/* Chargily Pay Connection Card */}
-        <div
-          className={`p-3.5 rounded-2xl border space-y-2.5 ${
-            isDark
-              ? 'bg-gradient-to-r from-teal-950/40 via-emerald-950/20 to-gray-800 border-teal-500/40'
-              : 'bg-teal-50/80 border-teal-300'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-black flex items-center justify-center font-black shadow-xs shrink-0">
-                <CreditCard className="w-4 h-4" />
-              </div>
-              <div>
-                <div className={`text-xs font-black ${isDark ? 'text-white' : 'text-black'}`}>
-                  {PAYMENT_METHODS.chargily.title}
-                </div>
-                <div className={`text-[10px] font-bold ${isDark ? 'text-teal-400' : 'text-teal-800'}`}>
-                  البطاقة الذهبية (Edahabia) أو بطاقة CIB البنكية
-                </div>
-              </div>
-            </div>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-600 text-white shrink-0">
-              بوابة إلكترونية ⚡
-            </span>
-          </div>
 
-          <p className={`text-[11px] font-bold leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            {PAYMENT_METHODS.chargily.note} مع الشحن الفوري والتلقائي لنقاط حسابك في ثوانٍ.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                if (onOpenChargilyCheckout) {
-                  onOpenChargilyCheckout();
-                } else {
-                  onOpenUploadReceipt();
-                }
-              }}
-              className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-green-600 hover:from-teal-700 hover:to-green-700 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition active:scale-95 cursor-pointer text-center"
-            >
-              <CreditCard className="w-3.5 h-3.5 shrink-0" />
-              <span>دفع فوري بالبطاقة الذهبية / CIB</span>
-            </button>
-
-            <a
-              href="https://pay.chargily.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`py-2.5 px-3 rounded-xl border font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer text-center ${
-                isDark
-                  ? 'bg-gray-800 border-gray-700 text-teal-400 hover:bg-gray-700'
-                  : 'bg-white border-gray-300 text-teal-800 hover:bg-gray-100'
-              }`}
-            >
-              <span>بوابة Chargily الخارجية</span>
-              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-            </a>
-          </div>
-        </div>
 
         {/* CCP */}
         <div
@@ -455,7 +391,7 @@ export const PointsView: React.FC<PointsViewProps> = ({
         >
           <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
           <span>
-            <strong>بوت الفحص التلقائي الذكي مفعّل:</strong> ارفع وصل بريدي موب أو شارجيلي (صورة أو PDF)، وسيقرأ البوت رقم المعاملة والمبلغ ويضيف النقاط لحسابك فوراً.
+            <strong>بوت الفحص التلقائي الذكي مفعّل:</strong> ارفع وصل بريدي موب أو CCP (صورة أو PDF)، وسيقرأ البوت رقم المعاملة والمبلغ ويضيف النقاط لحسابك فوراً.
           </span>
         </div>
 

@@ -21,7 +21,6 @@ import { AdminLoginModal } from './components/modals/AdminLoginModal';
 import { AdminDashboardModal } from './components/modals/AdminDashboardModal';
 import { PlayStoreModal } from './components/modals/PlayStoreModal';
 import { AppSharePromoModal } from './components/modals/AppSharePromoModal';
-import { ChargilyCheckoutModal } from './components/modals/ChargilyCheckoutModal';
 import { NotificationsModal } from './components/modals/NotificationsModal';
 import { TopAlertBanner } from './components/TopAlertBanner';
 import { BotSyncBanner } from './components/BotSyncBanner';
@@ -342,8 +341,6 @@ export default function App() {
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isPlayStoreModalOpen, setIsPlayStoreModalOpen] = useState(false);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-  const [isChargilyOpen, setIsChargilyOpen] = useState(false);
-  const [chargilyInitialPkg, setChargilyInitialPkg] = useState<{ amount: number; pts: number } | null>(null);
 
   // Trigger sync notification
   const triggerSync = (msg: string) => {
@@ -1071,72 +1068,6 @@ export default function App() {
     }
   };
 
-  // Handle successful electronic payment via Chargily Pay
-  const handleChargilySuccess = (amount: number, pts: number, txnId: string, notes: string) => {
-    // Credit points immediately and persist to Supabase
-    setPoints((prev) => {
-      const nextPts = prev + pts;
-      const targetId = currentUser?.id || "cp1";
-      savePointsToSupabase(targetId, nextPts).catch(() => {});
-      if (currentUser) {
-        const updatedCr = { ...currentUser, points: nextPts };
-        setCurrentUser(updatedCr);
-        saveArtisanToSupabase(updatedCr).catch(() => {});
-      }
-      return nextPts;
-    });
-
-    const approvedRecharge: PendingRecharge = {
-      id: `rec_chg_${Date.now()}`,
-      user: currentUser?.name || 'حرفي خدام',
-      phone: currentUser?.phone || '0550 12 34 56',
-      amount,
-      pts,
-      receiptName: `chargily_pay_${txnId}.png`,
-      status: 'approved',
-      autoApproved: true,
-      createdAt: Date.now(),
-      analysis: {
-        paymentService: 'chargily',
-        serviceNameAr: 'شارجيلي باي (Chargily Pay)',
-        amount,
-        calculatedPoints: pts,
-        transactionId: txnId,
-        senderName: currentUser?.name || 'حرفي معتمد',
-        senderRipOrPhone: currentUser?.phone || '0550 12 34 56',
-        recipientRip: 'KHADAM DZ CHARGILY GATEWAY',
-        dateStr: new Date().toLocaleDateString('fr-DZ'),
-        status: 'success',
-        isValidReceipt: true,
-        confidence: 1.0,
-        botNotes: notes
-      }
-    };
-
-    setPendingRecharges((prev) => [approvedRecharge, ...prev]);
-
-    const newLog: PointLog = {
-      id: `log_chg_${Date.now()}`,
-      type: 'recharge',
-      pts,
-      description: `شحن فوري بالبطاقة الذهبية/CIB عبر Chargily Pay (${amount.toLocaleString('fr-FR')} دج)`,
-      createdAt: Date.now()
-    };
-    setPointLogs((prev) => [newLog, ...prev]);
-
-    // Add notification
-    const newNotif: AppNotification = {
-      id: `notif_chg_${Date.now()}`,
-      type: 'system',
-      title: '⚡ شحن فوري ناجح عبر Chargily Pay',
-      message: `تم شحن +${pts} نقطة إلى رصيدك فوراً بمبلغ ${amount.toLocaleString('fr-FR')} دج عبر البطاقة الذهبية / CIB (معاملة #${txnId}).`,
-      createdAt: Date.now(),
-      read: false
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
-
-    triggerSync(`تم الدفع عبر Chargily بنجاح وشحن +${pts} نقطة إلى رصيدك 🎉`);
-  };
 
   // Direct Admin Points Grant or Deduct
   const handleAdminAdjustPoints = (delta: number, reason: string) => {
@@ -1715,10 +1646,6 @@ export default function App() {
                 setReceiptInitialPkg(pkg || null);
                 setIsUploadReceiptOpen(true);
               }}
-              onOpenChargilyCheckout={(pkg) => {
-                setChargilyInitialPkg(pkg || null);
-                setIsChargilyOpen(true);
-              }}
               isDark={isDark}
             />
           )}
@@ -1915,17 +1842,6 @@ export default function App() {
           isOpen={isPromoModalOpen}
           onClose={() => setIsPromoModalOpen(false)}
           onOpenPlayStore={() => setIsPlayStoreModalOpen(true)}
-          isDark={isDark}
-        />
-
-        {/* Chargily Pay Gateway Checkout Modal (Edahabia & CIB) */}
-        <ChargilyCheckoutModal
-          isOpen={isChargilyOpen}
-          onClose={() => setIsChargilyOpen(false)}
-          initialPackage={chargilyInitialPkg}
-          userName={currentUser?.name || ''}
-          userPhone={currentUser?.phone || ''}
-          onPaymentSuccess={handleChargilySuccess}
           isDark={isDark}
         />
 

@@ -181,7 +181,6 @@ interface AdminDashboardModalProps {
   onOpenGithubVercel?: () => void;
   onOpenPromoModal?: () => void;
   onOpenUploadReceipt?: () => void;
-  onOpenChargilyCheckout?: () => void;
   onOpenFacebookBot?: () => void;
   isDark: boolean;
 }
@@ -225,7 +224,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onOpenGithubVercel,
   onOpenPromoModal,
   onOpenUploadReceipt,
-  onOpenChargilyCheckout,
   onOpenFacebookBot,
   isDark
 }) => {
@@ -488,10 +486,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       validRequests: validReqs,
       pendingReceipts: pendingRecs,
       verifiedCraftsmen: verifiedCount,
-      botHealth: '100% نشط ومتصل بـ BaridiMob & Chargily Pay',
+      botHealth: '100% نشط ومتصل بـ BaridiMob & CCP',
       notes: [
         `تم فحص ${requests.length} طلب زبون: جميع أرقام الهواتف الجزائرية صالحة ومحمية.`,
-        `محرك قراءة وصولات BaridiMob و Chargily مفعل بدقة 99.8% (RIP: ${settings.adminPhone}).`,
+        `محرك قراءة وصولات BaridiMob و CCP مفعل بدقة 99.8% (RIP: ${settings.adminPhone}).`,
         `الرد التلقائي للبوت في شات الحرفيين ${settings.botAutoReplyChat !== false ? 'نشط 24/7 ⚡' : 'متوقف يدوياً'}.`,
         `تسعيرة كشف الرقم الحالية: ${settings.freeRevealPromo ? 'مجاني 0 نقطة (عرض ترويجي)' : `${settings.revealCost ?? 25} نقطة`}.`
       ]
@@ -1791,7 +1789,7 @@ https://www.facebook.com/share/1CCuf6aCuD/
                   {[
                     {
                       key: 'botAutoApproveReceipts' as keyof PlatformSettings,
-                      title: 'الاعتماد والشحن التلقائي لوصولات BaridiMob و Chargily',
+                      title: 'الاعتماد والشحن التلقائي لوصولات BaridiMob و CCP',
                       desc: 'يقوم البوت بقراءة الوصل والتحقق من RIP والمبلغ وشحن النقاط للحرفي فوراً بدون انتظار'
                     },
                     {

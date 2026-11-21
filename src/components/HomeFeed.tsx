@@ -116,7 +116,6 @@ interface HomeFeedProps {
   onOpenPromoModal?: () => void;
   onOpenPlayStore?: () => void;
   onOpenUploadReceipt?: () => void;
-  onOpenChargilyCheckout?: () => void;
   onOpenAdminChat?: () => void;
   onNavigatePoints?: () => void;
   points?: number;

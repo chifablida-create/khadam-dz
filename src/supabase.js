@@ -876,11 +876,11 @@ export async function runLiveSupabaseBotReply({
   const text = String(message || '').trim();
   const latestMatching = matchingWilayaDemandes[0] || matchingCraftDemandes[0] || openDemandes[0];
 
-  if (/وصل|تفعيل|معلق|شحن|بريدي|شارجيلي|نقاط|رصيد/i.test(text)) {
+  if (/وصل|تفعيل|معلق|شحن|بريدي|ccp|نقاط|رصيد/i.test(text)) {
     return `🤖 [بوت خدّام DZ المباشر - متصل بـ Supabase]: مرحباً ${craftsmanName || 'حرفينا الكريم'}! رصيدك الفعلي المسجل في قاعدة البيانات هو (${syncedPts} نقطة — يكفي لكشف ${Math.floor(syncedPts / Math.max(1, revealCost))} أرقام زبائن). ${
       pendingCount > 0
         ? `تم رصد (${pendingCount}) وصل شحن وتفعيله تلقائياً في حسابك على Supabase ⚡.`
-        : 'يمكنك شحن نقاطك في أي وقت عبر بريدي موب (RIP: 00799999000122089353) أو شارجيلي باي وسيقوم البوت بفحص الوصل وتحديث جدول النقاط (points) فوراً.'
+        : 'يمكنك شحن نقاطك في أي وقت عبر بريدي موب (RIP: 00799999000122089353) أو الحساب البريدي (CCP: 1220893 / Clé: 53) وسيقوم البوت بفحص الوصل وتحديث جدول النقاط (points) فوراً.'
     }`;
   }
 

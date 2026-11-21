@@ -15,8 +15,7 @@ import {
   CheckCircle2,
   Phone,
   FileCheck2,
-  Smartphone,
-  CreditCard
+  Smartphone
 } from 'lucide-react';
 import { PendingRecharge, ReceiptAnalysisResult } from '../../types';
 import { RECHARGE_PACKAGES, calculatePointsFromAmount } from '../../data/constants';
@@ -132,7 +131,6 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
     typeOfFile: string,
     targetAmount: number
   ): ReceiptAnalysisResult => {
-    const isChargily = /chargily|شارجيلي|edahabia|cib/i.test(nameOfFile);
     const isCcp = /ccp|poste|بريد/i.test(nameOfFile) && !/barid|بريدي/i.test(nameOfFile);
     const fallbackPoints = calculatePointsFromAmount(targetAmount);
     const hasRealPayload = Boolean(
@@ -151,12 +149,8 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
         : `DZ${String(deterministicHash).slice(0, 8)}${String(targetAmount)}`;
 
     return {
-      paymentService: isChargily ? 'chargily' : isCcp ? 'ccp' : 'baridimob',
-      serviceNameAr: isChargily
-        ? 'شارجيلي باي (Chargily Pay)'
-        : isCcp
-        ? 'بريد الجزائر (CCP 1220893/53)'
-        : 'بريدي موب (BaridiMob)',
+      paymentService: isCcp ? 'ccp' : 'baridimob',
+      serviceNameAr: isCcp ? 'بريد الجزائر (CCP 1220893/53)' : 'بريدي موب (BaridiMob)',
       amount: targetAmount,
       calculatedPoints: fallbackPoints,
       transactionId: txId,
@@ -308,7 +302,7 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className={`font-black text-sm ${isDark ? 'text-white' : 'text-black'}`}>
-                  فحص وشحن وصولات بريدي موب وشارجيلي
+                  فحص وشحن وصولات بريدي موب و CCP
                 </h3>
                 <span className="text-[10px] font-black bg-emerald-500 text-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
                   <Sparkles className="w-2.5 h-2.5" />
@@ -499,7 +493,7 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
 
             <div className="flex items-center justify-between mb-1.5">
               <label className={`block text-xs font-black ${isDark ? 'text-white' : 'text-black'}`}>
-                وصل الدفع (بريدي موب / شارجيلي باي / CCP / PDF أو صورة) *
+                وصل الدفع (بريدي موب / CCP / PDF أو صورة) *
               </label>
             </div>
 
@@ -529,7 +523,7 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
                           {fileName}
                         </span>
                         <span className="text-[10px] text-red-600 dark:text-red-400 font-bold mt-0.5">
-                          مستند PDF رسمي (Algérie Poste / Chargily Receipt)
+                          مستند PDF رسمي (Algérie Poste / BaridiMob Receipt)
                         </span>
                       </div>
                     ) : (
@@ -561,7 +555,7 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
                     </div>
                     <div>
                       <div className={`text-xs font-black ${isDark ? 'text-white' : 'text-black'}`}>
-                        اضغط لاختيار وصل BaridiMob أو Chargily أو وصل البريد
+                        اضغط لاختيار وصل BaridiMob أو وصل البريد CCP
                       </div>
                       <div className={`text-[11px] font-bold mt-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                         يدعم الصور (JPG, PNG) وملفات الـ PDF الرسمية

@@ -27,7 +27,6 @@ interface AccountViewProps {
   onOpenAdminChat: () => void;
   onOpenAdminDashboard?: () => void;
   onOpenUploadReceipt?: (pkg?: { amount: number; pts: number }) => void;
-  onOpenChargilyCheckout?: (pkg?: { amount: number; pts: number }) => void;
   officialRip?: string;
   officialHolder?: string;
   officialCcp?: string;
