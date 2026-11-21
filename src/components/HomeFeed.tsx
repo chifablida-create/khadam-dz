@@ -139,7 +139,7 @@ interface HomeFeedProps {
   ratings?: RatingItem[];
   onCompleteAndRateRequest?: (req: RequestItem) => void;
   onOpenCraftsmanProfile?: (craftsman: CraftsmanUser) => void;
-  onOpenCraftsmanProfileByName?: (name: string, craft?: string) => void;
+  onOpenCraftsmanProfileByName?: (name: string, craft: string) => void;
   onRateCraftsmanDirect?: (craftsman: CraftsmanUser) => void;
   onTestSpecialtyNotification?: () => void;
   onScheduleBackgroundTestNotification?: () => void;
@@ -622,7 +622,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                           <span>·</span>
                           <span>{craftsman.craft}</span>
                           <span>·</span>
-                          <span>{getWilayaShortName(craftsman.wilaya)}</span>
+                          <span>{getWilayaShortName(craftsman.wilaya || '')}</span>
                         </div>
                       </div>
                     </div>
