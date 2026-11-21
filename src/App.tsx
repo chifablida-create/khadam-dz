@@ -1665,7 +1665,13 @@ export default function App() {
           {currentTab === 'home' && (
             <HomeFeed
               requests={requests}
+              craftsmen={craftsmen}
+              ratings={ratings}
               revealedSet={effectiveRevealedSet}
+              isRegisteredCraftsman={Boolean(currentUser)}
+              craftsmanCraft={craftsmanCraft}
+              craftsmanName={currentUser?.name || ''}
+              points={effectivePoints}
               onRevealPhone={handleRevealPhone}
               onSelectRequest={(req) => {
                 if (userMode === 'customer' && !req.isCustomerOwn) {
@@ -1677,6 +1683,7 @@ export default function App() {
               onToggleAgreeRequest={handleToggleAgreeRequest}
               onUpdateAgreementDetails={handleUpdateAgreementDetails}
               onTriggerAppointmentReminderNow={(req) => triggerInAppAppointmentReminder(req, true)}
+              onCompleteAndRateRequest={(req) => setRatingTargetRequest(req)}
               onOpenCreateModal={() => setIsCreateModalOpen(true)}
               onOpenPromoModal={() => setIsPromoModalOpen(true)}
               onOpenPlayStore={() => setIsPlayStoreModalOpen(true)}
