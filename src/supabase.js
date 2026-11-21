@@ -342,7 +342,7 @@ export function mapArtisanRowToCraftsmanUser(row) {
 
   const mapped = {
     id: rawId,
-    name: String(row.full_name || 'حرفي معتمد').trim(),
+    name: String(row.full_name || 'حرفي معتمد').replace(/سباك/g, 'بلومبي').trim(),
     phone: String(row.phone || '0550000000').trim(),
     wilaya: String(row.wilaya || '16 الجزائر').trim(),
     experience: String(row.commune || meta.experience || '5 سنوات').trim(),

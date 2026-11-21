@@ -577,8 +577,10 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
             </div>
           ) : (
             filteredCraftsmen.map((craftsman) => {
-              const icon = getCraftIcon(craftsman.craft);
-              const cleanPhone = (craftsman.phone || '').replace(/\s+/g, '');
+              const displayCraft = !craftsman.craft || craftsman.craft === 'سباك' ? 'بلومبي' : craftsman.craft;
+              const displayName = String(craftsman.name || '').replace(/سباك/g, 'بلومبي');
+              const displayBio = String(craftsman.bio || '').replace(/سباك/g, 'بلومبي');
+              const icon = getCraftIcon(displayCraft);
               const crReviews = getLocalCraftsmanReviews(craftsman, ratings, requests);
               const displayAvg =
                 crReviews.length > 0
@@ -609,7 +611,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h3 className="font-bold text-sm text-sky-700 dark:text-sky-400 truncate">
-                            {craftsman.name}
+                            {displayName}
                           </h3>
                           {craftsman.isVerified && (
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -620,7 +622,7 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                             {displayAvg.toFixed(1)} ★ ({displayCount})
                           </span>
                           <span>·</span>
-                          <span>{craftsman.craft}</span>
+                          <span>{displayCraft}</span>
                           <span>·</span>
                           <span>{getWilayaShortName(craftsman.wilaya || '')}</span>
                         </div>
@@ -628,9 +630,9 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     </div>
                   </div>
 
-                  {craftsman.bio && (
+                  {displayBio && (
                     <p className="text-xs text-slate-600 dark:text-gray-300 mt-2 line-clamp-2">
-                      {craftsman.bio}
+                      {displayBio}
                     </p>
                   )}
 
@@ -638,22 +640,14 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
                     onClick={(e) => e.stopPropagation()}
                     className="mt-2.5 flex items-center gap-2 flex-wrap"
                   >
-                    <a
-                      href={`tel:${cleanPhone}`}
-                      className="h-8 px-3 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold inline-flex items-center gap-1"
+                    <button
+                      type="button"
+                      onClick={onOpenCreateModal}
+                      className="h-8 px-3 rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
                     >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>اتصال</span>
-                    </a>
-                    <a
-                      href={`https://wa.me/213${cleanPhone.replace(/^0/, '')}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-8 px-3 rounded-full bg-[#25D366] text-white text-xs font-bold inline-flex items-center gap-1"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>واتساب</span>
-                    </a>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>أضف طلبك ليتصل بك</span>
+                    </button>
                     {onRateCraftsmanDirect && (
                       <button
                         type="button"
