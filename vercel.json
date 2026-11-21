@@ -3,13 +3,29 @@
   "buildCommand": "npm run build && ( [ ! -f dist/index.html ] && [ -d ../dist ] && cp -r ../dist . || true )",
   "outputDirectory": "dist",
   "framework": "vite",
+  "regions": ["cdg1"],
+  "headers": [
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/khadam-dz/assets/(.*)",
       "destination": "/assets/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!\\.well-known/|sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
       "destination": "/index.html"
     }
   ]

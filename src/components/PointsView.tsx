@@ -39,12 +39,24 @@ function copyTextSynchronously(text: string): boolean {
   }
 }
 
-function buildBaridiMobHref(rip: string): string {
-  const cleanRip = rip.replace(/\s+/g, '');
-  if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
-    return 'intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end';
+const BARIDIMOB_PLAY_STORE_URL =
+  'https://play.google.com/store/apps/details?id=ru.bpc.mobilebank.bpc&hl=ar&gl=DZ';
+const BARIDIMOB_IOS_URL =
+  'https://apps.apple.com/dz/app/baridimob/id1481839638';
+const BARIDIMOB_ANDROID_MARKET_INTENT =
+  'intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc%26hl%3Dar%26gl%3DDZ;end';
+
+function getDirectBaridiMobStoreHref(): string {
+  if (typeof navigator !== 'undefined') {
+    if (/Android/i.test(navigator.userAgent)) return BARIDIMOB_ANDROID_MARKET_INTENT;
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return BARIDIMOB_IOS_URL;
   }
-  return `./baridimob-open.html?rip=${encodeURIComponent(cleanRip)}`;
+  return BARIDIMOB_PLAY_STORE_URL;
+}
+
+function buildBaridiMobHref(rip: string, holder = 'KHADAM DZ PLATFORM'): string {
+  const cleanRip = rip.replace(/\s+/g, '');
+  return `./baridimob-open.html?rip=${encodeURIComponent(cleanRip)}&holder=${encodeURIComponent(holder)}`;
 }
 
 interface PointsViewProps {
@@ -269,7 +281,7 @@ export const PointsView: React.FC<PointsViewProps> = ({
           {/* Working Action buttons for BaridiMob (No target="_blank", uses real ru.bpc.mobilebank.bpc) */}
           <div className="space-y-2 pt-1">
             <a
-              href={buildBaridiMobHref(PAYMENT_METHODS.baridimob.rip)}
+              href={buildBaridiMobHref(PAYMENT_METHODS.baridimob.rip, PAYMENT_METHODS.baridimob.holder || 'KHADAM DZ PLATFORM')}
               onClick={() => {
                 handleCopy(PAYMENT_METHODS.baridimob.rip, 'rip');
                 setBaridiLaunched(true);
@@ -288,8 +300,11 @@ export const PointsView: React.FC<PointsViewProps> = ({
 
             <div className="grid grid-cols-2 gap-2">
               <a
-                href={`./baridimob-open.html?rip=${encodeURIComponent(PAYMENT_METHODS.baridimob.rip.replace(/\s+/g, ''))}`}
-                onClick={() => handleCopy(PAYMENT_METHODS.baridimob.rip, 'rip')}
+                href={getDirectBaridiMobStoreHref()}
+                onClick={() => {
+                  handleCopy(PAYMENT_METHODS.baridimob.rip, 'rip');
+                  setBaridiLaunched(true);
+                }}
                 className={`py-2.5 px-3 rounded-xl border font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer text-center no-underline ${
                   isDark
                     ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/60'
@@ -297,7 +312,7 @@ export const PointsView: React.FC<PointsViewProps> = ({
                 }`}
               >
                 <ExternalLink className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span className="truncate">بوابة BaridiMob 🚀</span>
+                <span className="truncate">فتح من المتجر 🚀</span>
               </a>
 
               <button

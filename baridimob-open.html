@@ -3,59 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>فتح تطبيق بريدي موب الحقيقي — BaridiMob (خدّام ديزاد)</title>
+  <title>التحويل عبر بريدي موب — BaridiMob (خدّام ديزاد)</title>
   <style>
     * { box-sizing: border-box; font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif; }
     body { margin: 0; min-height: 100vh; background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); color: #fff; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .card { width: 100%; max-width: 430px; background: #fff; color: #0f172a; border-radius: 24px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.45); border: 3px solid #10b981; text-align: center; }
+    .card { width: 100%; max-width: 440px; background: #fff; color: #0f172a; border-radius: 24px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.45); border: 3px solid #10b981; text-align: center; }
     .badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #10b981; font-weight: 900; font-size: 12px; padding: 5px 14px; border-radius: 999px; margin-bottom: 10px; }
     h1 { font-size: 19px; margin: 4px 0 8px; font-weight: 900; color: #0f172a; }
     p { font-size: 13px; color: #334155; margin: 0 0 14px; font-weight: 700; line-height: 1.6; }
-    .rip-box { background: #f8fafc; border: 2px dashed #10b981; border-radius: 16px; padding: 12px; margin-bottom: 14px; }
-    .rip-label { font-size: 11px; color: #047857; font-weight: 800; }
-    .rip-val { font-family: monospace; font-size: 16px; font-weight: 900; color: #0f172a; letter-spacing: 0.5px; margin: 4px 0 8px; direction: ltr; user-select: all; }
-    .copy-pill { background: #059669; color: #fff; border: none; border-radius: 10px; padding: 6px 14px; font-size: 12px; font-weight: 900; cursor: pointer; }
+    .notice { display: none; background: #fef3c7; border: 2px solid #f59e0b; color: #78350f; border-radius: 14px; padding: 11px 13px; margin-bottom: 12px; font-size: 12px; font-weight: 800; line-height: 1.65; text-align: right; }
+    .rip-box { background: #ecfdf5; border: 2px solid #10b981; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .rip-label { font-size: 12px; color: #047857; font-weight: 900; }
+    .rip-val { font-family: monospace; font-size: 17px; font-weight: 900; color: #0f172a; letter-spacing: 0.5px; margin: 6px 0 10px; direction: ltr; user-select: all; background: #fff; padding: 8px; border-radius: 10px; border: 1px solid #a7f3d0; }
+    .ccp-box { background: #fffbeb; border: 2px solid #f59e0b; border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .ccp-val { font-family: monospace; font-size: 14px; font-weight: 900; color: #92400e; direction: ltr; user-select: all; }
+    .ccp-copy { background: #f59e0b; color: #000; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
+    .copy-pill { background: #059669; color: #fff; border: none; border-radius: 10px; padding: 8px 16px; font-size: 12px; font-weight: 900; cursor: pointer; width: 100%; }
+    .steps { text-align: right; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-size: 12px; font-weight: 800; color: #1e293b; line-height: 1.8; }
     .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 16px; border-radius: 16px; font-size: 14px; font-weight: 900; text-decoration: none; margin-bottom: 10px; border: none; cursor: pointer; transition: transform 0.1s; }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: linear-gradient(90deg, #059669, #10b981); color: #fff; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
     .btn-secondary { background: linear-gradient(90deg, #f59e0b, #eab308); color: #000; box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3); }
-    .btn-outline { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px; padding: 11px; }
-    .note { font-size: 11px; color: #475569; background: #f8fafc; border-radius: 12px; padding: 10px; margin-top: 6px; line-height: 1.6; font-weight: 700; border: 1px solid #e2e8f0; }
+    .btn-outline { background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-size: 13px; padding: 12px; }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="badge">🇩🇿 Algérie Poste • BaridiMob الرسمي</div>
-    <h1>فتح تطبيق بريدي موب (BaridiMob)</h1>
-    <p>تم نسخ رقم الـ RIP الرسمي تلقائياً إلى حافظة هاتفك. اختر طريقة الفتح المباشرة:</p>
+    <div class="badge">🇩🇿 Algérie Poste • BaridiMob & CCP</div>
+    <h1>بوابة التحويل — بريدي موب و CCP</h1>
+    <p>تم نسخ رقم الـ RIP الرسمي تلقائياً في حافظة هاتفك!</p>
+
+    <div id="manualNotice" class="notice">
+      ✅ رقم الـ RIP منسوخ في الحافظة! اضغط على الزر الأخضر <b>«فتح تطبيق BaridiMob (اضغط فتح / Ouvrir)»</b>، أو افتح تطبيق <b>BaridiMob</b> مباشرة من شاشة هاتفك والصق الـ RIP في خانة التحويل (Virement RIP).
+    </div>
 
     <div class="rip-box">
-      <div class="rip-label" id="holderLabel">رقم الحساب البريدي الجاري (RIP) — تم نسخه ✓</div>
+      <div class="rip-label" id="holderLabel">✅ رقم الحساب البريدي (RIP) — تم نسخه ✓</div>
       <div class="rip-val" id="ripVal">00799999000122089353</div>
-      <button type="button" class="copy-pill" id="copyBtn" onclick="copyRip()">📋 نسخ الـ RIP مرة أخرى</button>
+      <button type="button" class="copy-pill" id="copyBtn" onclick="copyRip()">📋 نسخ رقم الـ RIP مرة أخرى</button>
     </div>
 
-    <a id="primaryIntentBtn" href="intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end" onclick="copyRip()" class="btn btn-primary">
+    <div class="ccp-box">
+      <div>
+        <span style="font-size:12px;font-weight:900;color:#78350f;">📮 CCP: </span>
+        <span class="ccp-val">1220893 / Clé: 53</span>
+      </div>
+      <button type="button" class="ccp-copy" id="copyCcpBtn" onclick="copyCcp()">نسخ CCP</button>
+    </div>
+
+    <div class="steps">
+      <div>1️⃣ رقم الـ RIP (<b id="ripStep">00799999000122089353</b>) منسوخ الآن في هاتفك.</div>
+      <div>2️⃣ اضغط الزر الأخضر بالأسفل ثم اختر <b>«فتح / Ouvrir»</b> لفتح تطبيق <b>BaridiMob</b> المثبت، أو افتحه من شاشة الهاتف.</div>
+      <div>3️⃣ اختر <b>تحويل (Virement RIP)</b> والصق الرقم، ثم ارفع صورة الوصل في المنصة للشحن الفوري.</div>
+    </div>
+
+    <a id="marketLaunchBtn" href="intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc%26hl%3Dar%26gl%3DDZ;end" onclick="copyRip()" class="btn btn-primary">
       <span>📲</span>
-      <span>فتح تطبيق BaridiMob الآن (اضغط "فتح / Ouvrir")</span>
+      <span>فتح تطبيق BaridiMob (اضغط «فتح / Ouvrir»)</span>
     </a>
 
-    <a id="directPackageBtn" href="intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=ru.bpc.mobilebank.bpc;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end" onclick="copyRip()" class="btn btn-secondary">
+    <a id="directPackageBtn" href="intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=ru.bpc.mobilebank.bpc;end" onclick="copyRip()" class="btn btn-secondary">
       <span>🚀</span>
-      <span>إقلاع مباشر لتطبيق BaridiMob على الهاتف</span>
+      <span>تشغيل مباشر لتطبيق BaridiMob (من الهاتف)</span>
     </a>
 
-    <a href="https://edcarte.poste.dz/" onclick="copyRip()" class="btn btn-outline">
-      🌐 فتح بوابة بريد الجزائر الرسمية (Edcarte Poste)
+    <a id="backBtn" href="./index.html" class="btn btn-outline">
+      ← العودة إلى منصة خدّام ديزاد وإرفاق الوصل 📤
     </a>
-
-    <a href="./index.html" class="btn btn-outline">
-      ← العودة إلى منصة خدّام ديزاد وإرفاق الوصل
-    </a>
-
-    <div class="note">
-      💡 <b>ملاحظة تقنية:</b> تطبيق <b>BaridiMob</b> محمي بنظام أمان بنكي. عند الضغط على الزر الأخضر تفتح نافذة BaridiMob الرسمية في هاتفك — اضغط فيها على <b>"فتح / Ouvrir"</b> ثم الصق الـ RIP المنسوخ.
-    </div>
   </div>
 
   <script>
@@ -63,14 +77,50 @@
     var rip = (params.get('rip') || '00799999000122089353').replace(/\s+/g, '');
     var holder = params.get('holder') || 'KHADAM DZ PLATFORM';
     var ripEl = document.getElementById('ripVal');
+    var ripStepEl = document.getElementById('ripStep');
     var holderEl = document.getElementById('holderLabel');
     if (ripEl) ripEl.textContent = rip;
-    if (holderEl) holderEl.textContent = 'رقم الـ RIP (' + holder + ') — تم نسخه ✓';
+    if (ripStepEl) ripStepEl.textContent = rip;
+    if (holderEl) holderEl.textContent = '✅ رقم الـ RIP (' + holder + ') — تم نسخه ✓';
 
-    function copyRip() {
+    if (params.get('manual') === '1') {
+      var noticeEl = document.getElementById('manualNotice');
+      if (noticeEl) noticeEl.style.display = 'block';
+    }
+
+    var safeSelfFallback = encodeURIComponent(
+      window.location.origin + window.location.pathname + '?rip=' + encodeURIComponent(rip) + '&holder=' + encodeURIComponent(holder) + '&manual=1'
+    );
+    var directBtn = document.getElementById('directPackageBtn');
+    if (directBtn) {
+      directBtn.href = 'intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=ru.bpc.mobilebank.bpc;S.browser_fallback_url=' + safeSelfFallback + ';end';
+    }
+
+    var ua = navigator.userAgent || '';
+    if (/iphone|ipad|ipod/i.test(ua)) {
+      var mBtn = document.getElementById('marketLaunchBtn');
+      if (mBtn) {
+        mBtn.href = 'https://apps.apple.com/dz/app/baridimob/id1481839638';
+      }
+      if (directBtn) {
+        directBtn.href = 'https://apps.apple.com/dz/app/baridimob/id1481839638';
+      }
+    } else if (!/android/i.test(ua)) {
+      var mBtnDesk = document.getElementById('marketLaunchBtn');
+      if (mBtnDesk) {
+        mBtnDesk.href = 'https://play.google.com/store/apps/details?id=ru.bpc.mobilebank.bpc&hl=ar&gl=DZ';
+        mBtnDesk.target = '_blank';
+      }
+      if (directBtn) {
+        directBtn.href = 'https://play.google.com/store/apps/details?id=ru.bpc.mobilebank.bpc&hl=ar&gl=DZ';
+        directBtn.target = '_blank';
+      }
+    }
+
+    function copyString(str) {
       try {
         var ta = document.createElement('textarea');
-        ta.value = rip;
+        ta.value = str;
         ta.style.position = 'fixed';
         ta.style.top = '-9999px';
         document.body.appendChild(ta);
@@ -81,26 +131,24 @@
       } catch (e) {}
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(rip).catch(function(){});
+          navigator.clipboard.writeText(str).catch(function(){});
         }
       } catch (e) {}
+    }
+
+    function copyRip() {
+      copyString(rip);
       var btn = document.getElementById('copyBtn');
-      if (btn) btn.textContent = '✓ تم نسخ الـ RIP بنجاح!';
+      if (btn) btn.textContent = '✓ تم نسخ الـ RIP (' + rip + ') بنجاح!';
+    }
+
+    function copyCcp() {
+      copyString('1220893 Clé 53');
+      var btn = document.getElementById('copyCcpBtn');
+      if (btn) btn.textContent = 'تم النسخ ✓';
     }
 
     copyRip();
-
-    var ua = navigator.userAgent || '';
-    if (/android/i.test(ua)) {
-      var marketIntent = "intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc;end";
-      setTimeout(function() {
-        window.location.href = marketIntent;
-      }, 150);
-    } else if (/iphone|ipad|ipod/i.test(ua)) {
-      var iosUrl = "https://apps.apple.com/dz/app/baridimob/id1481839638";
-      var pBtn = document.getElementById('primaryIntentBtn');
-      if (pBtn) pBtn.href = iosUrl;
-    }
   </script>
 </body>
 </html>

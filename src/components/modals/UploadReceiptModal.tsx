@@ -21,7 +21,12 @@ import { PendingRecharge, ReceiptAnalysisResult } from '../../types';
 import { RECHARGE_PACKAGES, calculatePointsFromAmount } from '../../data/constants';
 import { getKhadamApiBase } from '../../hooks/useKeepAlive';
 
-const BARIDIMOB_EDCARTE_URL = 'https://edcarte.poste.dz/';
+const BARIDIMOB_DIRECT_PLAY_URL =
+  typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+    ? 'intent://details?id=ru.bpc.mobilebank.bpc#Intent;scheme=market;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.vending;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dru.bpc.mobilebank.bpc%26hl%3Dar%26gl%3DDZ;end'
+    : typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    ? 'https://apps.apple.com/dz/app/baridimob/id1481839638'
+    : 'https://play.google.com/store/apps/details?id=ru.bpc.mobilebank.bpc&hl=ar&gl=DZ';
 
 function copyRipSynchronously(ripText = '00799999000122089353'): boolean {
   try {
@@ -473,14 +478,14 @@ export const UploadReceiptModal: React.FC<UploadReceiptModalProps> = ({
                     فتح BaridiMob 📲
                   </a>
                   <a
-                    href={BARIDIMOB_EDCARTE_URL}
+                    href={BARIDIMOB_DIRECT_PLAY_URL}
                     onClick={() => {
                       copyRipSynchronously(officialRip);
                       setRipCopiedBanner(true);
                     }}
                     className="px-2 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-black text-[10px] shrink-0 transition active:scale-95 cursor-pointer no-underline"
                   >
-                    بوابة بريد الجزائر 🌐
+                    تشغيل من المتجر 🚀
                   </a>
                 </div>
               </div>

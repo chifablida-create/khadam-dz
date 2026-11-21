@@ -735,7 +735,7 @@ async function startServer() {
           status: 'online',
           rip: '00799999000122089353',
           accountHolder: 'KHADAM DZ PLATFORM',
-          appPackage: 'dz.poste.baridimob',
+          appPackage: 'ru.bpc.mobilebank.bpc',
           instantVerificationBot: true
         },
         chargily: {
