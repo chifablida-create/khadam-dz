@@ -30,6 +30,19 @@
           "value": "attachment; filename=\"khadam-dz-ameurali-signed.aab\""
         }
       ]
+    },
+    {
+      "source": "/get-12-testers.csv",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/csv; charset=utf-8"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment; filename=\"get-12-testers.csv\""
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -38,7 +51,7 @@
       "destination": "/assets/$1"
     },
     {
-      "source": "/((?!\\.well-known/|sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|khadam-dz-ameurali-signed\\.aab|khadam-dz-release\\.aab|ameurali\\.keystore|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
+      "source": "/((?!\\.well-known/|sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|khadam-dz-ameurali-signed\\.aab|khadam-dz-release\\.aab|ameurali\\.keystore|get-12-testers\\.csv|testers_list\\.csv|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
       "destination": "/index.html"
     }
   ]
