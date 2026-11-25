@@ -17,6 +17,19 @@
           "value": "no-store, max-age=0"
         }
       ]
+    },
+    {
+      "source": "/khadam-dz-ameurali-signed.aab",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment; filename=\"khadam-dz-ameurali-signed.aab\""
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -25,7 +38,7 @@
       "destination": "/assets/$1"
     },
     {
-      "source": "/((?!\\.well-known/|sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
+      "source": "/((?!\\.well-known/|sitemap\\.xml|robots\\.txt|googlea428081754d85133\\.html|manifest\\.json|sw\\.js|baridimob-open\\.html|khadam-dz-ameurali-signed\\.aab|khadam-dz-release\\.aab|ameurali\\.keystore|icon\\.svg|favicon\\.png|pwa-192x192\\.png|pwa-512x512\\.png|apple-touch-icon\\.png|assets/).*)",
       "destination": "/index.html"
     }
   ]
